@@ -8,8 +8,9 @@
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[theorem]
 \newtheorem{lemma}[theorem]{Lemma}
+\newtheorem*{remark}{Remark}
 
-\title{Insert Your Awesome Title Here}
+\title{Proof by Reduction \#1}
 \author{coinstudent2048}
 \date{\today}
 
@@ -20,7 +21,7 @@
 %\begin{abstract}
 %\end{abstract}
 
-\section{Main Thing}
+\section{The Thing}
 \noindent Let $\mathbb{G}$ be a cyclic group of prime order $l>3$ and $\mathbb{F}$ be its scalar field.
 
 \begin{definition}[Discrete Logarithm (DL) Assumption]
@@ -35,10 +36,22 @@ Let $U, G\in\mathbb{G}$ whose DL relationship to each other is unknown. Let $f:\
 Then given $(K, L)\in\mathbb{G}\times\mathbb{G}$, finding (the unique) $f^{-1}(K,L)$ is ``hard''.
 \end{definition}
 
+\begin{definition}\label{negl}
+A function $f:\mathbb{N}\rightarrow\mathbb{R}$ is \textbf{\em negligible} if for every polynomial $p(\cdot)$ there exists an $N\in\mathbb{N}$ such that for all integers $n>N$ it holds that $f(n)<\frac{1}{p(n)}$.
+\end{definition}
+
+\noindent Definition \ref{negl} is copied from Katz \& Lindell. We first prove the following lemma:
+
+\begin{lemma}\label{square}
+If $f:\mathbb{N}\rightarrow\mathbb{R}$ is non-negligible, then $g(n)=f(n)^2$ is non-negligible.
+\end{lemma}
+\begin{proof}
+The non-negligibility of $f$ means that there exists a polynomial $p(\cdot)$ such that for all $N\in\mathbb{N}$, there exists an $n>N$ such that $f(n)\ge\frac{1}{p(n)}$. Let $p_f(\cdot)$ be such polynomial and $n_f$ be such $n>N$. Then setting $p_g(\cdot)=p_f(\cdot)^2$ and $n_g=n_f$ suffices for non-negligibility of $g(n)$ because $f(n_f)\ge\frac{1}{p_f(n)}\Rightarrow f(n_f)^2\ge\big(\frac{1}{p_f(n)}\big)^2$.
+\end{proof}
+
 \begin{theorem}
 DL assumption is hard if and only if OTA assumption is hard.
 \end{theorem}
-(This may be false though, see ``Comment'')
 \begin{proof}
 The proof consists of 2 parts:
     \begin{itemize}
@@ -54,8 +67,9 @@ The proof consists of 2 parts:
 Then perform the same procedure to $B$. Now we have $y_1, y_2\in\mathbb{F}$ such that $U=y_1 A$ and $U=y_2 B$. Hence, $y_1 A = y_2 B \Rightarrow  y_1(1/y_2) A = B$.
     \end{itemize}
 \end{proof}
-\section{Comment}
-\noindent I have doubt on the whole proof, because of the usage of two DL breaks and two OTA breaks. Upon briefly looking on the formal version of ``easy'' and ``hard'' (negligible function), I cannot connect my intuition to it yet.
+\begin{remark}
+Lemma \ref{square} justifies the usage of two DL breaks and two OTA breaks.
+\end{remark}
 
 %\bibliographystyle{plain}
 %\bibliography{main}
