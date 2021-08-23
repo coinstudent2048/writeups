@@ -22,18 +22,10 @@
 %\end{abstract}
 
 \section{The Thing}
-\noindent Let $\mathbb{G}$ be a cyclic group of prime order $l>3$ and $\mathbb{F}$ be its scalar field.
+\noindent Let $\mathbb{G}$ be a cyclic group of prime order $l>3$ and $\mathbb{F}$ be its scalar field. Let $Z\in\mathbb{G}$ be the identity element.
 
 \begin{definition}[Discrete Logarithm (DL) Assumption]
 Let $G, H\in\mathbb{G}$. Then finding (the unique) $x\in\mathbb{F}$ such that $xG=H$ is ``hard''.
-\end{definition}
-
-\begin{definition}[``One-time Address'' (OTA) Assumption]
-Let $U, G\in\mathbb{G}$ whose DL relationship to each other is unknown. Let $f:\mathbb{F}\times\mathbb{F}\rightarrow\mathbb{G}\times\mathbb{G}$ be the following:
-\begin{align*}
-    (k_a, k_b) \mapsto (k_a U + k_b G, (1/k_a)G)
-\end{align*}
-Then given $(K, L)\in\mathbb{G}\times\mathbb{G}$, finding (the unique) $f^{-1}(K,L)$ is ``hard''.
 \end{definition}
 
 \begin{definition}\label{negl}
@@ -42,20 +34,30 @@ A function $f:\mathbb{N}\rightarrow\mathbb{R}$ is \textbf{\em negligible} if for
 
 \noindent Definition \ref{negl} is copied from Katz \& Lindell. We first prove the following lemma:
 
-\begin{lemma}\label{square}
-If $f:\mathbb{N}\rightarrow\mathbb{R}$ is non-negligible, then $g(n)=f(n)^2$ is non-negligible.
+\begin{lemma}\label{negl-exp}
+If $f:\mathbb{N}\rightarrow\mathbb{R}$ is non-negligible, then $g(n)=f(n)^m$ for any $m\in\mathbb{N}$ and $m>1$ is non-negligible.
 \end{lemma}
 \begin{proof}
-The non-negligibility of $f$ means that there exists a polynomial $p(\cdot)$ such that for all $N\in\mathbb{N}$, there exists an $n>N$ such that $f(n)\ge\frac{1}{p(n)}$. Let $p_f(\cdot)$ be such polynomial and $n_f$ be such $n>N$. Then setting $p_g(\cdot)=p_f(\cdot)^2$ and $n_g=n_f$ suffices for non-negligibility of $g(n)$ because $f(n_f)\ge\frac{1}{p_f(n)}\Rightarrow f(n_f)^2\ge\big(\frac{1}{p_f(n)}\big)^2$.
+The non-negligibility of $f$ means that there exists a polynomial $p(\cdot)$ such that for all $N\in\mathbb{N}$, there exists an $n>N$ such that $f(n)\ge\frac{1}{p(n)}$. Let $p_f(\cdot)$ be such polynomial and $n_f$ be such $n>N$. Then setting $p_g(\cdot)=p_f(\cdot)^m$ and $n_g=n_f$ suffices for non-negligibility of $g$ because $f(n_f)\ge\frac{1}{p_f(n)}\Rightarrow f(n_f)^m\ge\big(\frac{1}{p_f(n)}\big)^m$.
 \end{proof}
 
+\noindent Lemma \ref{negl-exp} justifies the usage of finite number of breaks in proof by reduction.
+
+\begin{definition}[``One-time Address'' (OTA) Assumption]
+Let $U, G\in\mathbb{G}$ whose DL relationship to each other is unknown. Let $f:\mathbb{F}\setminus\{0\}\times\mathbb{F}\rightarrow\mathbb{G}\times\mathbb{G}$ be the following:
+\begin{align*}
+    (k_a, k_b) \mapsto (k_a U + k_b G, (1/k_a)G)
+\end{align*}
+Then given $(K, L)\in\mathbb{G}\times\mathbb{G}$, finding (the unique) $f^{-1}(K,L)$ is ``hard''.
+\end{definition}
+
 \begin{theorem}
-DL assumption is hard if and only if OTA assumption is hard.
+OTA assumption holds if and only if DL assumption holds.
 \end{theorem}
 \begin{proof}
 The proof consists of 2 parts:
     \begin{itemize}
-    \item \textit{DL is easy $\Rightarrow$ OTA is easy:} Applying the first DL break on $log_G(L)$ will give $1/k_a$, which will trivially give $k_a$. Then applying the second DL break on $log_G(K - k_a U)$ will give $k_b$.
+    \item \textit{DL is easy $\Rightarrow$ OTA is easy:} Applying the first DL break on $L$ base $G$ will give $1/k_a$, which will trivially give $k_a$. Then applying the second DL break on $K - k_a U$ base $G$ will give $k_b$.
     \item \textit{OTA is easy $\Rightarrow$ DL is easy:} Let $A, B\in\mathbb{G}$ be the group elements to find DL for (without loss of generality, $x\in\mathbb{F}$ such that $xA=B$). Then perform the following procedure on $A$:
         \begin{enumerate}
         \item Applying an OTA break on $(U, A)$ will give $k_a, k_b\in\mathbb{F}$ such that $U = k_a U + k_b G$ and $A = (1/k_a)G$. Hence, $k_a A = G \Rightarrow U = k_a U + k_b (k_a A)$.
@@ -64,13 +66,25 @@ The proof consists of 2 parts:
             y_1 = k_b k_a (1/(1 - k_a)).
         \end{align*}
         \end{enumerate}
-Then perform the same procedure to $B$. Now we have $y_1, y_2\in\mathbb{F}$ such that $U=y_1 A$ and $U=y_2 B$. Hence, $y_1 A = y_2 B \Rightarrow  y_1(1/y_2) A = B$.
+Then perform the same procedure to $B$ (hence another OTA break). Now we have $y_1, y_2\in\mathbb{F}$ such that $U=y_1 A$ and $U=y_2 B$. Hence, $y_1 A = y_2 B \Rightarrow  y_1(1/y_2) A = B$.
     \end{itemize}
 \end{proof}
-\begin{remark}
-Lemma \ref{square} justifies the usage of two DL breaks and two OTA breaks.
-\end{remark}
 
+\begin{definition}[DL ``Vector'' Assumption]
+Let $G_1,\ldots,G_n\in\mathbb{G}$ (with $n>1$) whose DL relationship to each other is unknown. Also let $H\in\mathbb{G}$. Then finding $z_1,\ldots,z_n\in\mathbb{F}$ such that $\exists z_i(z_i \neq 0)$ and $\sum_{i=1}^{n}{z_i G_i}=H$ is ``hard''.
+\end{definition}
+
+\begin{theorem}
+OTA assumption holds if and only if DL Vector assumption holds.
+\end{theorem}
+\begin{proof}
+The proof consists of 2 parts:
+    \begin{itemize}
+    \item \textit{DL is easy $\Rightarrow$ DL Vector is easy:} Set random scalars on $z_2,\ldots,z_n$ so that at least one of them is not zero. Then applying DL break on $H - \sum_{i=2}^{n}{x_i G_i}$ base $G_1$ will give $z_1$.
+    \item \textit{DL Vector is easy $\Rightarrow$ DL is easy:} Set $n=2$. Let $A, B\in\mathbb{G}$ be the group elements to find DL for (without loss of generality, $x\in\mathbb{F}$ such that $xA=B$). Then applying DL Vector break on $G_1=A, G_2=B, H=Z$ will give $z_1, z_2$ such that $z_1 A + z_2 B = Z$. Now we have $z_1 A + z_2 (xA) = Z \Rightarrow z_1 + z_2 x = 0 \Rightarrow x = (-z_1)(1/z_2)$.
+    \end{itemize}
+In fact, both $z_1$ and $z_2$ will never be zero, because if one of them is, then the other should also be zero, contradicting the requirement $\exists z_i(z_i \neq 0)$.
+\end{proof}
 %\bibliographystyle{plain}
 %\bibliography{main}
 \end{document}
