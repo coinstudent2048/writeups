@@ -1,0 +1,59 @@
+\documentclass{article}
+\usepackage[top=1.0in,bottom=1.0in,left=1.0in,right=1.0in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,amsfonts}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{graphicx}
+
+\newtheorem{definition}{Definition}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem*{remark}{Remark}
+
+\title{A Report on Seraphis}
+\author{coinstudent2048}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document contains a concise description of Seraphis \cite{seraphis}, a novel privacy-preserving transaction protocol abstraction, and a security analysis for it.
+\end{abstract}
+
+\section{Preliminaries}
+\subsection{Public Parameters and Notations}
+\noindent Let $\mathbb{G}$ be a cyclic group of prime order $l>3$ in which the Discrete Logarithm assumption (DL) and the Decisional Diffie-Hellman assumption (DDH) holds, and let $\mathbb{F}$ be its scalar field. Let $G_0, G_1, H_0, H_1$ be generators of $\mathbb{G}$ with unknown DL relationship to each other. Note that these generators may be produced using public randomness. Let $\mathcal{H}:\{0,1\}^*\rightarrow\mathbb{F}$ be a cryptographic hash function. We add a subscript to $\mathcal{H}$, such as $\mathcal{H}_1$, in lieu of domain-separating the hash function explicitly; any domain-separation method may be used in practice.
+
+The notation $\leftarrow_R$ will be used to denote for a randomly chosen element, and $(1/x)$ for the modular inverse of $x\in\mathbb{F}$. Lastly, we use additive notation for group operations.
+
+\subsection{E-notes and E-note images}
+\begin{definition}\label{e-note}
+An \textbf{\em e-note} for scalars $k_a^o, k_b^o, a \in\mathbb{F}$ is a tuple $(C, K^o, m)$ such that $C=xH_0+aH_1$ for $x\leftarrow_R\mathbb{F}$, $K^o=k_b^o G_0 + k_a^o G_1$, and $m$ is an arbitrary data.
+\end{definition}
+$C$ is called the \textbf{Amount Commitment} for the amount $a$ with blinding factor $x$, $K^o$ is called the \textbf{One-time Address} for (one-time) private keys $k_a^o$ and $k_b^o$ (the $o$ superscript indicates ``one-time''), and $m$ is the \textbf{Memo field}. We say that someone \textit{owns} an e-note if they know the corresponding scalars $k_a^o, k_b^o, a \in\mathbb{F}$.
+
+\begin{definition}\label{e-note-img}
+An \textbf{\em e-note image} for an e-note $(C, K^o, m)$ is a tuple $(C', K'^o, \tilde{K})$ such that
+\begin{align*}
+C' &= t_c H_o + C \\ &= (t_c+x)H_0 + aH_1 \\ &= v_c H_o + aH_1 \ , \\
+K'^o &= t_k G_0 + K^o \\ &= (t_k + k_b^o) G_0 + k_a^o G_1 \\ &= v_k G_0 + k_a^o G_1 \ ,\ \text{and} \\
+\tilde{K} &= (1/k_a^o)G_0
+\end{align*}
+for $t_c, t_k \leftarrow_R\mathbb{F}$ and independent to each other.
+\end{definition}
+$C'$ is called the \textbf{Masked Amount Commitment}, $K'^o$ is called the \textbf{Masked Address}, and $\tilde{K}$ is called the \textbf{Linking Tag}.
+
+\begin{definition}\label{recv-addr}
+A \textbf{\em receiver address} is a tuple $(K^{DH}, K^v, K^s)$  such that $K^{DH}\in\mathbb{G}$, $K^v = k^v K^{DH}$, and $K^s = k_b^s G_0 + k_a^s G_1$.
+\end{definition}
+$K^{DH}$ is called the \textbf{Diffie-Hellman Base Public Key}, the $v$ superscript indicates ``view'', and the $s$ superscript indicates ``spend''. The reason for the name of $K^{DH}$ will be clear in the next section, while the reason for the names of superscipts is outside the scope of this document. We say that someone \textit{owns} a receiver address if they know the corresponding scalars $k^v, k_a^s, k_b^s \in\mathbb{F}$.
+
+\section{A Seraphis Transaction}
+\noindent Suppose that Alice owns a set of e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$.
+
+\bibliographystyle{plain}
+\bibliography{seraphis}
+\end{document}
