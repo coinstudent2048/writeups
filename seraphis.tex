@@ -57,7 +57,7 @@ We require the use of a symmetric encryption scheme. The Diffie-Hellman base pub
 \section{A Seraphis transaction}
 \noindent This section describes a simplified instance of Seraphis.
 
-Suppose that Alice would send $a_t\in\mathbb{F}$ amount of funds to Bob. Alice owns a set of e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$ with the total amount of $\big(\sum_{i=1}^{n}{a_i}\big)\ge a_t$, all \textit{connected} to a receiver address $(K_{ali}^{DH}, K_{ali}^v, K_{ali}^s)$. This ``connection'' will be elaborated later on. On the other hand, Bob owns a receiver address $(K_{bob}^{DH}, K_{bob}^v, K_{bob}^s)$. For Bob to receive the funds, he will now send his receiver address to Alice. Alice will actually send funds to two addresses: to Bob's and to herself (for the ``change'' $a_c = \sum_{i=1}^{n}{a_i} - a_t$). Hence, Alice must create 2 new e-notes. She starts the transaction by doing the following:
+Suppose that Alice would send $a_t\in\mathbb{F}$ amount of funds to Bob. Alice owns a set of e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$ with a total amount of $\big(\sum_{i=1}^{n}{a_i}\big)\ge a_t$, all \textit{connected} to a receiver address $(K_{ali}^{DH}, K_{ali}^v, K_{ali}^s)$. This ``connection'' will be elaborated later on. On the other hand, Bob owns a receiver address $(K_{bob}^{DH}, K_{bob}^v, K_{bob}^s)$. For Bob to receive the funds, he will now send his receiver address to Alice. Alice will actually send funds to two addresses: to Bob's and to herself (for the ``change'' $a_c = \sum_{i=1}^{n}{a_i} - a_t$). Hence, Alice must create 2 new e-notes. She starts the transaction by doing the following:
 \begin{enumerate}
     \item Generate $r_{ali}, r_{bob}\leftarrow_R\mathbb{F}$ and independent to each other.
     \item Compute $R_{ali} = r_{ali}K_{ali}^{DH}$ and $R_{bob} = r_{bob}K_{bob}^{DH}$, then store $R_{ali}$ and $R_{bob}$ to new (empty) memos $m_{ali}$ and $m_{bob}$, respectively. The name for $K^{DH}$ should now be clear.
@@ -68,12 +68,12 @@ Suppose that Alice would send $a_t\in\mathbb{F}$ amount of funds to Bob. Alice o
 \end{enumerate}
 Alice now has two new e-notes $(C_{ali}, K_{ali}^o, m_{ali})$ and $(C_{bob}, K_{bob}^o, m_{bob})$. These will then be stored to a new (empty) \textit{whole transaction} $T$. Other objects that will be stored to the whole transaction are from proving systems, which are discussed in the next subsections.
 
-On another note, a Seraphis transaction can easily have multiple receivers aside from Bob, which means that Alice will create more than 2 new e-notes. We did not present this more general instance of Seraphis for the sake of simpler security analysis; extending such analysis to those cases must be trivial.
+On another note, a Seraphis transaction can easily have multiple receivers aside from Bob, which means that Alice will create more than 2 new e-notes. We did not present this more general instance of Seraphis for the sake of simpler security analysis; extending such analysis to that case must be trivial.
 
 \subsection{Membership proofs}
 For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
 \begin{enumerate}
-    \item Collect $s-1$ number of random e-notes from the ledger and add her owned $(C_i,K_i^o,m_i)$, for the total of $s$ e-notes. The number $s$ will be called the \textbf{anonymity size}.
+    \item Collect $s-1$ number of random e-notes from the ledger and add her owned $(C_i,K_i^o,m_i)$, for a total of $s$ e-notes. The number $s$ will be called the \textbf{anonymity size}.
     \item For each e-note in the collection (of size $s$), extract only the amount commitment and one-time address like this: $(C_j, K_j^o)$. Then arrange the $s$ e-notes in random positions. Alice now has an array (of length $s$) of pairs: $\mathbb{S}_i = \{(C_j, K_j^o)\}_{j=1}^s$.
     \item Prepare the proof transcripts $\Pi_{\text{mem}, i}$ for a non-interactive proving system for the following relation:
 $$\{(\mathbb{S}_i; \pi\in\mathbb{N}): 1\le\pi\le s \wedge (C_\pi, K_\pi^o) = (C_i, K_i^o) \}$$
@@ -81,8 +81,18 @@ $$\{(\mathbb{S}_i; \pi\in\mathbb{N}): 1\le\pi\le s \wedge (C_\pi, K_\pi^o) = (C_
 \end{enumerate}
 \subsection{Ownership and unspentness proofs}
 For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
-
+\begin{enumerate}
+    \item Generate a \textit{partial} e-note image for $(C_i, K_i^o, m_i)$: ${\tt eimg}_i=(K_i'^o, \tilde{K}_i)$.
+    \item Prepare the proof transcripts $\Pi_{\text{o\&u}, i}$ for a non-interactive proving system for the following relation:
+$$\{(G_0, G_1, K_i'^o, \tilde{K}_i\in\mathbb{G}; v_k, k_a^o\in\mathbb{F}): k_a^o \ne 0 \wedge K_i'^o = v_k G_0 + k_a^o G_1 \wedge \tilde{K}_i = (1/k_a^o)G_0 \}$$
+    \item Append $({\tt eimg}_i, \Pi_{\text{o\&u}, i})$ to $(\mathbb{S}_i, \Pi_{\text{mem}, i})$ in $T$.
+\end{enumerate}
 \subsection{Amount balance proofs}
+For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
+\begin{enumerate}
+    \item Generate a masked amount commitment $C_i'$ for $(C_i, K_i^o, m_i)$ as per definition, \textit{except} for $i=n$. For the case of $i=n$, [insert stuff here].
+    \item Insert $C_i'$ to ${\tt eimg}_i$ in $T$ to complete the e-note image.
+\end{enumerate}
 
 \subsection{Range proofs}
 
@@ -101,6 +111,7 @@ For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must d
     \item \textit{Perfectly Hiding}:
     \item \textit{Computationally Binding}:
 \end{itemize}
+\subsection{Symmetric encryption scheme}
 \subsection{Seraphis security properties}
 \subsection{Theorems}
 
