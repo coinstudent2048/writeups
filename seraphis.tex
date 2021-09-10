@@ -24,16 +24,16 @@ This document contains a concise description of Seraphis \cite{seraphis}, a nove
 \end{abstract}
 
 \section{Preliminaries}
-\subsection{Public Parameters and Notations}
+\subsection{Public parameters and notations}
 \noindent Let $\mathbb{G}$ be a cyclic group of prime order $l>3$ in which the Discrete Logarithm assumption (DL) and the Decisional Diffie-Hellman assumption (DDH) holds, and let $\mathbb{F}$ be its scalar field. Let $G_0, G_1, H_0, H_1$ be generators of $\mathbb{G}$ with unknown DL relationship to each other. Note that these generators may be produced using public randomness. Let $\mathcal{H}:\{0,1\}^*\rightarrow\mathbb{F}$ be a cryptographic hash function. We add a subscript to $\mathcal{H}$, such as $\mathcal{H}_1$, in lieu of domain-separating the hash function explicitly; any domain-separation method may be used in practice.
 
 The notation $\leftarrow_R$ will be used to denote for a randomly chosen element, and $(1/x)$ for the modular inverse of $x\in\mathbb{F}$. Lastly, we use additive notation for group operations.
 
-\subsection{E-notes and E-note images}
+\subsection{E-notes and e-note images}
 \begin{definition}\label{e-note}
 An \textbf{\em e-note} for scalars $k_a^o, k_b^o, a \in\mathbb{F}$ is a tuple $(C, K^o, m)$ such that $C=xH_0+aH_1$ for $x\leftarrow_R\mathbb{F}$, $K^o=k_b^o G_0 + k_a^o G_1$, and $m$ is an arbitrary data.
 \end{definition}
-$C$ is called the \textbf{Amount Commitment} for the amount $a$ with blinding factor $x$, $K^o$ is called the \textbf{One-time Address} for (one-time) private keys $k_a^o$ and $k_b^o$ (the $o$ superscript indicates ``one-time''), and $m$ is the \textbf{Memo field}. We say that someone \textit{owns} an e-note if they know the corresponding scalars $k_a^o, k_b^o, a \in\mathbb{F}$.
+$C$ is called the \textbf{amount commitment} for the amount $a$ with blinding factor $x$, $K^o$ is called the \textbf{one-time address} for (one-time) private keys $k_a^o$ and $k_b^o$ (the $o$ superscript indicates ``one-time''), and $m$ is the \textbf{memo field}. We say that someone \textit{owns} an e-note if they know the corresponding scalars $k_a^o, k_b^o, a \in\mathbb{F}$.
 
 \begin{definition}\label{e-note-img}
 An \textbf{\em e-note image} for an e-note $(C, K^o, m)$ is a tuple $(C', K'^o, \tilde{K})$ such that
@@ -44,15 +44,41 @@ K'^o &= t_k G_0 + K^o \\ &= (t_k + k_b^o) G_0 + k_a^o G_1 \\ &= v_k G_0 + k_a^o 
 \end{align*}
 for $t_c, t_k \leftarrow_R\mathbb{F}$ and independent to each other.
 \end{definition}
-$C'$ is called the \textbf{Masked Amount Commitment}, $K'^o$ is called the \textbf{Masked Address}, and $\tilde{K}$ is called the \textbf{Linking Tag}.
+$C'$ is called the \textbf{masked amount commitment}, $K'^o$ is called the \textbf{masked address}, and $\tilde{K}$ is called the \textbf{linking tag}.
 
 \begin{definition}\label{recv-addr}
 A \textbf{\em receiver address} is a tuple $(K^{DH}, K^v, K^s)$  such that $K^{DH}\in\mathbb{G}$, $K^v = k^v K^{DH}$, and $K^s = k_b^s G_0 + k_a^s G_1$.
 \end{definition}
-$K^{DH}$ is called the \textbf{Diffie-Hellman Base Public Key}, the $v$ superscript indicates ``view'', and the $s$ superscript indicates ``spend''. The reason for the name of $K^{DH}$ will be clear in the next section, while the reason for the names of superscipts is outside the scope of this document. We say that someone \textit{owns} a receiver address if they know the corresponding scalars $k^v, k_a^s, k_b^s \in\mathbb{F}$.
+$K^{DH}$ is called the \textbf{Diffie-Hellman base public key}, the $v$ superscript indicates ``view'', and the $s$ superscript indicates ``spend''. The reason for the name of $K^{DH}$ will be clear in the next section, while the reason for the names of superscripts is outside the scope of this document. We say that someone \textit{owns} a receiver address if they know the corresponding scalars $k^v, k_a^s, k_b^s \in\mathbb{F}$.
 
-\section{A Seraphis Transaction}
-\noindent Suppose that Alice owns a set of e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$.
+\subsection{Symmetric encryption scheme}
+We require the use of a symmetric encryption scheme. The Diffie-Hellman base public key enables shared secrets between the sender and the receiver. We denote the encryption and decryption of data $x$ with key $k$ as $\text{\tt enc}[k](x)$ and $\text{\tt dec}[k](x)$, respectively. We put overlines (e.g. $\overline{x}$) to indicate encrypted data.
+
+\section{A Seraphis transaction}
+\noindent The following is a simplified instance of Seraphis:
+
+Suppose that Alice would send $a_t\in\mathbb{F}$ amount of funds to Bob. Alice owns a set of e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$ with the total amount of $\big(\sum_{i=1}^{n}{a_i}\big)\ge a_t$, all \textit{connected} to a receiver address $(K_{ali}^{DH}, K_{ali}^v, K_{ali}^s)$. This ``connection'' will be elaborated later on. On the other hand, Bob owns a receiver address $(K_{bob}^{DH}, K_{bob}^v, K_{bob}^s)$. For Bob to receive the funds, he will now send his receiver address to Alice. Alice will actually send funds to two addresses: to Bob's and to herself (for the ``change'' $a_c = \sum_{i=1}^{n}{a_i} - a_t$). Hence, Alice must create 2 new e-notes. She starts the transaction by doing the following:
+\begin{enumerate}
+    \item Generate $r_{ali}, r_{bob}\leftarrow_R\mathbb{F}$ and independent to each other.
+    \item Compute $R_{ali} = r_{ali}K_{ali}^{DH}$ and $R_{bob} = r_{bob}K_{bob}^{DH}$, then store $R_{ali}$ and $R_{bob}$ to new (empty) memos $m_{ali}$ and $m_{bob}$, respectively. The name for $K^{DH}$ should now be clear.
+    \item Compute the sender-receiver shared secrets $q_{ali} = \mathcal{H}_1(r_{ali}K_{ali}^{v})$ and $q_{bob} = \mathcal{H}_1(r_{bob}K_{bob}^{v})$.
+    \item Compute the one-time addresses $K_{ali}^{o} = \mathcal{H}_2(q_{ali})G_1 + K_{ali}^s$ and $K_{bob}^{o} = \mathcal{H}_2(q_{bob})G_1 + K_{bob}^s$. It is easy to see that $\mathcal{H}_2(q_{ali})$ and $\mathcal{H}_2(q_{ali})$ are uniformly randomly generated in the random oracle model.
+    \item Compute the amount commitments $C_{ali} = \mathcal{H}_3(q_{ali})H_0 + a_t H_1$ and $C_{bob} = \mathcal{H}_3(q_{bob})H_0 + a_t H_1$. It is easy to see that the blinding factors $\mathcal{H}_3(q_{ali})$ and $\mathcal{H}_3(q_{bob})$ are uniformly randomly generated in the random oracle model.
+    \item Encrypt the amounts: $\overline{a_c} = \text{\tt enc}[q_{ali}](a_c)$ and $\overline{a_t} = \text{\tt enc}[q_{ali}](a_t)$, and store $\overline{a_c}$ and $\overline{a_t}$ to memos $m_{ali}$ and $m_{bob}$, respectively.
+\end{enumerate}
+Alice now has two new e-notes $(C_{ali}, K_{ali}^o, m_{ali})$ and $(C_{bob}, K_{bob}^o, m_{bob})$. These will then be stored to their respective new (empty) \textit{whole transactions} $T_{ali}$ and $T_{bob}$. Other objects that will be stored to the whole transactions are from proving systems, which are discussed in the next subsections.
+
+\subsection{Membership proofs}
+
+\subsection{Ownership and unspentness proofs}
+
+\subsection{Amount balance proofs}
+
+\subsection{Range proofs}
+
+\subsection{Receipt}
+
+\section{Security Analysis}
 
 \bibliographystyle{plain}
 \bibliography{seraphis}
