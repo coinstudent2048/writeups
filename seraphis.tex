@@ -66,7 +66,7 @@ Suppose that Alice would send $a_t\in\mathbb{F}$ amount of funds to Bob. Alice o
 \end{enumerate}
 Alice now has two new e-notes: ${\tt enote}_{ali} = (C_{ali}, K_{ali}^o, m_{ali})$ and ${\tt enote}_{bob} = (C_{bob}, K_{bob}^o, m_{bob})$. These will then be stored to a new (empty) \textit{whole transaction} $T$. Other objects that will be stored to the whole transaction are from proving systems, which are discussed in the next subsections.
 
-On another note, a Seraphis transaction can easily have multiple receivers aside from Bob, which implies that Alice will create more than 2 new e-notes. We did not present this more general instance of Seraphis for the sake of simpler security analysis; extending such analysis to that case must be easy to carry out.
+On another note, a Seraphis transaction can easily have multiple receivers aside from Bob, which implies that Alice will create more than 2 new e-notes. We did not present this more general instance of Seraphis for the sake of simpler security analysis; extending such analysis to that case must be easy to carry out (see \ref{sec-notes}).
 
 \subsection{Ownership and unspentness proofs}
 For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
@@ -92,7 +92,7 @@ The generation of $v_{c,n}$ is as such so that the Verifier can verify the amoun
 For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
 \begin{enumerate}
     \item Collect $s-1$ number of random e-notes from the ledger and add her owned $(C_i,K_i^o,m_i)$, for a total of $s$ e-notes. The number $s$ is called the \textbf{anonymity size}.
-    \item For each e-note in the collection (of size $s$), extract only the amount commitment and one-time address like this: $(C_j, K_j^o)$. Then arrange the $s$ e-notes in random positions. Alice now has an array (of length $s$) of pairs: $\mathbb{S}_i = \{(C_j, K_j^o)\}_{j=1}^s$.
+    \item For each e-note in the collection (of size $s$), extract only the amount commitment and one-time address like this: $(C_j, K_j^o)$. Then arrange the $s$ e-notes in random positions. Alice now has an array (of length $s$) of pairs: $\mathbb{S}_i = \{(C_j, K_j^o)\}_{j=1}^s$, which is called the \textbf{ring}. Its elements $(C_j, K_j^o)$ are called the \textbf{ring members}. 
     \item Prepare the proof transcripts $\Pi_{\text{mem}, i}$ for a non-interactive proving system for the following relation:
 $$\{(G_0, H_0, C_i', K_i'^o \in\mathbb{G}, \mathbb{S}_i\subset\mathbb{G}^2; \pi\in\mathbb{N}, t_c, t_k\in\mathbb{F}): 1\le\pi\le s \wedge C_i' - C_\pi = t_c H_0 \wedge K_i'^o - K_\pi^o = t_k G_0 \}$$
     \item Append $(\mathbb{S}_i, \Pi_{\text{mem}, i})$ to $({\tt enimg}_i, \Pi_{\text{o\&u}, i})$ in $T$.
@@ -102,7 +102,7 @@ $$\{(G_0, H_0, C_i', K_i'^o \in\mathbb{G}, \mathbb{S}_i\subset\mathbb{G}^2; \pi\
 For the new e-notes ${\tt enote}_{ali}$ and ${\tt enote}_{bob}$, Alice must do the following:
 \begin{enumerate}
     \item Prepare the respective proof transcripts $\Pi_{\text{ran}, ali}$ and $\Pi_{\text{ran}, bob}$ for a non-interactive proving system for the following relation:
-$$\{(H_0, H_1, C \in\mathbb{G}; x, a\in\mathbb{F}): C = x H_0 + a H_1 \wedge 0\le a \le a_{max}\}$$
+$$\{(H_0, H_1, C \in\mathbb{G}, a_{max}\in\mathbb{F}; x, a\in\mathbb{F}): C = x H_0 + a H_1 \wedge 0\le a \le a_{max}\}$$
     \item Store $\Pi_{\text{ran}, ali}$ and $\Pi_{\text{ran}, bob}$ to $T$.
 \end{enumerate}
 
@@ -118,18 +118,18 @@ $$T=({\tt enote}_{ali}, {\tt enote}_{bob}, \Pi_{\text{ran}, ali}, \Pi_{\text{ran
     \item Compute the nominal amount commitment: $C_{nom} = \mathcal{H}_3(q_{nom})H_0 + a H_1$. If $C_{nom} \ne C$, then the e-note is malformed and cannot be spent.
     \item Compute the nomimal linking tag: $\tilde{K}_{nom} = (1/(k_{a, bob}^s + \mathcal{H}_2(q_{nom})))G_0$. If he finds a copy of $\tilde{K}_{nom}$ in the ledger, then the e-note has already been spent.
 \end{enumerate}
-If an e-note $(C, K^o, m)$ is connected to Bob's receiver address, then he knows the corresponding scalars of that e-note: $(k_a^o, k_b^o, a) = (k_{a, bob}^s + \mathcal{H}_2(q_{nom}), k_{b, bob}^s, a)$. Hence, ``connection'' implies e-note ownership. The transaction is complete for Bob.
+If an e-note $(C, K^o, m)$ is connected to Bob's receiver address, then he knows the corresponding scalars of that e-note: $(k_a^o, k_b^o, a, x) = (k_{a, bob}^s + \mathcal{H}_2(q_{nom}), k_{b, bob}^s, a, \mathcal{H}_3(q_{nom}))$. Hence, ``connection'' implies e-note ownership. The transaction is complete for Bob.
 
 For Alice to receive the ``change'' e-note, she must do the same above steps. After that, the transcation is complete for Alice. This finishes a Seraphis trancation.
 
 \section{Security analysis}
-\subsection{Zero-knowledge arguments of knowledge}
+\subsection{Zero-knowledge proofs}
 \begin{itemize}
     \item \textit{Perfectly Complete}:
     \item \textit{Special Sound}:
     \item \textit{Special Honest Verifier Zero-Knowledge}:
 \end{itemize}
-Fiat-Shamir heuristic \cite{fiat-shamir} transforms sigma protocols with the above properties into non-interactive zero-knowledge arguments of knowledge (NIZKAoKs) in the random oracle model. We now assume that the proving systems for Ownership and Unspentness proofs, and Range proofs are NIZKAoKs.
+Fiat-Shamir heuristic \cite{fiat-shamir} transforms sigma protocols with the above properties into non-interactive zero-knowledge proofs (NIZKPs) in the random oracle model. We require that the proving systems for Ownership and Unspentness proofs, and Range proofs are NIZKPs.
 \subsection{Membership proof security properties}
 \begin{itemize}
     \item \textit{Correctness}:
@@ -142,8 +142,17 @@ Fiat-Shamir heuristic \cite{fiat-shamir} transforms sigma protocols with the abo
     \item \textit{Computationally Binding}:
 \end{itemize}
 \subsection{Symmetric encryption scheme}
+\noindent \textit{IND-CCA2}
 \subsection{Seraphis security properties}
+\noindent From Omniring
+\begin{itemize}
+    \item \textit{Correctness}:
+    \item \textit{Balance}:
+    \item \textit{Privacy}:
+    \item \textit{Non-slanderability}:
+\end{itemize}
 \subsection{Theorems}
+\subsection{Notes}\label{sec-notes}
 
 \bibliographystyle{plain}
 \bibliography{seraphis}
