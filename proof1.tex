@@ -39,7 +39,7 @@ A function $f:\mathbb{N}\rightarrow\mathbb{R}$ is \textbf{\em negligible} if for
 If $f:\mathbb{N}\rightarrow\mathbb{R}$ is non-negligible, then $g(n)=f(n)^m$ for any $m\in\mathbb{N}$ and $m>1$ is non-negligible.
 \end{lemma}
 \begin{proof}
-The non-negligibility of $f$ means that there exists a polynomial $p(\cdot)$ such that for all $N\in\mathbb{N}$, there exists an $n>N$ such that $f(n)\ge\frac{1}{p(n)}$. Let $p_f(\cdot)$ be such polynomial and $n_f$ be such $n>N$. Then setting $p_g(\cdot)=p_f(\cdot)^m$ and $n_g=n_f$ suffices for non-negligibility of $g$ because $f(n_f)\ge\frac{1}{p_f(n)}\Rightarrow f(n_f)^m\ge\big(\frac{1}{p_f(n)}\big)^m$.
+The non-negligibility of $f$ means that there exists a polynomial $p(\cdot)$ such that for all $N\in\mathbb{N}$, there exists an $n>N$ such that $f(n)\ge\frac{1}{p(n)}$. Let $p_f(\cdot)$ be such polynomial and $n_f$ be such $n>N$. Then setting $p_g(\cdot)=p_f(\cdot)^m$ and $n_g=n_f$ suffices for non-negligibility of $g$ because $f(n_f)\ge\frac{1}{p_f(n_f)}\Rightarrow f(n_f)^m\ge\big(\frac{1}{p_f(n_f)}\big)^m$.
 \end{proof}
 
 \noindent Lemma \ref{negl-exp} justifies the usage of finite number of breaks in proof by reduction.

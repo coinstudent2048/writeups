@@ -20,34 +20,36 @@
 \maketitle
 
 \begin{abstract}
-This document contains a concise description of Seraphis \cite{seraphis}, a novel privacy-preserving transaction protocol abstraction, and a security analysis for it.
+This document contains a concise description of Seraphis \cite{seraphis}, a novel privacy-preserving transaction protocol abstraction, and its security model. This document will also serve as a suggestion to the organization of the contents of the final Seraphis paper.
 \end{abstract}
+
+\section{Introduction}
 
 \section{Preliminaries}
 \subsection{Public parameters and notations}
-\noindent Let $\mathbb{G}$ be a prime order group where the Discrete Logarithm (DL) problem is hard and the Decisional Diffie-Hellman assumption (DDH) holds, and let $\mathbb{F}$ be its scalar field. Let $G_0, G_1, H_0, H_1$ be generators of $\mathbb{G}$ with unknown DL relationship to each other. Note that these generators may be produced using public randomness. Let $\mathcal{H}:\{0,1\}^*\rightarrow\mathbb{F}$ be a cryptographic hash function. We add a subscript to $\mathcal{H}$, such as $\mathcal{H}_1$, in lieu of domain-separating the hash function explicitly; any domain-separation method may be used in practice.
+\noindent Let $\mathbb{G}$ be a prime order group where the Discrete Logarithm (DL) problem is hard and the Decisional Diffie-Hellman assumption (DDH) holds, and let $\mathbb{F}$ be its scalar field. Let $G, H, U$ be generators of $\mathbb{G}$ with unknown DL relationship to each other. Note that these generators may be produced using public randomness. Let $\mathcal{H}:\{0,1\}^*\rightarrow\mathbb{F}$ be a cryptographic hash function. We add a subscript to $\mathcal{H}$, such as $\mathcal{H}_1$, in lieu of domain-separating the hash function explicitly; any domain-separation method may be used in practice.
 
 The notation $\leftarrow_R$ will be used to denote for a uniformly randomly chosen element, and $(1/x)$ for the modular inverse of $x\in\mathbb{F}$. Lastly, we use additive notation for group operations.
 
 \subsection{E-notes and e-note images}
 \begin{definition}\label{e-note}
-An \textbf{\em e-note} for scalars $k_a^o, k_b^o, a \in\mathbb{F}$ is a tuple $(C, K^o, m)$ such that $C = x H_0 + a H_1$ for $x\leftarrow_R\mathbb{F}$, $K^o=k_b^o G_0 + k_a^o G_1$, and $m$ is an arbitrary data.
+An \textbf{\em e-note} for scalars $k_a^o, k_b^o, a \in\mathbb{F}$ is a tuple $(C, K^o, m)$ such that $C = x G + a H$ for $x\leftarrow_R\mathbb{F}$, $K^o=k_b^o G + k_a^o U$, and $m$ is an arbitrary data.
 \end{definition}
 $C$ is called the \textbf{amount commitment} for the amount $a$ with blinding factor $x$, $K^o$ is called the \textbf{one-time address} for (one-time) private keys $k_a^o$ and $k_b^o$ (the $o$ superscript indicates ``one-time''), and $m$ is the \textbf{memo field}. We say that someone \textit{owns} an e-note if they know the corresponding scalars $k_a^o, k_b^o, a, x \in\mathbb{F}$.
 
 \begin{definition}\label{e-note-img}
 An \textbf{\em e-note image} for an e-note $(C, K^o, m)$ is a tuple $(C', K'^o, \tilde{K})$ such that
 \begin{align*}
-C' &= t_c H_o + C \\ &= (t_c+x)H_0 + aH_1 \\ &= v_c H_o + aH_1 \ , \\
-K'^o &= t_k G_0 + K^o \\ &= (t_k + k_b^o) G_0 + k_a^o G_1 \\ &= v_k G_0 + k_a^o G_1 \ ,\ \text{and} \\
-\tilde{K} &= (1/k_a^o)G_0
+C' &= t_c G + C \\ &= (t_c+x)G + aH \\ &= v_c G + aH \ , \\
+K'^o &= t_k G + K^o \\ &= (t_k + k_b^o) G + k_a^o U \\ &= v_k G + k_a^o U \ ,\ \text{and} \\
+\tilde{K} &= (1/k_a^o)G
 \end{align*}
 for $t_c, t_k \leftarrow_R\mathbb{F}$ and independent to each other.
 \end{definition}
 $C'$ is called the \textbf{masked amount commitment}, $K'^o$ is called the \textbf{masked address}, and $\tilde{K}$ is called the \textbf{linking tag}.
 
 \begin{definition}\label{recv-addr}
-A \textbf{\em receiver address} is a tuple $(K^{dh}, K^v, K^s)$  such that $K^{dh}\in\mathbb{G}$, $K^v = k^v K^{dh}$, and $K^s = k_b^s G_0 + k_a^s G_1$.
+A \textbf{\em receiver address} is a tuple $(K^{dh}, K^v, K^s)$  such that $K^{dh}\in\mathbb{G}$, $K^v = k^v K^{dh}$, and $K^s = k_b^s G + k_a^s U$.
 \end{definition}
 $K^{dh}$ is called the \textbf{Diffie-Hellman base public key}, the $v$ superscript indicates ``view'', and the $s$ superscript indicates ``spend''. The reason for the name of $K^{dh}$ will be clear in the next section, while the reason for the names of superscripts is outside the scope of this document. We say that someone \textit{owns} a receiver address if they know the corresponding scalars $k^v, k_a^s, k_b^s \in\mathbb{F}$.
 
@@ -60,49 +62,57 @@ Suppose that Alice would send $a_t\in\mathbb{F}$ amount of funds to Bob. Alice o
     \item Generate $r_{ali}, r_{bob}\leftarrow_R\mathbb{F}$ and independent to each other.
     \item Compute $R_{ali} = r_{ali}K_{ali}^{dh}$ and $R_{bob} = r_{bob}K_{bob}^{dh}$, then store $R_{ali}$ and $R_{bob}$ to new (empty) memos $m_{ali}$ and $m_{bob}$, respectively. The name for $K^{dh}$ should now be clear.
     \item Compute the sender-receiver shared secrets $q_{ali} = \mathcal{H}_1(r_{ali}K_{ali}^{v})$ and $q_{bob} = \mathcal{H}_1(r_{bob}K_{bob}^{v})$.
-    \item Compute the one-time addresses $K_{ali}^{o} = \mathcal{H}_2(q_{ali})G_1 + K_{ali}^s$ and $K_{bob}^{o} = \mathcal{H}_2(q_{bob})G_1 + K_{bob}^s$. It is easy to see that $\mathcal{H}_2(q_{ali})$ and $\mathcal{H}_2(q_{ali})$ are uniformly random in the random oracle model.
-    \item Compute the amount commitments $C_{ali} = \mathcal{H}_3(q_{ali})H_0 + a_c H_1$ and $C_{bob} = \mathcal{H}_3(q_{bob})H_0 + a_t H_1$. It is easy to see that the blinding factors $\mathcal{H}_3(q_{ali})$ and $\mathcal{H}_3(q_{bob})$ are uniformly random in the random oracle model.
+    \item Compute the one-time addresses $K_{ali}^{o} = \mathcal{H}_2(q_{ali})U + K_{ali}^s$ and $K_{bob}^{o} = \mathcal{H}_2(q_{bob})U + K_{bob}^s$. It is easy to see that $\mathcal{H}_2(q_{ali})$ and $\mathcal{H}_2(q_{ali})$ are uniformly random in the random oracle model.
+    \item Compute the amount commitments $C_{ali} = \mathcal{H}_3(q_{ali})G + a_c H$ and $C_{bob} = \mathcal{H}_3(q_{bob})G + a_t H$. It is easy to see that the blinding factors $\mathcal{H}_3(q_{ali})$ and $\mathcal{H}_3(q_{bob})$ are uniformly random in the random oracle model.
     \item Encrypt the amounts: $\overline{a_c} = {\tt enc}[q_{ali}](a_c)$ and $\overline{a_t} = {\tt enc}[q_{ali}](a_t)$, and store $\overline{a_c}$ and $\overline{a_t}$ to memos $m_{ali}$ and $m_{bob}$, respectively.
 \end{enumerate}
-Alice now has two new e-notes: ${\tt enote}_{ali} = (C_{ali}, K_{ali}^o, m_{ali})$ and ${\tt enote}_{bob} = (C_{bob}, K_{bob}^o, m_{bob})$. These will then be stored to a new (empty) \textit{whole transaction} $T$. Other objects that will be stored to the whole transaction are from proving systems, which are discussed in the next subsections.
+Alice now has two new e-notes: ${\tt enote}_{ali} = (C_{ali}, K_{ali}^o, m_{ali})$ and ${\tt enote}_{bob} = (C_{bob}, K_{bob}^o, m_{bob})$. These will then be stored to a new (empty) \textit{whole transaction} $T$. Other objects that will be stored to the whole transaction are from proving systems, which can be executed in \textit{any} order. Proving systems are discussed in the next subsections.
 
-On another note, a Seraphis transaction can easily have multiple receivers aside from Bob, which implies that Alice will create more than 2 new e-notes. We did not present this more general instance of Seraphis for the sake of simpler security analysis; extending such analysis to that case must be easy to carry out (see \ref{sec-notes}).
+For specific instances of Seraphis, there might be changes in some parts of the above steps, and by reflection, in some parts of the Receipt. Here are some notable changes:
+\begin{itemize}
+\item For some addressing schemes (see Section \ref{addr-scheme}), the input to $\mathcal{H}_2$, the input to $\mathcal{H}_3$, and the key for both ${\tt enc}$ and ${\tt dec}$ may be constructed differently and different to each other. Nevertheless, these inputs and key must still be sender-receiver shared secrets.
+\item A Seraphis transaction can easily have multiple receivers aside from Bob, which implies that Alice will create more than 2 new e-notes. See Section \ref{sec-disc} for a discussion of how this affects the security model.
+\item A Seraphis transaction can be collaboratively constructed by multiple players. This is the subject of the so-called ``proof dependency'' (see Section \ref{proof-dep}). Also see Section \ref{sec-disc} for a discussion of how this affects the security model.
+\end{itemize}
 
 \subsection{Ownership and unspentness proofs}
 For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
 \begin{enumerate}
-    \item Generate a \textit{partial} e-note image for $(C_i, K_i^o, m_i)$: ${\tt enimg}_i=(K_i'^o, \tilde{K}_i)$.
+    \item If the masked address $K_i'^o$ is already in the e-note image ${\tt enimg}_i$ in $T$, then go to next step. Else generate $K_i'^o$ from $(C_i, K_i^o, m_i)$ as per definition, and insert it to ${\tt enimg}_i$ in $T$.
+    \item If the linking tag $\tilde{K}_i$ is already in ${\tt enimg}_i$ in $T$, then go to next step. Else generate $\tilde{K}_i$ from $(C_i, K_i^o, m_i)$ as per definition, and insert it to ${\tt enimg}_i$ in $T$.
     \item Prepare the proof transcripts $\Pi_{\text{o\&u}, i}$ for a non-interactive proving system for the following relation:
-$$\{(G_0, G_1, K_i'^o, \tilde{K}_i\in\mathbb{G}; v_k, k_a^o\in\mathbb{F}): k_a^o \ne 0 \wedge K_i'^o = v_k G_0 + k_a^o G_1 \wedge \tilde{K}_i = (1/k_a^o)G_0 \}$$
-    \item Store $({\tt enimg}_i, \Pi_{\text{o\&u}, i})$ to $T$.
+$$\{(G, U, K_i'^o, \tilde{K}_i\in\mathbb{G}; v_k, k_a^o\in\mathbb{F}): k_a^o \ne 0 \wedge K_i'^o = v_k G + k_a^o U \wedge \tilde{K}_i = (1/k_a^o)G \}$$
+    \item Append $\Pi_{\text{o\&u}, i}$ to $({\tt enimg}_i, \ldots)$ in $T$.
 \end{enumerate}
 Aside from verifying the proof transcripts, the Verifier must confirm that the linking tags do not yet appear in the ledger.
 
-\subsection{Amount balance}
+\subsection{Amount balance}\label{amt-bal}
 For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
 \begin{enumerate}
-    \item Generate the masked amount commitment $C_i'$ for $(C_i, K_i^o, m_i)$ as per definition, \textit{except} for $i=n$. For the case of $i=n$, set
+    \item If the masked amount commitment $C_i'$ is already in ${\tt enimg}_i$ in $T$, then exit this subsection. Else generate $C_i'$ from $(C_i, K_i^o, m_i)$ as per definition, \textit{except} for $i=n$. For the case of $i=n$, set
     $$v_{c,n} = \mathcal{H}_3(q_{ali}) + \mathcal{H}_3(q_{bob}) - \sum_{i=1}^{n-1}{v_{c,i}}.$$
     Note that the value of $v_{c,n}$ is still uniformly random because the values of $t_{c,i}$ for $i\in\{1,\ldots,n-1\}$ are uniformly random.
-    \item Insert $C_i'$ to ${\tt enimg}_i$ in $T$ to complete the e-note image.
+    \item Insert $C_i'$ to ${\tt enimg}_i$ in $T$.
 \end{enumerate}
 The generation of $v_{c,n}$ is as such so that the Verifier can verify the amount balance $\sum_{i=1}^n{C_i'}=C_{ali}+C_{bob}$.
 
 \subsection{Membership proofs}
 For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
 \begin{enumerate}
+    \item If the masked amount commitment $C_i'$ is already in ${\tt enimg}_i$ in $T$, then go to next step. Else generate $C_i'$ from $(C_i, K_i^o, m_i)$ exactly like in Step 1 of Section \ref{amt-bal}, and insert it to ${\tt enimg}_i$ in $T$.
+    \item If the masked address $K_i'^o$ is already in ${\tt enimg}_i$ in $T$, then go to next step. Else generate $K_i'^o$ from $(C_i, K_i^o, m_i)$ as per definition, and insert it to ${\tt enimg}_i$ in $T$.
     \item Collect $s-1$ number of random e-notes from the ledger and add her owned $(C_i,K_i^o,m_i)$, for a total of $s$ e-notes. The number $s$ is called the \textbf{anonymity size}.
     \item For each e-note in the collection (of size $s$), extract only the amount commitment and one-time address like this: $(C_j, K_j^o)$. Then arrange the $s$ e-notes in random positions. Alice now has an array (of length $s$) of pairs: $\mathbb{S}_i = \{(C_j, K_j^o)\}_{j=1}^s$, which is called the \textbf{ring}. Its elements $(C_j, K_j^o)$ are called the \textbf{ring members}. 
     \item Prepare the proof transcripts $\Pi_{\text{mem}, i}$ for a non-interactive proving system for the following relation:
-$$\{(G_0, H_0, C_i', K_i'^o \in\mathbb{G}, \mathbb{S}_i\subset\mathbb{G}^2; \pi\in\mathbb{N}, t_c, t_k\in\mathbb{F}): 1\le\pi\le s \wedge C_i' - C_\pi = t_c H_0 \wedge K_i'^o - K_\pi^o = t_k G_0 \}$$
-    \item Append $(\mathbb{S}_i, \Pi_{\text{mem}, i})$ to $({\tt enimg}_i, \Pi_{\text{o\&u}, i})$ in $T$.
+$$\{(G, G, C_i', K_i'^o \in\mathbb{G}, \mathbb{S}_i\subset\mathbb{G}^2; \pi\in\mathbb{N}, t_c, t_k\in\mathbb{F}): 1\le\pi\le s \wedge C_i' - C_\pi = t_c G \wedge K_i'^o - K_\pi^o = t_k G \}$$
+    \item Append $(\mathbb{S}_i, \Pi_{\text{mem}, i})$ to $({\tt enimg}_i, \ldots)$ in $T$.
 \end{enumerate}
 
 \subsection{Range proofs}
 For the new e-notes ${\tt enote}_{ali}$ and ${\tt enote}_{bob}$, Alice must do the following:
 \begin{enumerate}
     \item Prepare the respective proof transcripts $\Pi_{\text{ran}, ali}$ and $\Pi_{\text{ran}, bob}$ for a non-interactive proving system for the following relation:
-$$\{(H_0, H_1, C \in\mathbb{G}, a_{max}\in\mathbb{F}; x, a\in\mathbb{F}): C = x H_0 + a H_1 \wedge 0\le a \le a_{max}\}$$
+$$\{(G, H, C \in\mathbb{G}, a_{max}\in\mathbb{F}; x, a\in\mathbb{F}): C = x G + a H \wedge 0\le a \le a_{max}\}$$
     \item Store $\Pi_{\text{ran}, ali}$ and $\Pi_{\text{ran}, bob}$ to $T$.
 \end{enumerate}
 
@@ -113,17 +123,28 @@ $$T=({\tt enote}_{ali}, {\tt enote}_{bob}, \Pi_{\text{ran}, ali}, \Pi_{\text{ran
 \begin{enumerate}
     \item Get a new e-note $(C, K^o, m)$ in $T$. Note that $m$ contains $(R, \overline{a})$ (see the beginning of Section 2).
     \item Compute the nominal sender-receiver shared secret: $q_{nom} = \mathcal{H}_1(k_{bob}^v R)$.
-    \item Compute the nominal spend public key: $K_{nom}^s = K^o - \mathcal{H}_2(q_{nom})G_1$. If $K_{nom}^s = K_{bob}^s$, then the e-note is \textit{connected} to Bob's receiver address, and proceed to the next step (this is the ``connection'' hinted at the beginning of Section 2).  Otherwise (if not equal), the e-note is not connected, and hence go to Step 1.
+    \item Compute the nominal spend public key: $K_{nom}^s = K^o - \mathcal{H}_2(q_{nom})U$. If $K_{nom}^s = K_{bob}^s$, then the e-note is \textit{connected} to Bob's receiver address, and proceed to the next step (this is the ``connection'' hinted at the beginning of Section 2).  Otherwise (if not equal), the e-note is not connected, and hence go to Step 1.
     \item Decrypt the amount: $a = {\tt dec}[q_{nom}](\overline a)$.
-    \item Compute the nominal amount commitment: $C_{nom} = \mathcal{H}_3(q_{nom})H_0 + a H_1$. If $C_{nom} \ne C$, then the e-note is malformed and cannot be spent.
-    \item Compute the nomimal linking tag: $\tilde{K}_{nom} = (1/(k_{a, bob}^s + \mathcal{H}_2(q_{nom})))G_0$. If he finds a copy of $\tilde{K}_{nom}$ in the ledger, then the e-note has already been spent.
+    \item Compute the nominal amount commitment: $C_{nom} = \mathcal{H}_3(q_{nom})G + a H$. If $C_{nom} \ne C$, then the e-note is malformed and cannot be spent.
+    \item Compute the nominal linking tag: $\tilde{K}_{nom} = (1/(k_{a, bob}^s + \mathcal{H}_2(q_{nom})))G$. If he finds a copy of $\tilde{K}_{nom}$ in the ledger, then the e-note has already been spent.
 \end{enumerate}
 If an e-note $(C, K^o, m)$ is connected to Bob's receiver address, then he knows the corresponding scalars of that e-note: $(k_a^o, k_b^o, a, x) = (k_{a, bob}^s + \mathcal{H}_2(q_{nom}), k_{b, bob}^s, a, \mathcal{H}_3(q_{nom}))$. Hence, ``connection'' implies e-note ownership. The transaction is complete for Bob.
 
 For Alice to receive the ``change'' e-note, she must do the same above steps. After that, the transcation is complete for Alice. This finishes a Seraphis trancation.
 
-\section{Security analysis}
-\subsection{Zero-knowledge proofs}
+\section{Instantiations}\label{inst}
+\subsection{Proving systems}
+\subsection{Addressing schemes}\label{addr-scheme}
+\subsection{Multisignature operations}
+\subsection{Proof dependency}\label{proof-dep}
+\subsection{Squashed e-note model}
+\subsection{?????}
+
+\section{Security model}
+\noindent For a start, we assume that the distributed ledger is immutable. Therefore, the adversary in our analysis will never be able to modify transactions already stored in the ledger. This ledger immutability can be actualized through, for instance, the Nakamoto consensus protocol \cite{bitcoin}.
+
+Sections \ref{ZKP} to \ref{Symm} outline the required security properties of the cryptographic components for Seraphis, then Section \ref{sec-thm} is the main security analysis of Seraphis, and Section \ref{sec-disc} discusses how some instantiations (see Section \ref{inst}) affect the security analysis.
+\subsection{Zero-knowledge proofs}\label{ZKP}
 \begin{itemize}
     \item \textit{Perfectly Complete}:
     \item \textit{Special Sound}:
@@ -141,9 +162,9 @@ Fiat-Shamir heuristic \cite{fiat-shamir} transforms sigma protocols with the abo
     \item \textit{Perfectly Hiding}:
     \item \textit{Computationally Binding}:
 \end{itemize}
-\subsection{Symmetric encryption scheme}
+\subsection{Symmetric encryption scheme}\label{Symm}
 \noindent \textit{IND-CCA2}
-\subsection{Seraphis security properties}
+\subsection{Seraphis security properties}\label{sec-thm}
 \noindent From Omniring
 \begin{itemize}
     \item \textit{Correctness}:
@@ -151,9 +172,19 @@ Fiat-Shamir heuristic \cite{fiat-shamir} transforms sigma protocols with the abo
     \item \textit{Privacy}:
     \item \textit{Non-slanderability}:
 \end{itemize}
-\subsection{Theorems}
-\subsection{Notes}\label{sec-notes}
+\noindent Insert theorems here...
+\subsection{Discussions}\label{sec-disc}
+
+\section{Efficiency}
+
+\section*{Acknowledgements}
 
 \bibliographystyle{plain}
 \bibliography{seraphis}
+
+\appendix
+\section{Composition proving system}
+\section{Security proofs for Seraphis}
+\section{?????}
+
 \end{document}
