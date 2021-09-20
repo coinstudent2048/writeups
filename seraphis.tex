@@ -34,7 +34,7 @@ Lelantus Spark
 
 \section{Preliminaries}
 \subsection{Public parameters}
-Let $\lambda$ be the security parameter. Let $\mathbb{G}$ be a prime order group based on $\lambda$ where the Discrete Logarithm (DL), Computational Diffie-Hellman (CDH), and Decisional Diffie-Hellman (DDH) problems are hard, and let $\mathbb{F}$ be its scalar field. Let $G, H, U$ be generators of $\mathbb{G}$ with unknown DL relationship to each other. Note that these generators may be produced using public randomness. Let $\mathcal{H}:\{0,1\}^*\rightarrow\mathbb{F}$ be a cryptographic hash function. We add a subscript to $\mathcal{H}$, such as $\mathcal{H}_1$, in lieu of domain-separating the hash function explicitly; any domain-separation method may be used in practice.
+Let $\lambda$ be the security parameter. Let $\mathbb{G}$ be a prime order group based on $\lambda$ where the Discrete Logarithm (DL), Computational Diffie-Hellman (CDH), and Decisional Diffie-Hellman (DDH) problems are hard, and let $\mathbb{F}$ be its scalar field. Let $G, H, U$ be generators of $\mathbb{G}$ with unknown DL relationship to each other. Note that these generators may be produced using public randomness. Let $a_{max}\in\mathbb{F}$ be the maximum amount value. Let $\mathcal{H}:\{0,1\}^*\rightarrow\mathbb{F}$ be a cryptographic hash function. We add a subscript to $\mathcal{H}$, such as $\mathcal{H}_1$, in lieu of domain-separating the hash function explicitly; any domain-separation method may be used in practice. All these public parameters are collected as $pp$, and we now define the setup algorithm: $pp\leftarrow\textsf{Setup}(1^{\lambda})$. $\textsf{Setup}$ is implicitly executed by all players involved in the beginning, hence it can be omitted in protocol descriptions.
 
 The notation $\xleftarrow{\$}$ will be used to denote for a uniformly randomly chosen element, and $(1/x)$ for the modular inverse of $x\in\mathbb{F}$. Lastly, we use additive notation for group operations.
 
@@ -61,7 +61,7 @@ A \textbf{\em receiver address} is a tuple $(K^{dh}, K^v, K^s)$  such that $K^{d
 $K^{dh}$ is called the \textbf{Diffie-Hellman base public key}, the $v$ superscript indicates ``view'', and the $s$ superscript indicates ``spend''. The reason for the name of $K^{dh}$ will be clear in the next subsection, while the reason for the names of superscripts will be discussed in the addressing schemes (Subsection \ref{addr-scheme}). We say that someone \textit{owns} a receiver address if they know the corresponding scalars $k^v, k_a^s, k_b^s \in\mathbb{F}$.
 
 \subsection{Symmetric encryption scheme}
-We require the use of a symmetric encryption scheme. The Diffie-Hellman base public key enables shared secrets between the sender and the receiver. We denote the encryption and decryption of data $x$ with key $k$ as ${\tt enc}[k](x)$ and ${\tt dec}[k](x)$, respectively. We put overlines (e.g. $\overline{x}$) to indicate encrypted data.
+We require the use of a symmetric encryption scheme. The Diffie-Hellman base public key enables shared secrets between the sender and the receiver, which can be used to produce the key for encryption. We denote the encryption and decryption of data $x$ with key $k$ as ${\tt enc}[k](x)$ and ${\tt dec}[k](x)$, respectively. We put overlines (e.g. $\overline{x}$) to indicate encrypted data.
 
 \section{A Seraphis transaction}\label{ser-tx}
 We now describe a simple Seraphis transaction. This will be used as the basis for further instantiations and modifications (Section \ref{inst}) and for the security model (Section \ref{sec}).
@@ -156,37 +156,96 @@ There are a number of details to consider when implementing Seraphis in a real c
 \section{Security model}\label{sec}
 For a start, we assume that the distributed ledger is immutable. Therefore, the adversary in our analysis will never be able to modify transactions already stored in the ledger. This ledger immutability can be actualized through, for instance, the Nakamoto consensus protocol \cite{bitcoin}.
 
-Subsections \ref{ZKP} to \ref{Symm} outline the required security properties of the cryptographic components for Seraphis, then Subsection \ref{sec-thm} is the main security analysis of Seraphis, and Subsection \ref{sec-disc} discusses how some instantiations and modifications described in Section \ref{inst} affect the security analysis.
+Subsections \ref{ZKP} to \ref{Comm} outline the required security properties of the cryptographic components for Seraphis, then Subsection \ref{sec-thm} is the main security analysis of Seraphis, and Subsection \ref{sec-disc} discusses how some instantiations and modifications described in Section \ref{inst} affect the security analysis.
+
 \subsection{Zero-knowledge proofs}\label{ZKP}
 \begin{itemize}
     \item \textit{Completeness}:
     \item \textit{Special Soundness}:
     \item \textit{Special Honest Verifier Zero-Knowledge}:
 \end{itemize}
-Fiat-Shamir heuristic \cite{fiat-shamir} transforms sigma protocols with the above properties into non-interactive zero-knowledge proofs (NIZKPs) in the random oracle model. We require that the proving systems for Ownership and Unspentness proofs, and Range proofs are NIZKPs.
+Fiat-Shamir heuristic \cite{fiat-shamir} transforms sigma protocols with the above properties into non-interactive zero-knowledge proofs (NIZKPs) in the random oracle model. We require that the proving systems for Ownership and Unspentness proofs, and Range proofs are NIZKPs constructed through Fiat-Shamir heuristic.
+
+\subsection{Symmetric encryption scheme}
+We require that the symmetric encryption scheme has the following properties: indistinguishable against chosen-plaintext attack (IND-CPA), indistinguishable against adaptive chosen-ciphertext attack (IND-CCA2), and key-private under chosen-ciphertext attacks (IK-CCA).
+
 \subsection{Membership proof security properties}
 \begin{itemize}
     \item \textit{Completeness}:
     \item \textit{Unforgeability}:
     \item \textit{Anonymity}:
 \end{itemize}
-\subsection{Peterson commitments}
-\begin{itemize}
-    \item \textit{Perfectly Hiding}:
-    \item \textit{Computationally Binding}:
-\end{itemize}
-\subsection{Symmetric encryption scheme}\label{Symm}
-IND-CCA2
-\subsection{Seraphis security properties}\label{sec-thm}
-From Omniring \cite{omniring}
 
-Completeness: This property immediately follows from the completeness properties of the cryptographic components and by inspection of the protocol description.
-\begin{itemize}
-    \item \textit{Balance}:
-    \item \textit{Privacy}:
-    \item \textit{Non-slanderability}:
-\end{itemize}
-\noindent Insert theorems here...
+\subsection{Commitment schemes}\label{Comm}
+
+We define a commitment scheme as a tuple $(\textsf{Setup}, \textsf{Comm})$. $\textsf{Setup}$ is the setup algorithm: $pp\leftarrow\textsf{Setup}(1^{\lambda})$, and $\textsf{Comm}:\mathcal{M}\times{\chi}\rightarrow\mathcal{C}$ is the $\textit{commitment function}$, where $\mathcal{M}$ is the message space, $\chi$ is the randomness space, and $\mathcal{C}$ is the commitment space. Note that $\mathcal{M}, \chi$ and $\mathcal{C}$ are all constructed from $pp$.
+To commit to a message $m \in M$, the sender selects $r\xleftarrow{\$}\chi$ and computes the commitment $C = \textsf{Comm}(m; r)$. We define the required security properties of commitment schemes.
+
+\begin{definition}[Hiding Property]
+A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is hiding if for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+\begin{align*}
+\left| \frac{1}{2} - \emph{\textsf{Pr}}\left[
+\begin{array}{c|c}
+    \begin{gathered}
+        b' = b
+    \end{gathered}
+    &
+    \begin{gathered}
+        pp\leftarrow\textsf{Setup}(1^{\lambda}); (m_0, m_1)\leftarrow\mathcal{A}(pp); \\
+        b\xleftarrow{\$}\{0,1\}; r \xleftarrow{\$}\chi; \\
+        C = \emph{\textsf{Comm}}(m_b; r); b'\leftarrow\mathcal{A}(C)
+    \end{gathered}
+\end{array}
+\right]\right|
+\le \emph{\textsf{negl}}(\lambda).
+\end{align*}
+\end{definition}
+
+\begin{definition}[Binding Property]
+A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is binding if for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+\begin{align*}
+\emph{\textsf{Pr}}
+\left[
+\begin{array}{c|c}
+    \begin{gathered}
+         \emph{\textsf{Comm}}(m_0;r_0) \\
+        = \emph{\textsf{Comm}}(m_1;r_1) \\
+        \wedge\ m_0 \ne m_1
+    \end{gathered}
+    &
+    \begin{gathered}
+        pp\leftarrow\textsf{Setup}(1^{\lambda}); \\
+        (m_0,m_1,r_0,r_1)\leftarrow\mathcal{A}(pp)
+    \end{gathered}
+\end{array}
+\right]
+\le \emph{\textsf{negl}}(\lambda).
+\end{align*}
+\end{definition}
+\subsection{Seraphis security properties}\label{sec-thm}
+The required security properties are those in Omniring's security model \cite{omniring}, with modifications to fit Seraphis. The Omniring paper presents a rigorous formalization of RingCT constructions, providing precision for security analysis against several realistic attacks. Proofs for the theorems are found in Section \ref{proofs}.
+
+We first define commitment functions $\textsf{CommAmount}:\mathbb{F}\times\mathbb{F}\rightarrow\mathbb{G}$ and $\textsf{CommTag}:\mathbb{F}\setminus\{0\}\times\mathbb{F}\rightarrow\mathbb{G}\times\mathbb{G}$ to be needed later on, as follows:
+\begin{align*}
+\textsf{CommAmount}(a; x) &= x G + a H \ , \ x\xleftarrow{\$}\mathbb{F} \\
+\textsf{CommTag}(k_a, k_b) &= (k_b G + k_a U, (1/k_a)G).
+\end{align*}
+
+The first security property is \textit{Completeness} (called \textit{Correctness} in Omniring), which means that if an e-note appears on the ledger, then the user owning it can honestly generate a \textit{valid} transaction spending it. Seraphis satisfying completeness immediately follows from the completeness properties of the cryptographic components and by inspection of the protocol description.
+
+Next we consider the \textit{Balance} security property, which means that...
+
+\begin{definition}[Balance]
+Seraphis is balanced if it satisfies the following two conditions:
+\begin{enumerate}
+\item Both $(\emph{\textsf{Setup}},\emph{\textsf{CommAmount}})$ and $(\emph{\textsf{Setup}},\emph{\textsf{CommTag}})$ are binding.
+\end{enumerate}
+\end{definition}
+
+\noindent Privacy
+
+\noindent Non-slanderability
+
 \subsection{Discussions}\label{sec-disc}
 
 \section{Efficiency}
@@ -197,8 +256,10 @@ Completeness: This property immediately follows from the completeness properties
 \bibliography{seraphis}
 
 \appendix
-\section{Composition proving system}
-\section{Security proofs for Seraphis}
+\section{Composition proving system}\label{comp-prov}
+
+\section{Security proofs for Seraphis}\label{proofs}
+
 \section{?????}
 
 \end{document}
