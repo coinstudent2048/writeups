@@ -22,12 +22,10 @@
 %\begin{abstract}
 %\end{abstract}
 
-\section{The Thing}
-\noindent Let $\mathbb{G}$ be a cyclic group of prime order $l>3$ and $\mathbb{F}$ be its scalar field. Let $Z\in\mathbb{G}$ be the identity element.
+%\section{The Thing}
+\noindent Let Let $\lambda$ be the security parameter. Let $\textsf{Setup}$ be the setup algorithm: $(\mathbb{G}, \mathbb{F})\leftarrow\textsf{Setup}(1^{\lambda})$, where $\mathbb{G}$ is a cyclic group of prime order and $\mathbb{F}$ is its scalar field. Let $Z\in\mathbb{G}$ be the identity element.
 
-\begin{definition}[Discrete Logarithm (DL) Assumption]
-Let $G, H\in\mathbb{G}$. Then finding (the unique) $x\in\mathbb{F}$ such that $xG=H$ is ``hard''.
-\end{definition}
+The notation $\xleftarrow{\$}$ will be used to denote for a uniformly randomly chosen element, and $(1/x)$ for the modular inverse of $x\in\mathbb{F}$. Lastly, we use additive notation for group operations.
 
 \begin{definition}\label{negl}
 A function $f:\mathbb{N}\rightarrow\mathbb{R}$ is \textbf{\em negligible} if for every polynomial $p(\cdot)$ there exists an $N\in\mathbb{N}$ such that for all integers $n>N$ it holds that $f(n)<\frac{1}{p(n)}$.
@@ -44,12 +42,43 @@ The non-negligibility of $f$ means that there exists a polynomial $p(\cdot)$ suc
 
 \noindent Lemma \ref{negl-exp} justifies the usage of finite number of breaks in proof by reduction.
 
-\begin{definition}[``One-time Address'' (OTA) Assumption]
-Let $U, G\in\mathbb{G}$ whose DL relationship to each other is unknown. Let $f:\mathbb{F}\setminus\{0\}\times\mathbb{F}\rightarrow\mathbb{G}\times\mathbb{G}$ be the following:
+\begin{definition}[Discrete Logarithm (DL) Assumption]
+DL assumption holds relative to $\emph{\textsf{Setup}}$ if for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
 \begin{align*}
-    (k_a, k_b) \mapsto (k_a U + k_b G, (1/k_a)G)
+\emph{\textsf{Pr}}\left[
+\begin{array}{c|c}
+    \begin{gathered}
+        H = xG
+    \end{gathered}
+    &
+    \begin{gathered}
+        (\mathbb{G}, \mathbb{F})\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); G,H\xleftarrow{\$}\mathbb{G}; \\
+        x\in\mathbb{F}\leftarrow\mathcal{A}(\mathbb{G}, \mathbb{F}, G, H) \\
+    \end{gathered}
+\end{array}
+\right]
+\le \emph{\textsf{negl}}(\lambda).
 \end{align*}
-Then given $(K, L)\in\mathbb{G}\times\mathbb{G}$, finding (the unique) $f^{-1}(K,L)$ is ``hard''.
+\end{definition}
+
+\begin{definition}[``One-time Address'' (OTA) Assumption]
+OTA assumption holds relative to $\emph{\textsf{Setup}}$ if for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+\begin{align*}
+\emph{\textsf{Pr}}\left[
+\begin{array}{c|c}
+    \begin{gathered}
+        C_1 = k_a U + k_b G \\
+        \wedge\ C_2 = (1/k_a)G
+    \end{gathered}
+    &
+    \begin{gathered}
+        (\mathbb{G}, \mathbb{F})\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); U,G,C_1,C_2\xleftarrow{\$}\mathbb{G}; \\
+        k_a, k_b\in\mathbb{F}\leftarrow\mathcal{A}(\mathbb{G}, \mathbb{F}, U, G, C_1, C_2) \\
+    \end{gathered}
+\end{array}
+\right]
+\le \emph{\textsf{negl}}(\lambda).
+\end{align*}
 \end{definition}
 
 \begin{theorem}
@@ -72,8 +101,25 @@ Then perform the same procedure on $B$ (hence another OTA break). Now we have $y
 This completes the proof.
 \end{proof}
 
-\begin{definition}[DL ``Vector'' Assumption]
-Let $G_1,\ldots,G_n\in\mathbb{G}$ (with $n>1$) whose DL relationship to each other is unknown. Also let $H\in\mathbb{G}$. Then finding $z_1,\ldots,z_n\in\mathbb{F}$ such that $\exists z_i(z_i \neq 0)$ and $\sum_{i=1}^{n}{z_i G_i}=H$ is ``hard''.
+\begin{definition}[DL ``Vector'' Assumption]\label{vector}
+DL Vector assumption holds relative to $\emph{\textsf{Setup}}$ if for all $n>1$ and for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+\begin{align*}
+\emph{\textsf{Pr}}\left[
+\begin{array}{c|c}
+    \begin{gathered}
+        \exists z_i(z_i \neq 0), i\in\{1, \ldots, n\} \\
+        \wedge\ \sum_{i=1}^{n}{z_i G_i}=H
+    \end{gathered}
+    &
+    \begin{gathered}
+        (\mathbb{G}, \mathbb{F})\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); \\
+        G_1,\ldots, G_n, H\xleftarrow{\$}\mathbb{G}; \\
+        z_1, \ldots, z_n\in\mathbb{F}\leftarrow\mathcal{A}(\mathbb{G}, \mathbb{F}, G_1, \ldots, G_n, H) \\
+    \end{gathered}
+\end{array}
+\right]
+\le \emph{\textsf{negl}}(\lambda).
+\end{align*}
 \end{definition}
 
 \begin{theorem}
@@ -83,7 +129,7 @@ DL Vector assumption holds if and only if DL assumption holds.
 The proof consists of 2 parts:
 \begin{itemize}
     \item \textit{DL is easy $\Rightarrow$ DL Vector is easy:} Set random scalars on $z_2,\ldots,z_n$ so that at least one of them is not zero. Then applying DL break on $H - \sum_{i=2}^{n}{z_i G_i}$ base $G_1$ will give $z_1$.
-    \item \textit{DL Vector is easy $\Rightarrow$ DL is easy:} Set $n=2$. Let $A, B\in\mathbb{G}$ (both not equal to $Z$) be the group elements to find DL for (without loss of generality, $x\in\mathbb{F}$ such that $xA=B$). Then applying a DL Vector break on $G_1=A, G_2=B, H=Z$ will give $z_1, z_2$ such that $z_1 A + z_2 B = Z$. Now we have $z_1 A + z_2 (xA) = Z \Rightarrow z_1 + z_2 x = 0 \Rightarrow x = (-z_1)(1/z_2)$.
+    \item \textit{DL Vector is easy $\Rightarrow$ DL is easy:} Assume that there exists an $n>1$ such that finding $z_1,\ldots,z_n\in\mathbb{F}$ satisfying the properties in Definition \ref{vector} is ``easy''. Let $A, B\in\mathbb{G}$ (both not equal to $Z$) be the group elements to find DL for (without loss of generality, $x\in\mathbb{F}$ such that $xA=B$). Then applying a DL Vector break on $G_1=A, G_2=B, G_3=\ldots=G_n=A, H=Z$ will give $z_1, z_2$ such that $z_1 A + z_2 B = Z$. Now we have $z_1 A + z_2 (xA) = Z \Rightarrow z_1 + z_2 x = 0 \Rightarrow x = (-z_1)(1/z_2)$.
 
 Note that both $z_1$ and $z_2$ will never be zero, because if one of them is, then the other should also be zero, contradicting the requirement $\exists z_i(z_i \neq 0)$.
 \end{itemize}
