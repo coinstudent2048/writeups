@@ -97,7 +97,7 @@ $$\{(G, X, U, K_i'^o, \tilde{K}_i\in\mathbb{G}; t_{k,i}, k_{a,i}^o, k_{b,i}^o\in
 \end{enumerate}
 Aside from verifying the proof transcripts, the Verifier must confirm that the linking tags do not yet appear in the ledger.
 
-The required security properties for application to Seraphis are described in Section \ref{ZKP}. We describe our recommended composition proving system in Appendix \ref{comp-prov}, and provide proof that it satisfies the required security requirements.
+The required security properties for application to Seraphis are described in Section \ref{ZKP}. Unlike what's presented above, we recommend a composition proving system in which instead of one $\Pi_{\text{o\&u}, i}$ per $i$, Alice only needs to produce one proof transcript for all $i$'s. We present this in Appendix \ref{comp-prov}, and provide proof that it satisfies the required security requirements.
 
 \subsection{Amount balance}\label{amt-bal}
 For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
@@ -163,6 +163,8 @@ There are a number of details to consider when implementing Seraphis in a real c
 \section{Security model}\label{sec}
 For a start, we assume that the distributed ledger is immutable. Therefore, the adversary in our analysis will never be able to modify transactions already stored in the ledger. This ledger immutability can be actualized through, for instance, the Nakamoto consensus protocol \cite{bitcoin}.
 
+
+
 Subsections \ref{ZKP} to \ref{Comm} outline the required security properties of the cryptographic components for Seraphis, then Subsection \ref{sec-thm} is the main security analysis of Seraphis, and Subsection \ref{sec-disc} discusses how some instantiations and modifications described in Section \ref{inst} affect the security analysis.
 
 \subsection{Zero-knowledge proofs}\label{ZKP}
@@ -170,9 +172,9 @@ We require some proving systems to be used in Seraphis to be zero-knowledge. Sta
 \begin{itemize}
     \item \textit{Perfect Completeness}: If the prover knows a witness to the statement, she should always be able to generate a proof for that statement that convinces the verifier.
     \item \textit{Special Soundness}: If the prover does not know a witness to the statement, she should never be able to generate a proof for that statement that convinces the verifier. This is formalized by saying that there exists an \textit{witness extractor} that has an ability to ``rewind time'' and make the prover answer several different challenges. From the valid (by verifier) answers of the prover, it should be possible for the witness extractor to extract a witness.
-    \item \textit{Perfect Special Honest Verifier Zero-Knowledge}: The protocol should not reveal anything about the prover’s witness. This is formalized by saying that assuming that challenges are honestly generated, there exists a \textit{simulator} such that even without knowledge of a witness, the probability distribution of the simulator's simulated transcripts (all data being sent and received in the protocol) is equal to the probability distribution of actual transcripts by a prover and a verifier.
+    \item \textit{Perfect Special Honest Verifier Zero-Knowledge}: The protocol should not reveal anything about the prover’s witness. This is formalized by saying that assuming that challenges are honestly generated, there exists a \textit{simulator} such that even without knowledge of a witness, the probability distribution of the simulator's valid (by verifier) transcripts (all data being sent and received in the protocol) is equal to the probability distribution of actual valid transcripts by a prover and a verifier.
 \end{itemize}
-Fiat-Shamir heuristic \cite{fiat-shamir} transforms interactive proving systems with the above properties into non-interactive zero-knowledge proofs (NIZKPs) in the random oracle model. We require that the proving systems for Ownership and Unspentness proofs, and Range proofs are NIZKPs constructed through Fiat-Shamir heuristic.
+Fiat-Shamir heuristic \cite{fiat-shamir} transforms interactive proving systems with the above properties into non-interactive (full) zero-knowledge proofs (NIZKPs) in the random oracle model. We require that the proving systems for Ownership and Unspentness proofs, and Range proofs are NIZKPs constructed through Fiat-Shamir heuristic.
 \subsection{Authenticated symmetric encryption scheme}\label{sec-symm}
 We require that the authenticated symmetric encryption scheme has the following properties: indistinguishable against chosen-plaintext attack (IND-CPA), indistinguishable against adaptive chosen-ciphertext attack (IND-CCA2), and key-private under chosen-ciphertext attacks (IK-CCA). \textbf{Todo: Need to study this!}
 
@@ -238,13 +240,13 @@ We first define commitment functions $\textsf{CommAmount}:\mathbb{F}\times\mathb
 \textsf{CommAmount}(a; x) &= x G + a H \ , \ x\xleftarrow{\$}\mathbb{F}\ \text{if}\ x\ \text{is not specified.} \\
 \textsf{CommTag}(t_k, k_a, k_b) &= (t_k G + k_a X + k_b U, (k_b/k_a)U).
 \end{align*}
-$\textsf{CommAmount}$ corresponds to the structure of amount commitment $C$, while $\textsf{CommTag}$ corresponds to the combination of structures of one-time address $K^o$ (if $t_k=0$) or masked address $K'^o$, and linking tag $\tilde{K}$.
+$\textsf{CommAmount}$ corresponds to the structure of amount commitment $C$, while $\textsf{CommTag}$ corresponds to the combination of structures of masked address $K'^o$ and linking tag $\tilde{K}$.
 
 The first security property is \textbf{Completeness} (called \textit{Correctness} in Omniring), which means that if an e-note appears on the ledger, then the user owning it can honestly generate a valid (by verifier) transaction spending it. Seraphis satisfying completeness immediately follows from the completeness properties of the cryptographic components and by inspection of the protocol description.
 
 Next we consider the \textbf{Balance} property, which means that a spender adversary should never be able to spend more amounts than he truly owns, hence preventing double-spending. Balance property has two subproperties: the first involves the binding property. $\textsf{CommAmount}$ is binding means that the spender adversary should not be able to change the e-note amounts when spending the e-notes he owns, while $\textsf{CommTag}$ is binding means that the spender adversary should not be able to make a new linking tag from an e-note he already spent, which is an attempt of double-spending the e-note.
 
-The second subproperty involves an experiment $\textsf{BAL}(\mathcal{A}, \mathcal{E}_{\mathcal{A}}, 1^{\lambda})$ between a $\textsf{PPT}$ spender adversary $\mathcal{A}$ and a witness extractor $ \mathcal{E}_{\mathcal{A}}$. $\mathcal{A}$ succeeds in the experiment (i.e. $\textsf{BAL}(\mathcal{A}, \mathcal{E}_{\mathcal{A}}, 1^{\lambda})=1$) if he managed to generate a valid (by verifier) transaction such that the amounts, linking tags, private keys, etc. are \textit{not all equal} to the data extracted by $\mathcal{E}_{\mathcal{A}}$. Now the second subproperty means that Seraphis must be ``special sound.'' Moreover, if $\mathcal{A}$ succeeds in the experiment, then it is guaranteed that he broke the binding properties of $\textsf{CommAmount}$ or $\textsf{CommTag}$.
+The second subproperty involves an experiment $\textsf{BAL}(\mathcal{A}, \mathcal{E}_{\mathcal{A}}, 1^{\lambda})$ between a $\textsf{PPT}$ spender adversary $\mathcal{A}$ and a witness extractor $ \mathcal{E}_{\mathcal{A}}$. $\mathcal{A}$ succeeds in the experiment (i.e. $\textsf{BAL}(\mathcal{A}, \mathcal{E}_{\mathcal{A}}, 1^{\lambda})=1$) if he managed to generate a valid transaction such that all private information related to amounts like the amounts themselves, discrete log of linking tags, spent e-note private keys, etc. are \textit{not all equal} to the data extracted by $\mathcal{E}_{\mathcal{A}}$. Now the two subproperties combined says that if $\mathcal{A}$ succeeds in the experiment, then it is guaranteed that he broke the binding properties of $\textsf{CommAmount}$ or $\textsf{CommTag}$.
 
 \begin{figure}[htbp]
 \centering
@@ -260,7 +262,7 @@ The second subproperty involves an experiment $\textsf{BAL}(\mathcal{A}, \mathca
 \item $b_2:=1$ if for all $i\in\{1,\ldots,n\}$, $\textsf{CommAmount}(t_{c,i}; 0) = C_i' - C_{\pi_i}$ in $T$, else $:=0$.
 \item $b_3:=1$ if for all $i\in\{1,\ldots,n\}$, $\textsf{CommAmount}(t_{k,i}; 0) = K_i'^o - K_{\pi_i}^o$ in $T$, else $:=0$.
 \item $b_4:=1$ if for all $i\in\{1,\ldots,n\}$, $\textsf{CommTag}(t_{k,i}, k_{a,i}^o, k_{b,i}^o) = (K_i'^o, \tilde{K}_i)$ in $T$, else $:=0$.
-\item $b_5:=1$ if $\sum_{i=1}^n{a_{\mathcal{A}, i}}\ge a_{\mathcal{B}}$ where $a_{\mathcal{A}, i}$ is the total amount of $i$th spent e-note and $a_{\mathcal{B}}$ is the amount received by ${\tt addr}_{\mathcal{B}}$, else $:=0$.
+\item $b_5:=1$ if $\sum_{i=1}^n{a_{\mathcal{A}, i}}\ge a_{\mathcal{B}}$ where $a_{\mathcal{A}, i}$ is the amount of $i$th spent e-note and $a_{\mathcal{B}}$ is the amount received by ${\tt addr}_{\mathcal{B}}$, else $:=0$.
 \item Return $b_0 \wedge \neg(b_1 \wedge b_2 \wedge b_3 \wedge b_4 \wedge b_5)$.
 \end{itemize}
 \end{minipage}}
@@ -287,9 +289,63 @@ where $\emph{\textsf{BAL}}$ is described in Figure \ref{exp-bal}.
 If Ownership and Unspentness proofs are special sound, Range proofs are special sound, and Membership proofs are unforgeable, then Seraphis is balanced.  
 \end{theorem}
 
-\noindent Privacy
+Next we consider the \textbf{Privacy} property, which means that an adversary should never be able to detect the spender, receiver, and amounts in any transaction, hence providing sender and receiver anonymity, and confidential transfer of amounts. Privacy property involves an experiment $\textsf{PRV}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. The adversay $\mathcal{A}$ succeeds in the experiment (i.e. $\textsf{PRV}(\mathcal{A}, 1^{\lambda})=1$) if
 
-\noindent Non-slanderability
+\begin{figure}[htbp]
+\centering
+\fbox{\begin{minipage}{0.85\textwidth}
+\underline{$\textsf{PRV}(\mathcal{A}, 1^{\lambda})$}
+\begin{itemize}
+\item $pp\leftarrow\textsf{Setup}(1^{\lambda})$.
+\item $\mathcal{A}$ is provided $k_v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ in the ledger which are connected to that address, and a receiver's address ${\tt addr}_{\mathcal{B}} = (K_{\mathcal{B}}^{dh}, K_{\mathcal{B}}^v, K_{\mathcal{B}}^s)$.
+\item $b'\leftarrow\mathcal{A}(pp, T)$
+\item Return $1$ if $b = b'$, else $0$.
+\end{itemize}
+\end{minipage}}
+\caption{Privacy experiment $\textsf{PRV}$}
+\label{exp-prv}
+\end{figure}
+
+\begin{definition}[Privacy]
+Seraphis is private if for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exist a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+\begin{align*}
+\emph{\textsf{Pr}}
+\left[
+\emph{\textsf{PRV}}(\mathcal{A}, 1^{\lambda})=1
+\right]
+\le \emph{\textsf{negl}}(\lambda).
+\end{align*}
+where $\emph{\textsf{PRV}}$ is described in Figure \ref{exp-prv}.
+\end{definition}
+
+Lastly, we consider the \textbf{Non-slanderability}, which means that an adversary should never be able to spend e-notes on behalf of the owner of the e-notes.
+
+\begin{figure}[htbp]
+\centering
+\fbox{\begin{minipage}{0.85\textwidth}
+\underline{$\textsf{NSLAND}(\mathcal{A}, 1^{\lambda})$}
+\begin{itemize}
+\item $pp\leftarrow\textsf{Setup}(1^{\lambda})$.
+\item $\mathcal{A}$ is provided $k_v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ in the ledger which are connected to that address, and a receiver's address ${\tt addr}_{\mathcal{B}} = (K_{\mathcal{B}}^{dh}, K_{\mathcal{B}}^v, K_{\mathcal{B}}^s)$.
+\item $b'\leftarrow\mathcal{A}(pp, T)$
+\item Return $b_0 \wedge b_1 \wedge b2$.
+\end{itemize}
+\end{minipage}}
+\caption{Non-slanderability experiment $\textsf{NSLAND}$}
+\label{exp-nsland}
+\end{figure}
+
+\begin{definition}[Non-slanderability]
+Seraphis is non-slanderable if for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exist a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+\begin{align*}
+\emph{\textsf{Pr}}
+\left[
+\emph{\textsf{NSLAND}}(\mathcal{A}, 1^{\lambda})=1
+\right]
+\le \emph{\textsf{negl}}(\lambda).
+\end{align*}
+where $\emph{\textsf{NSLAND}}$ is described in Figure \ref{exp-nsland}.
+\end{definition}
 
 \subsection{Discussions}\label{sec-disc}
 
@@ -300,9 +356,89 @@ If Ownership and Unspentness proofs are special sound, Range proofs are special 
 
 \appendix
 \section{Composition proving system}\label{comp-prov}
+The composition proving system is a sigma protocol for the relation:
+\begin{multline*}
+\Big\{\big(G, X, U\in\mathbb{G}, \{K_i\}_{i=1}^n, \{K_{t1,i}\}_{i=1}^n, \{\tilde{K}_i\}_{i=1}^n \in\mathbb{G}^n; \{x_i\}_{i=1}^n, \{y_i\}_{i=1}^n, \{z_i\}_{i=1}^n \in\mathbb{F}^n\big): \\ \bigwedge_{i=1}^n{\big(y_i \ne 0 \wedge K_i = x_i G + y_i X + z_i U \wedge K_{t1,i} = (1/y_i)K_i \wedge \tilde{K}_i = (z_i/y_i)U\big)} \Big\}
+\end{multline*}
+Notice the extra $\{K_{t1,i}\}_{i=1}^n$ in the relation. This should not affect the proving system's applicability for Ownership and Unspentness proof because all $y_i$ are still hidden in $K_{t1,i}$ (by the DL assumption) and the required relationships for $\{K_i\}_{i=1}^n$ and $\{\tilde{K}_i\}_{i=1}^n$ are still proven. Now the Prover only needs to produce one proof transcript for all $i$'s instead of one proof transcript for each $i$. The sigma protocol is based on the concise approach from \cite{clsag} to reduce proof sizes when constructing multiple proofs in parallel.
+
+The protocol proceeds as follows:
+\begin{enumerate}
+\item The Prover generates $\alpha_a, \alpha_b, \alpha_i \xleftarrow{\$}\mathbb{F}\ ,\ \forall i\in\{1,\ldots,n\}$. The Prover computes $(A_a, A_b) = (\alpha_a G, \alpha_b U)$ and $A_{i}=\alpha_i K_i\ ,\ \forall i\in\{1,\ldots,n\}$, and sends $(A_a, A_b, \{A_i\}_{i=1}^n)$ to the verifier.
+\item Both the Prover and Verifier compute $K_{t2,i} = K_{t1,i} - X - \tilde{K}_i\ ,\ \forall i\in\{1,\ldots,n\}$.
+\item The Verifier sends a challenge $c\xleftarrow{\$}\mathbb{F}$ to the Prover.
+\item The Prover computes the responses:
+\begin{align*}
+r_{a} &= \alpha_a - c \sum_{j=1}^{n}{\mathcal{H}_7(\{K_{t2,i}\}_{i=1}^n,K_{t2,j}) (x_j/y_j)} \\
+r_{b} &= \alpha_b - c \sum_{j=1}^{n}{\mathcal{H}_8(\{\tilde{K}_i\}_{i=1}^n,\tilde{K}_j) (z_j/y_j)} \\
+r_{i} &= \alpha_i - c (1/y_i)\ ,\ \forall i\in\{1,\ldots,n\}\\
+\end{align*}
+and sends those values to the Verifier.
+\item The Verifier checks the following equalities. If any of them fail, then the Prover has failed to satisfy the composition proof system.
+\begin{align*}
+A_{a} &= r_a G + c \sum_{j=1}^{n}{\mathcal{H}_7(\{K_{t2,i}\}_{i=1}^n,K_{t2,j}) K_{t2,j}} \\
+A_{b} &= r_b U + c \sum_{j=1}^{n}{\mathcal{H}_8(\{\tilde{K}_i\}_{i=1}^n,\tilde{K}_j) \tilde{K}_j} \\
+A_{i} &= r_i K_i + c K_{t1,i}\ ,\ \forall i\in\{1,\ldots,n\}\\
+\end{align*}
+\end{enumerate}
+We now prove that the protocol is perfectly complete, special sound, and perfect special honest-verifier zero knowledge, all if $G$, $X$, and $U$ are mutually independent and $\mathcal{H}$ is a random oracle.
+
+\begin{proof}
+For perfect completeness, note that $\forall i\in\{1,\ldots,n\}$, knowledge of $(x_i/y_i$, $z_i/y_i$, $1/y_i)$ is also enough to satisfy the proving relation, and
+\begin{align*}
+K_{t2,i} &= K_{t1,i} - X - \tilde{K}_i \\ &= (1/y_i)(x_i G + y_i X + z_i U) - X - (z_i/y_i)U \\
+&= (x_i/y_i)G + X + (z_i/y_i) U - X - (z_i/y_i)U \\ &= (x_i/y_i)G.
+\end{align*}
+Then the property follows from inspection.
+
+For perfect special honest-verifier zero knowledge, we construct a valid simulator producing transcripts with probability distribution identical to the probability distribution of actual valid transcripts by Prover and Verifier. The simulator generates $c, r_a, r_b, r_i \xleftarrow{\$}\mathbb{F}\ ,\ \forall i\in\{1,\ldots,n\}$. Then the simulator computes $A_{a}, A_{b}, \{A_{i}\}_{i=1}^n$ exactly according to Step 5 of the protocol description. Because of this last step, the Verifier will mark the simulated transcripts as \textit{valid}. Now assume that $G$, $X$, and $U$ are mutually independent and $\mathcal{H}$ is a random oracle. Observe that the simulated transcripts are all uniformly random because $c, r_a, r_b, \{r_i\}_{i=1}^n$ are uniformly randomly selected. On the other hand, observe that actual valid transcripts between Prover and Verifier are also uniformly random because the Prover's $\alpha_a, \alpha_b, \{\alpha_i\}_{i=1}^n$ and the Verifier's $c$ are all uniformly randomly selected. Hence the two probability distributions are identical.
+
+For special soundness, consider two valid (by verifier) transcripts with distinct challenge values $c \ne c' \in \mathbb{F}$:
+$$(A_a, A_b, \{A_i\}_{i=1}^n,c, r_a, r_b, \{r_i\}_{i=1}^n)$$
+and
+$$(A_a, A_b, \{A_i\}_{i=1}^n,c', r'_a, r'_b, \{r'_i\}_{i=1}^n)$$
+Now assume that $G$, $X$, and $U$ are mutually independent. The first validation equation and the validity of two transcripts imply that \textbf{Todo.}
+
+This completes the proof.\end{proof}
+
+Fiat-Shamir heuristic \cite{fiat-shamir} transforms interactive proving systems with the above three properties into non-interactive (full) zero-knowledge proofs (NIZKPs) in the random oracle model. From the above sigma protocol description, applying Fiat-Shamir heuristic to the composition proving sysyem should be straightforward.
 
 \section{Security proofs for Seraphis}\label{proofs}
+The needed math and hardness assumptions would be formalized first.
 
-\section{?????}
+\begin{definition}\label{negl}
+A function $f:\mathbb{N}\rightarrow\mathbb{R}$ is \textbf{\em negligible} if for every polynomial $p(\cdot)$ there exists an $N\in\mathbb{N}$ such that for all integers $n>N$ it holds that $f(n)<\frac{1}{p(n)}$.
+\end{definition}
+\noindent Definition \ref{negl} is from Katz \& Lindell \cite{katz-lindell}. \textbf{Todo: full cite.} We prove the following lemma:
+
+\begin{lemma}\label{negl-exp}
+If $f:\mathbb{N}\rightarrow\mathbb{R}$ is non-negligible, then $g(n)=f(n)^m$ for any $m\in\mathbb{N}$ and $m>1$ is non-negligible.
+\end{lemma}
+\begin{proof}
+The non-negligibility of $f$ means that there exists a polynomial $p(\cdot)$ such that for all $N\in\mathbb{N}$, there exists an $n>N$ such that $f(n)\ge\frac{1}{p(n)}$. Let $p_f(\cdot)$ be such polynomial and $n_f$ be such $n>N$. Then setting $p_g(\cdot)=p_f(\cdot)^m$ and $n_g=n_f$ suffices for non-negligibility of $g$ because $f(n_f)\ge\frac{1}{p_f(n_f)}\Rightarrow f(n_f)^m\ge\big(\frac{1}{p_f(n_f)}\big)^m$.
+\end{proof}
+\noindent Lemma \ref{negl-exp} justifies the usage of finite number of ``breaks'' in proofs by reduction. For a start, the probability for breaking a hardness assumption $\textsf{HA}$ is a function of $\lambda$. For now, we denote this function as $\textsf{Pr}[\textsf{HA}(\lambda)]$. Hence, for $m>1$, the probability for breaking $\textsf{HA}$ $m$-times $\textsf{Pr}[\cap_{i=1}^{m}{\textsf{HA}(\lambda)}]\ge\prod_{i=1}^{m}{\textsf{Pr}[\textsf{HA}(\lambda)]}$. Now Lemma \ref{negl-exp} says that if $\textsf{Pr}[\textsf{HA}(\lambda)]$ is non-negligible in $\lambda$ (equivalently, for all negligible function $\textsf{negl}(\lambda)$, $\textsf{Pr}[\textsf{HA}(\lambda)]\ge\textsf{negl}(\lambda)$), then $\prod_{i=1}^{m}{\textsf{Pr}[\textsf{HA}(\lambda)]}$ must also be non-negligible in $\lambda$ and hence $\textsf{Pr}[\cap_{i=1}^{m}{\textsf{HA}(\lambda)}]$ is also non-negligible in $\lambda$.
+
+\begin{definition}
+Discrete Logarithm (DL) assumption holds relative to $\lambda$ if for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+\begin{align*}
+\emph{\textsf{Pr}}\left[
+\begin{array}{c|c}
+    \begin{gathered}
+        H = xG
+    \end{gathered}
+    &
+    \begin{gathered}
+        pp\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); G,H\xleftarrow{\$}\mathbb{G}; \\
+        x\in\mathbb{F}\leftarrow\mathcal{A}(pp, G, H) \\
+    \end{gathered}
+\end{array}
+\right]
+\le \emph{\textsf{negl}}(\lambda).
+\end{align*}
+\end{definition}
+
+\noindent The following theorems... \textbf{Todo.}
+
 
 \end{document}
