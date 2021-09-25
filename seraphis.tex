@@ -97,7 +97,7 @@ $$\{(G, X, U, K_i'^o, \tilde{K}_i\in\mathbb{G}; t_{k,i}, k_{a,i}^o, k_{b,i}^o\in
 \end{enumerate}
 Aside from verifying the proof transcripts, the Verifier must confirm that the linking tags do not yet appear in the ledger.
 
-The required security properties for application to Seraphis are described in Section \ref{ZKP}. Unlike what's presented above, we recommend a composition proving system in which instead of one $\Pi_{\text{o\&u}, i}$ per $i$, Alice only needs to produce one proof transcript for all $i$'s. We present this in Appendix \ref{comp-prov}, and provide proof that it satisfies the required security requirements.
+The required security properties for application to Seraphis are described in Section \ref{prov-prop}. Unlike what's presented above, we recommend a composition proving system in which instead of one $\Pi_{\text{o\&u}, i}$ per $i$, Alice only needs to produce one proof transcript for all $i$'s. We present this in Appendix \ref{comp-prov}, and provide proof that it satisfies the required security requirements.
 
 \subsection{Amount balance}\label{amt-bal}
 For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
@@ -120,7 +120,7 @@ For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must d
 $$\{(G, C_i', K_i'^o \in\mathbb{G}, \mathbb{S}_i\subset\mathbb{G}^2; \pi_i\in\mathbb{N}, t_{c,i}, t_{k,i}\in\mathbb{F}): 1\le\pi_i\le s \wedge C_i' - C_{\pi_i} = t_{c,i} G \wedge K_i'^o - K_{\pi_i}^o = t_{k,i} G \}$$
     \item Append $(\mathbb{S}_i, \Pi_{\text{mem}, i})$ to $({\tt enimg}_i, \ldots)$ in $T$.
 \end{enumerate}
-The required security properties for application to Seraphis are described in Section \ref{sec-memb}. Specific proving systems satisfying the requirement include CSAG (CLSAG \cite{clsag} without linking) and One-out-of-Many proving system adapted from Groth and Bootle \textit{et al.} \cite{groth, bootle}.
+The required security properties for application to Seraphis are described in Section \ref{prov-prop}. Specific proving systems satisfying the requirement include CSAG (CLSAG \cite{clsag} without linking) and One-out-of-Many proving system adapted from Groth and Bootle \textit{et al.} \cite{groth, bootle}.
 
 \subsection{Range proofs}\label{range}
 For the new e-notes ${\tt enote}_{ali}$ and ${\tt enote}_{bob}$, Alice must do the following:
@@ -130,7 +130,7 @@ $$\{(G, H, C \in\mathbb{G}, a_{max}\in\mathbb{F}; x, a\in\mathbb{F}): C = x G + 
     \item Store $\Pi_{\text{ran}, ali}$ and $\Pi_{\text{ran}, bob}$ to $T$.
 \end{enumerate}
 
-The required security properties for application to Seraphis are described in Section \ref{ZKP}. Specific proving systems satisfying the requirement include Bulletproofs \cite{bp} and Bulletproofs+ \cite{bp-plus}.
+The required security properties for application to Seraphis are described in Section \ref{prov-prop}. Specific proving systems satisfying the requirement include Bulletproofs \cite{bp} and Bulletproofs+ \cite{bp-plus}.
 
 \subsection{Receipt}
 Once the construction of $T$ is completed, Alice sends it to the network. Its contents must now be
@@ -163,28 +163,19 @@ There are a number of details to consider when implementing Seraphis in a real c
 \section{Security model}\label{sec}
 For a start, we assume that the distributed ledger is immutable. Therefore, the adversary in our analysis will never be able to modify transactions already stored in the ledger. This ledger immutability can be actualized through, for instance, the Nakamoto consensus protocol \cite{bitcoin}.
 
+Subsections \ref{prov-prop} to \ref{Comm} outline the required security properties of the cryptographic components for Seraphis, then Subsection \ref{sec-thm} is the main security analysis of Seraphis, and Subsection \ref{sec-disc} discusses how some instantiations and modifications described in Section \ref{inst} affect the security analysis.
 
-
-Subsections \ref{ZKP} to \ref{Comm} outline the required security properties of the cryptographic components for Seraphis, then Subsection \ref{sec-thm} is the main security analysis of Seraphis, and Subsection \ref{sec-disc} discusses how some instantiations and modifications described in Section \ref{inst} affect the security analysis.
-
-\subsection{Zero-knowledge proofs}\label{ZKP}
-We require some proving systems to be used in Seraphis to be zero-knowledge. Starting with interactive protocol description, these interative proving systems must satisfy the following three security properties. The precise definitions of these properties are common and found, for instance, in \cite{groth}.
+\subsection{Proving systems security properties}\label{prov-prop}
+We require some proving systems to be used in Seraphis to be zero-knowledge. Starting with interactive protocol description, the proving systems must satisfy the following three security properties. The precise definitions of these properties are common and found, for instance, in \cite{groth}.
 \begin{itemize}
-    \item \textit{Perfect Completeness}: If the prover knows a witness to the statement, she should always be able to generate a proof for that statement that convinces the verifier.
-    \item \textit{Special Soundness}: If the prover does not know a witness to the statement, she should never be able to generate a proof for that statement that convinces the verifier. This is formalized by saying that there exists an \textit{witness extractor} that has an ability to ``rewind time'' and make the prover answer several different challenges. From the valid (by verifier) answers of the prover, it should be possible for the witness extractor to extract a witness.
-    \item \textit{Perfect Special Honest Verifier Zero-Knowledge}: The protocol should not reveal anything about the prover’s witness. This is formalized by saying that assuming that challenges are honestly generated, there exists a \textit{simulator} such that even without knowledge of a witness, the probability distribution of the simulator's valid (by verifier) transcripts (all data being sent and received in the protocol) is equal to the probability distribution of actual valid transcripts by a prover and a verifier.
+    \item \textit{Completeness}: If the prover knows a witness to the statement, she should always be able to generate a proof for that statement that convinces the verifier.
+    \item \textit{Soundness}: If the prover does not know a witness to the statement, she should never be able to generate a proof for that statement that convinces the verifier. Moreover, there exists an \textit{witness extractor} that has an ability to ``rewind time'' and make the prover answer several different challenges. From the valid (by verifier) answers of the prover, it should be possible for the witness extractor to extract a witness.
+    \item \textit{Honest Verifier Zero-Knowledge}: The protocol should not reveal anything about the prover’s witness. Moreover, assuming that challenges must be honestly generated, there exists a \textit{simulator} such that even without knowledge of a witness, the probability distribution of the simulator's valid transcripts (all data being sent and received in the protocol) is equal to the probability distribution of actual valid transcripts by a prover and a verifier.
 \end{itemize}
-Fiat-Shamir heuristic \cite{fiat-shamir} transforms interactive proving systems with the above properties into non-interactive (full) zero-knowledge proofs (NIZKPs) in the random oracle model. We require that the proving systems for Ownership and Unspentness proofs, and Range proofs are NIZKPs constructed through Fiat-Shamir heuristic.
-\subsection{Authenticated symmetric encryption scheme}\label{sec-symm}
-We require that the authenticated symmetric encryption scheme has the following properties: indistinguishable against chosen-plaintext attack (IND-CPA), indistinguishable against adaptive chosen-ciphertext attack (IND-CCA2), and key-private under chosen-ciphertext attacks (IK-CCA). \textbf{Todo: Need to study this!}
+Fiat-Shamir heuristic \cite{fiat-shamir} is applied to make interactive proving systems non-interactive. Moreover, Fiat-Shamir heuristic transforms interactive protocols satisfying HVZK into non-interactive (fully) zero-knowledge (NIZK) protocols in the random oracle model.
 
-\subsection{Membership proof security properties}\label{sec-memb}
-We require that the membership proving system has the following properties:
-\begin{itemize} 
-    \item \textit{Completeness}:
-    \item \textit{Unforgeability}:
-    \item \textit{Anonymity}:
-\end{itemize}
+\subsection{Authenticated symmetric encryption scheme}\label{sec-symm}
+We require that the authenticated symmetric encryption scheme has the following properties: indistinguishable against chosen-plaintext attack (IND-CPA), indistinguishable against adaptive chosen-ciphertext attack (IND-CCA2), and key-private under chosen-ciphertext attacks (IK-CCA).
 
 \subsection{Commitment schemes}\label{Comm}
 
@@ -235,10 +226,10 @@ A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is binding i
 \subsection{Seraphis security properties}\label{sec-thm}
 The required security properties are those in Omniring's security model \cite{omniring}, with modifications to fit in Seraphis. The Omniring paper presents a rigorous formalization of RingCT constructions, providing precision for security analysis against several realistic attacks. Proofs for the theorems are found in Section \ref{proofs}.
 
-We first define commitment functions $\textsf{CommAmount}:\mathbb{F}\times\mathbb{F}\rightarrow\mathbb{G}$ and $\textsf{CommTag}:\mathbb{F}\times\mathbb{F}\setminus\{0\}\times\mathbb{F}\rightarrow\mathbb{G}\times\mathbb{G}$ to be needed later on, as follows:
+We first define commitment functions $\textsf{CommAmount}:\mathbb{F}\times\mathbb{F}\rightarrow\mathbb{G}$ and $\textsf{CommTag}:\mathbb{F}\setminus\{0\}\times\mathbb{F}\times\mathbb{F}\rightarrow\mathbb{G}\times\mathbb{G}$ to be needed later on, as follows:
 \begin{align*}
 \textsf{CommAmount}(a; x) &= x G + a H \ , \ x\xleftarrow{\$}\mathbb{F}\ \text{if}\ x\ \text{is not specified.} \\
-\textsf{CommTag}(t_k, k_a, k_b) &= (t_k G + k_a X + k_b U, (k_b/k_a)U).
+\textsf{CommTag}(k_a, k_b; t_k) &= (t_k G + k_a X + k_b U, (k_b/k_a)U)\ , \ t_k\xleftarrow{\$}\mathbb{F}\ \text{if}\ t_k\ \text{is not specified.}
 \end{align*}
 $\textsf{CommAmount}$ corresponds to the structure of amount commitment $C$, while $\textsf{CommTag}$ corresponds to the combination of structures of masked address $K'^o$ and linking tag $\tilde{K}$.
 
@@ -261,7 +252,7 @@ The second subproperty involves an experiment $\textsf{BAL}(\mathcal{A}, \mathca
 \item $b_1:=1$ if $\textsf{CommAmount}(a_{\mathcal{B}}; x_{\mathcal{B}}) = C$ in ${\tt enote}_{\mathcal{B}}$ in $T$, else $:=0$.
 \item $b_2:=1$ if for all $i\in\{1,\ldots,n\}$, $\textsf{CommAmount}(t_{c,i}; 0) = C_i' - C_{\pi_i}$ in $T$, else $:=0$.
 \item $b_3:=1$ if for all $i\in\{1,\ldots,n\}$, $\textsf{CommAmount}(t_{k,i}; 0) = K_i'^o - K_{\pi_i}^o$ in $T$, else $:=0$.
-\item $b_4:=1$ if for all $i\in\{1,\ldots,n\}$, $\textsf{CommTag}(t_{k,i}, k_{a,i}^o, k_{b,i}^o) = (K_i'^o, \tilde{K}_i)$ in $T$, else $:=0$.
+\item $b_4:=1$ if for all $i\in\{1,\ldots,n\}$, $\textsf{CommTag}(k_{a,i}^o, k_{b,i}^o; t_{k,i}) = (K_i'^o, \tilde{K}_i)$ in $T$, else $:=0$.
 \item $b_5:=1$ if $\sum_{i=1}^n{a_{\mathcal{A}, i}}\ge a_{\mathcal{B}}$ where $a_{\mathcal{A}, i}$ is the amount of $i$th spent e-note and $a_{\mathcal{B}}$ is the amount received by ${\tt addr}_{\mathcal{B}}$, else $:=0$.
 \item Return $b_0 \wedge \neg(b_1 \wedge b_2 \wedge b_3 \wedge b_4 \wedge b_5)$.
 \end{itemize}
@@ -355,12 +346,13 @@ where $\emph{\textsf{NSLAND}}$ is described in Figure \ref{exp-nsland}.
 \bibliography{seraphis}
 
 \appendix
+
 \section{Composition proving system}\label{comp-prov}
-The composition proving system is a sigma protocol for the relation:
+The composition proving system is a protocol for the relation:
 \begin{multline*}
 \Big\{\big(G, X, U\in\mathbb{G}, \{K_i\}_{i=1}^n, \{K_{t1,i}\}_{i=1}^n, \{\tilde{K}_i\}_{i=1}^n \in\mathbb{G}^n; \{x_i\}_{i=1}^n, \{y_i\}_{i=1}^n, \{z_i\}_{i=1}^n \in\mathbb{F}^n\big): \\ \bigwedge_{i=1}^n{\big(y_i \ne 0 \wedge K_i = x_i G + y_i X + z_i U \wedge K_{t1,i} = (1/y_i)K_i \wedge \tilde{K}_i = (z_i/y_i)U\big)} \Big\}
 \end{multline*}
-Notice the extra $\{K_{t1,i}\}_{i=1}^n$ in the relation. This should not affect the proving system's applicability for Ownership and Unspentness proof because all $y_i$ are still hidden in $K_{t1,i}$ (by the DL assumption) and the required relationships for $\{K_i\}_{i=1}^n$ and $\{\tilde{K}_i\}_{i=1}^n$ are still proven. Now the Prover only needs to produce one proof transcript for all $i$'s instead of one proof transcript for each $i$. The sigma protocol is based on the concise approach from \cite{clsag} to reduce proof sizes when constructing multiple proofs in parallel.
+Now the Prover only needs to produce one proof transcript for all $i$'s instead of one proof transcript for each $i$. This protocol is based on the concise approach from \cite{clsag} to reduce proof sizes when constructing multiple proofs in parallel. Notice the extra $\{K_{t1,i}\}_{i=1}^n$ in the relation. This should not affect the proving system's applicability for Ownership and Unspentness proof because all $y_i$'s are still hidden in $K_{t1,i}$ (by the DL assumption) and the required relationships for $\{K_i\}_{i=1}^n$ and $\{\tilde{K}_i\}_{i=1}^n$ are still proven.
 
 The protocol proceeds as follows:
 \begin{enumerate}
@@ -369,76 +361,82 @@ The protocol proceeds as follows:
 \item The Verifier sends a challenge $c\xleftarrow{\$}\mathbb{F}$ to the Prover.
 \item The Prover computes the responses:
 \begin{align*}
-r_{a} &= \alpha_a - c \sum_{j=1}^{n}{\mathcal{H}_7(\{K_{t2,i}\}_{i=1}^n,K_{t2,j}) (x_j/y_j)} \\
-r_{b} &= \alpha_b - c \sum_{j=1}^{n}{\mathcal{H}_8(\{\tilde{K}_i\}_{i=1}^n,\tilde{K}_j) (z_j/y_j)} \\
+r_{a} &= \alpha_a - c \sum_{j=1}^{n}{\mathcal{H}_7(\{K_{t2,i}\}_{i=1}^n, j) (x_j/y_j)} \\
+r_{b} &= \alpha_b - c \sum_{j=1}^{n}{\mathcal{H}_8(\{\tilde{K}_i\}_{i=1}^n, j) (z_j/y_j)} \\
 r_{i} &= \alpha_i - c (1/y_i)\ ,\ \forall i\in\{1,\ldots,n\}\\
 \end{align*}
 and sends those values to the Verifier.
 \item The Verifier checks the following equalities. If any of them fail, then the Prover has failed to satisfy the composition proof system.
 \begin{align*}
-A_{a} &= r_a G + c \sum_{j=1}^{n}{\mathcal{H}_7(\{K_{t2,i}\}_{i=1}^n,K_{t2,j}) K_{t2,j}} \\
-A_{b} &= r_b U + c \sum_{j=1}^{n}{\mathcal{H}_8(\{\tilde{K}_i\}_{i=1}^n,\tilde{K}_j) \tilde{K}_j} \\
+A_{a} &= r_a G + c \sum_{j=1}^{n}{\mathcal{H}_7(\{K_{t2,i}\}_{i=1}^n, j) K_{t2,j}} \\
+A_{b} &= r_b U + c \sum_{j=1}^{n}{\mathcal{H}_8(\{\tilde{K}_i\}_{i=1}^n, j) \tilde{K}_j} \\
 A_{i} &= r_i K_i + c K_{t1,i}\ ,\ \forall i\in\{1,\ldots,n\}\\
 \end{align*}
 \end{enumerate}
-We now prove that the protocol is perfectly complete, special sound, and perfect special honest-verifier zero knowledge, all if $G$, $X$, and $U$ are mutually independent and $\mathcal{H}$ is a random oracle.
+We now prove that the protocol is complete, (computationally) sound, and honest-verifier zero knowledge, all if $G$, $X$, and $U$ are mutually independent and $\mathcal{H}$ is a random oracle.
 
 \begin{proof}
-For perfect completeness, note that $\forall i\in\{1,\ldots,n\}$, knowledge of $(x_i/y_i$, $z_i/y_i$, $1/y_i)$ is also enough to satisfy the proving relation, and
+For completeness, note that $\forall i\in\{1,\ldots,n\}$, knowledge of $(x_i/y_i$, $z_i/y_i$, $1/y_i)$ is also enough to satisfy the proving relation, and
 \begin{align*}
 K_{t2,i} &= K_{t1,i} - X - \tilde{K}_i \\ &= (1/y_i)(x_i G + y_i X + z_i U) - X - (z_i/y_i)U \\
 &= (x_i/y_i)G + X + (z_i/y_i) U - X - (z_i/y_i)U \\ &= (x_i/y_i)G.
 \end{align*}
 Then the property follows from inspection.
 
-For perfect special honest-verifier zero knowledge, we construct a valid simulator producing transcripts with probability distribution identical to the probability distribution of actual valid transcripts by Prover and Verifier. The simulator generates $c, r_a, r_b, r_i \xleftarrow{\$}\mathbb{F}\ ,\ \forall i\in\{1,\ldots,n\}$. Then the simulator computes $A_{a}, A_{b}, \{A_{i}\}_{i=1}^n$ exactly according to Step 5 of the protocol description. Because of this last step, the Verifier will mark the simulated transcripts as \textit{valid}. Now assume that $G$, $X$, and $U$ are mutually independent and $\mathcal{H}$ is a random oracle. Observe that the simulated transcripts are all uniformly random because $c, r_a, r_b, \{r_i\}_{i=1}^n$ are uniformly randomly selected. On the other hand, observe that actual valid transcripts between Prover and Verifier are also uniformly random because the Prover's $\alpha_a, \alpha_b, \{\alpha_i\}_{i=1}^n$ and the Verifier's $c$ are all uniformly randomly selected. Hence the two probability distributions are identical.
+For honest-verifier zero knowledge, we construct a valid simulator producing transcripts with probability distribution identical to the probability distribution of actual valid transcripts by Prover and Verifier. The simulator generates $c, r_a, r_b, r_i \xleftarrow{\$}\mathbb{F}\ ,\ \forall i\in\{1,\ldots,n\}$. Then the simulator computes $A_{a}, A_{b}, \{A_{i}\}_{i=1}^n$ exactly according to Step 5 of the protocol description. Because of this last step, the Verifier will mark the simulated transcripts as \textit{valid}. Now assume that $G$, $X$, and $U$ are mutually independent and $\mathcal{H}$ is a random oracle. Observe that the simulated transcripts are all uniformly random because $c, r_a, r_b, \{r_i\}_{i=1}^n$ are uniformly randomly selected. On the other hand, observe that actual valid transcripts between Prover and Verifier are also uniformly random because the Prover's $\alpha_a, \alpha_b, \{\alpha_i\}_{i=1}^n$ and the Verifier's $c$ are all uniformly randomly selected. Hence the two probability distributions are identical.
 
-For special soundness, consider two valid (by verifier) transcripts with distinct challenge values $c \ne c' \in \mathbb{F}$:
-$$(A_a, A_b, \{A_i\}_{i=1}^n,c, r_a, r_b, \{r_i\}_{i=1}^n)$$
-and
-$$(A_a, A_b, \{A_i\}_{i=1}^n,c', r'_a, r'_b, \{r'_i\}_{i=1}^n)$$
-Now assume that $G$, $X$, and $U$ are mutually independent. The first validation equation and the validity of two transcripts imply that \textbf{Todo.}
+For computational soundness (with respect to DL assumption), the proof is by contraposition. Suppose that a $\textsf{PPT}$ adversarial prover $\mathcal{A}$ \textit{not} knowing a witness, can produce a valid transcript $(A_a, A_b, \{A_i\}_{i=1}^n,c, r_a, r_b, \{r_i\}_{i=1}^n)$ with an honest verifier with non-negligible probability. From the third equation in Step 5, $\forall i\in\{1,\ldots,n\}$:
+\begin{align*}
+A_{i} &= r_i K_i + c K_{t1,i} \\
+\implies\alpha_i K_i &= r_i K_i + c (1/y_i)K_i \\
+\implies\alpha_i &= r_i + c(1/y_i) \\
+\implies(1/y_i) &= (\alpha_i - r_i)(1/c)
+\end{align*}
+Hence solving the discrete log (DL) problem for $K_{t1,i} = (1/y_i)K_i$ with non-negligible probability.
+\end{proof}
 
-This completes the proof.\end{proof}
-
-Fiat-Shamir heuristic \cite{fiat-shamir} transforms interactive proving systems with the above three properties into non-interactive (full) zero-knowledge proofs (NIZKPs) in the random oracle model. From the above sigma protocol description, applying Fiat-Shamir heuristic to the composition proving sysyem should be straightforward.
+Fiat-Shamir heuristic transforms interactive protocols satisfying HVZK into non-interactive (fully) zero-knowledge (NIZK) protocols in the random oracle model. Applying Fiat-Shamir heuristic to the composition proving system should be straightforward.
 
 \section{Security proofs for Seraphis}\label{proofs}
-The needed math and hardness assumptions would be formalized first.
+We first present a lemma which is helpful in proofs by reduction.
 
 \begin{definition}\label{negl}
 A function $f:\mathbb{N}\rightarrow\mathbb{R}$ is \textbf{\em negligible} if for every polynomial $p(\cdot)$ there exists an $N\in\mathbb{N}$ such that for all integers $n>N$ it holds that $f(n)<\frac{1}{p(n)}$.
 \end{definition}
-\noindent Definition \ref{negl} is from Katz \& Lindell \cite{katz-lindell}. \textbf{Todo: full cite.} We prove the following lemma:
+\noindent Definition \ref{negl} is from Katz \& Lindell \cite{katz-lindell}. We prove the following lemma:
 
 \begin{lemma}\label{negl-exp}
-If $f:\mathbb{N}\rightarrow\mathbb{R}$ is non-negligible, then $g(n)=f(n)^m$ for any $m\in\mathbb{N}$ and $m>1$ is non-negligible.
+If $f:\mathbb{N}\rightarrow\mathbb{R}$ is non-negligible, then $g(\cdot)=f(\cdot)^m$ for any $m\in\mathbb{N}$ and $m>1$ is non-negligible.
 \end{lemma}
 \begin{proof}
-The non-negligibility of $f$ means that there exists a polynomial $p(\cdot)$ such that for all $N\in\mathbb{N}$, there exists an $n>N$ such that $f(n)\ge\frac{1}{p(n)}$. Let $p_f(\cdot)$ be such polynomial and $n_f$ be such $n>N$. Then setting $p_g(\cdot)=p_f(\cdot)^m$ and $n_g=n_f$ suffices for non-negligibility of $g$ because $f(n_f)\ge\frac{1}{p_f(n_f)}\Rightarrow f(n_f)^m\ge\big(\frac{1}{p_f(n_f)}\big)^m$.
+The non-negligibility of $f$ means that there exists a polynomial $p(\cdot)$ such that for all $N\in\mathbb{N}$, there exists an $n>N$ such that $f(n)\ge\frac{1}{p(n)}$. Let $p_f(\cdot)$ be such polynomial and $n_f$ be such $n>N$. Then setting $p_g(\cdot)=p_f(\cdot)^m$ and $n_g=n_f$ suffices for non-negligibility of $g$ because $f(n_f)\ge\frac{1}{p_f(n_f)}\implies f(n_f)^m\ge\frac{1}{p_f(n_f)^m}$.
 \end{proof}
-\noindent Lemma \ref{negl-exp} justifies the usage of finite number of ``breaks'' in proofs by reduction. For a start, the probability for breaking a hardness assumption $\textsf{HA}$ is a function of $\lambda$. For now, we denote this function as $\textsf{Pr}[\textsf{HA}(\lambda)]$. Hence, for $m>1$, the probability for breaking $\textsf{HA}$ $m$-times $\textsf{Pr}[\cap_{i=1}^{m}{\textsf{HA}(\lambda)}]\ge\prod_{i=1}^{m}{\textsf{Pr}[\textsf{HA}(\lambda)]}$. Now Lemma \ref{negl-exp} says that if $\textsf{Pr}[\textsf{HA}(\lambda)]$ is non-negligible in $\lambda$ (equivalently, for all negligible function $\textsf{negl}(\lambda)$, $\textsf{Pr}[\textsf{HA}(\lambda)]\ge\textsf{negl}(\lambda)$), then $\prod_{i=1}^{m}{\textsf{Pr}[\textsf{HA}(\lambda)]}$ must also be non-negligible in $\lambda$ and hence $\textsf{Pr}[\cap_{i=1}^{m}{\textsf{HA}(\lambda)}]$ is also non-negligible in $\lambda$.
+\noindent Lemma \ref{negl-exp} justifies the usage of finite number of ``breaks'' in proofs by reduction. For a start, the probability for breaking a hardness assumption $\textsf{HA}$ is a function of $\lambda$. For now, we denote this function as $\textsf{Pr}[\textsf{HA}(\lambda)]$. Hence, for $m>1$, the probability for breaking $\textsf{HA}$ $m$-times $\textsf{Pr}[\wedge_{i=1}^{m}{\textsf{HA}_i(\lambda)}]\ge\textsf{Pr}[\textsf{HA}(\lambda)]^m$. Now Lemma \ref{negl-exp} says that if $\textsf{Pr}[\textsf{HA}(\lambda)]$ is non-negligible (or equivalently, for all negligible function $\textsf{negl}(\lambda)$, $\textsf{Pr}[\textsf{HA}(\lambda)]\ge\textsf{negl}(\lambda)$), then $\textsf{Pr}[\textsf{HA}(\lambda)]^m$ must also be non-negligible and hence $\textsf{Pr}[\wedge_{i=1}^{m}{\textsf{HA}_i(\lambda)}]$ is also non-negligible. Nevertheless, the number of breaks should still be documented in proofs.
+\\\\
+Now we present theorems that will be directly applied to the proofs of security properties of Seraphis:
 
-\begin{definition}
-Discrete Logarithm (DL) assumption holds relative to $\lambda$ if for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+\begin{theorem}
+Let $(*)$ be the following hardness assumption relative to $\emph{\textsf{Setup}}$: for all $n>1$ and for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
 \begin{align*}
 \emph{\textsf{Pr}}\left[
 \begin{array}{c|c}
     \begin{gathered}
-        H = xG
+        \exists z_i(z_i \neq 0), i\in\{1, \ldots, n\} \\
+        \wedge\ \sum_{i=1}^{n}{z_i G_i}=H
     \end{gathered}
     &
     \begin{gathered}
-        pp\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); G,H\xleftarrow{\$}\mathbb{G}; \\
-        x\in\mathbb{F}\leftarrow\mathcal{A}(pp, G, H) \\
+        pp\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); \\
+        G_1,\ldots,G_n, H\xleftarrow{\$}\mathbb{G}; \\
+        \{z_i\}_{i=1}^n\in\mathbb{F}\leftarrow\mathcal{A}(pp, \{G_i\}_{i=1}^n, H) \\
     \end{gathered}
 \end{array}
 \right]
 \le \emph{\textsf{negl}}(\lambda).
 \end{align*}
-\end{definition}
-
-\noindent The following theorems... \textbf{Todo.}
-
-
+Then if the DL assumption holds, then $(*)$ holds.
+\end{theorem}
+\begin{proof}
+The proof is by contraposition. Suppose that there exists an $n>1$ such that there exists a $\textsf{PPT}$ adversary $\mathcal{A}$ that solves $(*)$ with non-negligible probability. Let $A, B\in\mathbb{G}$ (both $\ne 0$) be some group elements to find discrete log for. Then set $G_1=G_2=\ldots=G_n=A, H=B$, and input these to $\mathcal{A}$, which with non-negligble probability, outputs $\{z_i\}_{i=1}^n$ such that $(\sum_{i=1}^n{z_i}) A = B$.
+\end{proof}
 \end{document}

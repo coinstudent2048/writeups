@@ -129,9 +129,7 @@ DL Vector assumption holds if and only if DL assumption holds.
 The proof consists of 2 parts:
 \begin{itemize}
     \item \textit{DL is easy $\Rightarrow$ DL Vector is easy:} Set random scalars on $z_2,\ldots,z_n$ so that at least one of them is not zero. Then applying DL break on $H - \sum_{i=2}^{n}{z_i G_i}$ base $G_1$ will give $z_1$.
-    \item \textit{DL Vector is easy $\Rightarrow$ DL is easy:} Assume that there exists an $n>1$ such that finding $z_1,\ldots,z_n\in\mathbb{F}$ satisfying the properties in Definition \ref{vector} is ``easy''. Let $A, B\in\mathbb{G}$ (both not equal to $Z$) be the group elements to find DL for (without loss of generality, $x\in\mathbb{F}$ such that $xA=B$). Then applying a DL Vector break on $G_1=A, G_2=B, G_3=\ldots=G_n=A, H=Z$ will give $z_1, z_2$ such that $z_1 A + z_2 B = Z$. Now we have $z_1 A + z_2 (xA) = Z \Rightarrow z_1 + z_2 x = 0 \Rightarrow x = (-z_1)(1/z_2)$.
-
-Note that both $z_1$ and $z_2$ will never be zero, because if one of them is, then the other should also be zero, contradicting the requirement $\exists z_i(z_i \neq 0)$.
+    \item \textit{DL Vector is easy $\Rightarrow$ DL is easy:} Assume that there exists an $n>1$ such that finding $z_1,\ldots,z_n\in\mathbb{F}$ satisfying the properties in Definition \ref{vector} is ``easy''. Let $A, B\in\mathbb{G}$ (both not equal to $Z$) be the group elements to find DL for (without loss of generality, $x\in\mathbb{F}$ such that $xA=B$). Then applying a DL Vector break on $G_1=G_2=\ldots=G_n=A, H=B$ will give $\{z_i\}_{i=1}^n$ such that $(\sum_{i=1}^n{z_i}) A = B$.
 \end{itemize}
 This completes the proof.
 \end{proof}
