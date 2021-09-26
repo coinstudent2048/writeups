@@ -91,11 +91,11 @@ For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must d
 \begin{enumerate}
     \item If the masked address $K_i'^o$ is already in the e-note image ${\tt enimg}_i$ in $T$, then go to next step. Else generate $K_i'^o$ from $(C_i, K_i^o, m_i)$ as per definition, and insert it to ${\tt enimg}_i$ in $T$.
     \item If the linking tag $\tilde{K}_i$ is already in ${\tt enimg}_i$ in $T$, then go to next step. Else generate $\tilde{K}_i$ from $(C_i, K_i^o, m_i)$ as per definition, and insert it to ${\tt enimg}_i$ in $T$.
-    \item Prepare the proof transcripts $\Pi_{\text{o\&u}, i}$ for a non-interactive proving system for the following relation:
+    \item Prepare the proof transcript $\Pi_{\text{o\&u}, i}$ for a non-interactive proving system for the following relation:
 $$\{(G, X, U, K_i'^o, \tilde{K}_i\in\mathbb{G}; t_{k,i}, k_{a,i}^o, k_{b,i}^o\in\mathbb{F}): k_{a,i}^o \ne 0 \wedge K_i'^o = t_{k,i} G + k_{a,i}^o X + k_{b,i}^o U \wedge \tilde{K}_i = (k_{b,i}^o/k_{a,i}^o)U \}$$
     \item Append $\Pi_{\text{o\&u}, i}$ to $({\tt enimg}_i, \ldots)$ in $T$.
 \end{enumerate}
-Aside from verifying the proof transcripts, the Verifier must confirm that the linking tags do not yet appear in the ledger.
+Aside from verifying the proof transcript, the Verifier must confirm that the linking tags do not yet appear in the ledger.
 
 The required security properties for application to Seraphis are described in Section \ref{prov-prop}. Unlike what's presented above, we recommend a composition proving system in which instead of one $\Pi_{\text{o\&u}, i}$ per $i$, Alice only needs to produce one proof transcript for all $i$'s. We present this in Appendix \ref{comp-prov}, and provide proof that it satisfies the required security requirements.
 
@@ -116,7 +116,7 @@ For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must d
     \item If the masked address $K_i'^o$ is already in ${\tt enimg}_i$ in $T$, then go to next step. Else generate $K_i'^o$ from $(C_i, K_i^o, m_i)$ as per definition, and insert it to ${\tt enimg}_i$ in $T$.
     \item Collect $s-1$ number of random e-notes from the ledger and add her owned $(C_i,K_i^o,m_i)$, for a total of $s$ e-notes. The number $s$ is called the \textbf{anonymity size}.
     \item For each e-note in the collection (of size $s$), extract only the amount commitment and one-time address like this: $(C_j, K_j^o)$. Then arrange the $s$ e-notes in random positions. Alice now has an array (of length $s$) of pairs: $\mathbb{S}_i = \{(C_j, K_j^o)\}_{j=1}^s$, which is called the \textbf{ring}. Its elements $(C_j, K_j^o)$ are called the \textbf{ring members}. 
-    \item Prepare the proof transcripts $\Pi_{\text{mem}, i}$ for a non-interactive proving system for the following relation:
+    \item Prepare the proof transcript $\Pi_{\text{mem}, i}$ for a non-interactive proving system for the following relation:
 $$\{(G, C_i', K_i'^o \in\mathbb{G}, \mathbb{S}_i\subset\mathbb{G}^2; \pi_i\in\mathbb{N}, t_{c,i}, t_{k,i}\in\mathbb{F}): 1\le\pi_i\le s \wedge C_i' - C_{\pi_i} = t_{c,i} G \wedge K_i'^o - K_{\pi_i}^o = t_{k,i} G \}$$
     \item Append $(\mathbb{S}_i, \Pi_{\text{mem}, i})$ to $({\tt enimg}_i, \ldots)$ in $T$.
 \end{enumerate}
@@ -125,7 +125,7 @@ The required security properties for application to Seraphis are described in Se
 \subsection{Range proofs}\label{range}
 For the new e-notes ${\tt enote}_{ali}$ and ${\tt enote}_{bob}$, Alice must do the following:
 \begin{enumerate}
-    \item Prepare the respective proof transcripts $\Pi_{\text{ran}, ali}$ and $\Pi_{\text{ran}, bob}$ for a non-interactive proving system for the following relation:
+    \item Prepare the respective proof transcript $\Pi_{\text{ran}, ali}$ and $\Pi_{\text{ran}, bob}$ for a non-interactive proving system for the following relation:
 $$\{(G, H, C \in\mathbb{G}, a_{max}\in\mathbb{F}; x, a\in\mathbb{F}): C = x G + a H \wedge 0\le a \le a_{max}\}$$
     \item Store $\Pi_{\text{ran}, ali}$ and $\Pi_{\text{ran}, bob}$ to $T$.
 \end{enumerate}
@@ -166,13 +166,112 @@ For a start, we assume that the distributed ledger is immutable. Therefore, the 
 Subsections \ref{prov-prop} to \ref{Comm} outline the required security properties of the cryptographic components for Seraphis, then Subsection \ref{sec-thm} is the main security analysis of Seraphis, and Subsection \ref{sec-disc} discusses how some instantiations and modifications described in Section \ref{inst} affect the security analysis.
 
 \subsection{Proving systems security properties}\label{prov-prop}
-We require some proving systems to be used in Seraphis to be zero-knowledge. Starting with interactive protocol description, the proving systems must satisfy the following three security properties. The precise definitions of these properties are common and found, for instance, in \cite{groth}.
-\begin{itemize}
-    \item \textit{Completeness}: If the prover knows a witness to the statement, she should always be able to generate a proof for that statement that convinces the verifier.
-    \item \textit{Soundness}: If the prover does not know a witness to the statement, she should never be able to generate a proof for that statement that convinces the verifier. Moreover, there exists an \textit{witness extractor} that has an ability to ``rewind time'' and make the prover answer several different challenges. From the valid (by verifier) answers of the prover, it should be possible for the witness extractor to extract a witness.
-    \item \textit{Honest Verifier Zero-Knowledge}: The protocol should not reveal anything about the prover’s witness. Moreover, assuming that challenges must be honestly generated, there exists a \textit{simulator} such that even without knowledge of a witness, the probability distribution of the simulator's valid transcripts (all data being sent and received in the protocol) is equal to the probability distribution of actual valid transcripts by a prover and a verifier.
-\end{itemize}
-Fiat-Shamir heuristic \cite{fiat-shamir} is applied to make interactive proving systems non-interactive. Moreover, Fiat-Shamir heuristic transforms interactive protocols satisfying HVZK into non-interactive (fully) zero-knowledge (NIZK) protocols in the random oracle model.
+We define a proving system as a tuple $(\textsf{Setup}, \mathcal{P}, \mathcal{V})$. $\textsf{Setup}$ is the setup algorithm: $pp\leftarrow\textsf{Setup}(1^{\lambda})$, and $\mathcal{P}$ and $\mathcal{V}$ are $\textsf{PPT}$ algorithms called \textbf{Prover} and \textbf{Verifier}, respectively. We denote the \textit{transcript} (all data being sent and received in the protocol) produced by $\mathcal{P}$ and $\mathcal{V}$ when dealing with inputs $x$ and $y$ as $tr\leftarrow\langle\mathcal{P}(x), \mathcal{V}(y)\rangle$. Once the transcript is produced, we denote the transcript verification as $\mathcal{V}(tr)=1$ for accepted transcript and $\mathcal{V}(tr)=0$ for rejected. 
+
+Let $\mathcal{R}$ be an NP (polynomial-time verifiable) relation of the form $\{(x,w):P(x, w)\}$ where $x$ is the \textit{statement}, $w$ is the \textit{witness}, and $P$ is a predicate of $x$ and $w$. Then ``$(\textsf{Setup}, \mathcal{P}, \mathcal{V})$ is a proving system for the relation $\mathcal{R}$'' informally means that when $\mathcal{P}$ gives an $x$ to $\mathcal{V}$, $\mathcal{P}$ must convince $\mathcal{V}$ that it knows a $w$ such that $(x,w)\in\mathcal{R}$ by generating $tr\leftarrow\langle\mathcal{P}(pp, x, w), \mathcal{V}(pp, x)\rangle$ that $\mathcal{V}$ accepts.
+
+Here are the \textit{minimal} needed security properties of proving systems for Seraphis:
+
+\begin{definition}[Perfect Completeness]
+$(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is perfectly complete for $\mathcal{R}$ if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$,
+\begin{align*}
+\emph{\textsf{Pr}}\left[
+\begin{array}{c|c}
+    \begin{gathered}
+        (x,w)\in\mathcal{R}\\
+        \wedge\ \mathcal{V}(tr) = 0
+    \end{gathered}
+    &
+    \begin{gathered}
+        pp\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); (x, w)\leftarrow\mathcal{A}(pp); \\
+        tr\leftarrow\langle\mathcal{P}(pp,x,w), \mathcal{V}(pp,x)\rangle
+    \end{gathered}
+\end{array}
+\right]
+= 0.
+\end{align*}
+\end{definition}
+
+\begin{definition}[Computational Soundness]
+$(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is computationally sound for $\mathcal{R}$ if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+\begin{align*}
+\emph{\textsf{Pr}}\left[
+\begin{array}{c|c}
+    \begin{gathered}
+        (x,w)\not\in\mathcal{R}\\
+        \wedge\ \mathcal{V}(tr) = 1
+    \end{gathered}
+    &
+    \begin{gathered}
+        pp\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); (x, w)\leftarrow\mathcal{A}(pp); \\
+        tr\leftarrow\langle\mathcal{P}(pp,x,w), \mathcal{V}(pp,x)\rangle
+    \end{gathered}
+\end{array}
+\right]
+\le \emph{\textsf{negl}}(\lambda).
+\end{align*}
+\end{definition}
+
+There is another notion of soundness called \textit{Special Soundness}. For a proving system to be special sound, there must exist a \textit{witness extractor} that has an ability to ``rewind time'' and make the Prover answer several different challenges, and it must be able to extract a witness given (more than 1) accepted transcripts with the Prover. This is a stronger notion of soundness, hence this already implies computational soundness.
+
+\begin{definition}[Perfect Special HVZK]
+$(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is perfectly special honest-verifier zero knowledge (HVZK) for $\mathcal{R}$ if there exists a $\emph{\textsf{PPT}}$ simulator $\mathcal{S}$ such that for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$,
+\begin{align*}
+\emph{\textsf{Pr}}\left[
+\begin{array}{c|c}
+    \begin{gathered}
+        (x,w)\in\mathcal{R}\\
+        \wedge\ \mathcal{V}(tr) = 1
+    \end{gathered}
+    &
+    \begin{gathered}
+        pp\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); (x, w, \rho)\leftarrow\mathcal{A}(pp); \\
+        tr\leftarrow\langle\mathcal{P}(pp,x,w), \mathcal{V}(pp,x; \rho)\rangle
+    \end{gathered}
+\end{array}
+\right] \\
+=\emph{\textsf{Pr}}\left[
+\begin{array}{c|c}
+    \begin{gathered}
+        (x,w)\in\mathcal{R}\\
+        \wedge\ \mathcal{V}(tr) = 1
+    \end{gathered}
+    &
+    \begin{gathered}
+        pp\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); (x, w, \rho)\leftarrow\mathcal{A}(pp); \\
+        tr\leftarrow\mathcal{S}(pp, x, \rho)
+    \end{gathered}
+\end{array}
+\right]
+\end{align*}
+where $\rho$ is the public randomness used by $\mathcal{V}$.
+\end{definition}
+
+Fiat-Shamir heuristic \cite{fiat-shamir} is applied to make interactive proving systems non-interactive. Moreover, Fiat-Shamir heuristic transforms interactive protocols satisfying HVZK into non-interactive (fully) zero-knowledge (NIZK) protocols in the random oracle model. Hence, all proving systems for application to Seraphis should be transformed via Fiat-Shamir heuristic.
+
+For membership proofs, we need the following property which is based on the one from \cite{groth}:
+\begin{definition}[Perfect Anonymity]
+$(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is perfectly anonymous for $\mathcal{R}$ if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$,
+\begin{align*}
+\emph{\textsf{Pr}}\left[
+\begin{array}{c|c}
+    \begin{gathered}
+        b' = b
+    \end{gathered}
+    &
+    \begin{gathered}
+        pp\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); i_0, i_1 \in \{1,\ldots,s\}, \mathbb{S}^*\leftarrow\mathcal{A}(pp,\emph{\textsf{CorruptRing}}); \\
+        b\xleftarrow{\$}\{0,1\}; (x, w)\in\mathcal{R}\leftarrow\mathcal{P}(pp, \mathbb{S}^*, i_b); \\
+        tr\leftarrow\langle\mathcal{P}(pp,x,w), \mathcal{V}(pp,x)\rangle; b'\leftarrow\mathcal{A}(pp, x, tr)
+    \end{gathered}
+\end{array}
+\right]
+= \frac{1}{2}
+\end{align*}
+where $\emph{\textsf{CorruptRing}}$ is an oracle that gives the corresponding private data for all ring members, making the adversary's ring $\mathbb{S}^*$ corrupted, $s=|\mathbb{S}^*|$ is the anonymity size, and $\mathcal{P}$ sets $\pi = i_b$ for the membership proof and replaces the $\pi$th element of $\mathbb{S}^*$ with its own (see Section \ref{mem} for details).
+\end{definition}
+
+All proving systems for application to Seraphis must \textit{at least} have perfect completeness and computational soundness. Moreover, Ownership and Unspentness proofs and Range proofs must at least have perfect special HVZK, while Membership proofs must at least have perfect anonymity.
 
 \subsection{Authenticated symmetric encryption scheme}\label{sec-symm}
 We require that the authenticated symmetric encryption scheme has the following properties: indistinguishable against chosen-plaintext attack (IND-CPA), indistinguishable against adaptive chosen-ciphertext attack (IND-CCA2), and key-private under chosen-ciphertext attacks (IK-CCA).
@@ -183,7 +282,7 @@ We define a commitment scheme as a tuple $(\textsf{Setup}, \textsf{Comm})$. $\te
 To commit to a message $m \in M$, the sender selects $r\xleftarrow{\$}\chi$ and computes the commitment $C = \textsf{Comm}(m; r)$. We define the required security properties of commitment schemes.
 
 \begin{definition}[Hiding Property]
-A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is hiding if for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is hiding if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
 \begin{align*}
 \left| \frac{1}{2} - \emph{\textsf{Pr}}\left[
 \begin{array}{c|c}
@@ -203,7 +302,7 @@ A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is hiding if
 \end{definition}
 
 \begin{definition}[Binding Property]
-A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is binding if for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is binding if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
 \begin{align*}
 \emph{\textsf{Pr}}
 \left[
@@ -233,11 +332,11 @@ We first define commitment functions $\textsf{CommAmount}:\mathbb{F}\times\mathb
 \end{align*}
 $\textsf{CommAmount}$ corresponds to the structure of amount commitment $C$, while $\textsf{CommTag}$ corresponds to the combination of structures of masked address $K'^o$ and linking tag $\tilde{K}$.
 
-The first security property is \textbf{Completeness} (called \textit{Correctness} in Omniring), which means that if an e-note appears on the ledger, then the user owning it can honestly generate a valid (by verifier) transaction spending it. Seraphis satisfying completeness immediately follows from the completeness properties of the cryptographic components and by inspection of the protocol description.
+The first security property is \textbf{Completeness} (called \textit{Correctness} in Omniring), which means that if an e-note appears on the ledger, then the user owning it can honestly generate an accepted transaction spending it. Seraphis satisfying completeness immediately follows from the completeness properties of the cryptographic components and by inspection of the protocol description.
 
 Next we consider the \textbf{Balance} property, which means that a spender adversary should never be able to spend more amounts than he truly owns, hence preventing double-spending. Balance property has two subproperties: the first involves the binding property. $\textsf{CommAmount}$ is binding means that the spender adversary should not be able to change the e-note amounts when spending the e-notes he owns, while $\textsf{CommTag}$ is binding means that the spender adversary should not be able to make a new linking tag from an e-note he already spent, which is an attempt of double-spending the e-note.
 
-The second subproperty involves an experiment $\textsf{BAL}(\mathcal{A}, \mathcal{E}_{\mathcal{A}}, 1^{\lambda})$ between a $\textsf{PPT}$ spender adversary $\mathcal{A}$ and a witness extractor $ \mathcal{E}_{\mathcal{A}}$. $\mathcal{A}$ succeeds in the experiment (i.e. $\textsf{BAL}(\mathcal{A}, \mathcal{E}_{\mathcal{A}}, 1^{\lambda})=1$) if he managed to generate a valid transaction such that all private information related to amounts like the amounts themselves, discrete log of linking tags, spent e-note private keys, etc. are \textit{not all equal} to the data extracted by $\mathcal{E}_{\mathcal{A}}$. Now the two subproperties combined says that if $\mathcal{A}$ succeeds in the experiment, then it is guaranteed that he broke the binding properties of $\textsf{CommAmount}$ or $\textsf{CommTag}$.
+The second subproperty involves an experiment $\textsf{BAL}(\mathcal{A}, \mathcal{E}_{\mathcal{A}}, 1^{\lambda})$ between a $\textsf{PPT}$ spender adversary $\mathcal{A}$ and a witness extractor $ \mathcal{E}_{\mathcal{A}}$. $\mathcal{A}$ succeeds in the experiment (i.e. $\textsf{BAL}(\mathcal{A}, \mathcal{E}_{\mathcal{A}}, 1^{\lambda})=1$) if he managed to generate a accepted transaction such that all private information related to amounts like the amounts themselves, discrete log of linking tags, spent e-note private keys, etc. are \textit{not all equal} to the data extracted by $\mathcal{E}_{\mathcal{A}}$. Now the two subproperties combined says that if $\mathcal{A}$ succeeds in the experiment, then it is guaranteed that he broke the binding properties of $\textsf{CommAmount}$ or $\textsf{CommTag}$.
 
 \begin{figure}[htbp]
 \centering
@@ -248,7 +347,7 @@ The second subproperty involves an experiment $\textsf{BAL}(\mathcal{A}, \mathca
 \item $\mathcal{A}$ is provided $k_v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ in the ledger which are connected to that address, and a receiver's address ${\tt addr}_{\mathcal{B}} = (K_{\mathcal{B}}^{dh}, K_{\mathcal{B}}^v, K_{\mathcal{B}}^s)$.
 \item $T\leftarrow\mathcal{A}(pp, {\tt addr}_{\mathcal{A}}, {\tt addr}_{\mathcal{B}}, {\tt enote}_{\mathcal{A}})$. $\mathcal{A}$ spends some e-notes to ${\tt addr}_{\mathcal{B}}$.
 \item $(\{(t_{c,i}, t_{k,i}, k_{a,i}^o, k_{b,i}^o, \pi_i)\}_{i=1}^n, x_{\mathcal{B}}, a_{\mathcal{B}})\leftarrow\mathcal{E}_{\mathcal{A}}(pp, T)$.
-\item $b_0:=1$ if Verifier verified $T$ as valid, else $:=0$.
+\item $b_0:=1$ if Verifier accepts $T$, else $:=0$.
 \item $b_1:=1$ if $\textsf{CommAmount}(a_{\mathcal{B}}; x_{\mathcal{B}}) = C$ in ${\tt enote}_{\mathcal{B}}$ in $T$, else $:=0$.
 \item $b_2:=1$ if for all $i\in\{1,\ldots,n\}$, $\textsf{CommAmount}(t_{c,i}; 0) = C_i' - C_{\pi_i}$ in $T$, else $:=0$.
 \item $b_3:=1$ if for all $i\in\{1,\ldots,n\}$, $\textsf{CommAmount}(t_{k,i}; 0) = K_i'^o - K_{\pi_i}^o$ in $T$, else $:=0$.
@@ -298,7 +397,7 @@ Next we consider the \textbf{Privacy} property, which means that an adversary sh
 \end{figure}
 
 \begin{definition}[Privacy]
-Seraphis is private if for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exist a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+Seraphis is private if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exist a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
 \begin{align*}
 \emph{\textsf{Pr}}
 \left[
@@ -327,7 +426,7 @@ Lastly, we consider the \textbf{Non-slanderability}, which means that an adversa
 \end{figure}
 
 \begin{definition}[Non-slanderability]
-Seraphis is non-slanderable if for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exist a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+Seraphis is non-slanderable if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exist a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
 \begin{align*}
 \emph{\textsf{Pr}}
 \left[
@@ -373,19 +472,19 @@ A_{b} &= r_b U + c \sum_{j=1}^{n}{\mathcal{H}_8(\{\tilde{K}_i\}_{i=1}^n, j) \til
 A_{i} &= r_i K_i + c K_{t1,i}\ ,\ \forall i\in\{1,\ldots,n\}\\
 \end{align*}
 \end{enumerate}
-We now prove that the protocol is complete, (computationally) sound, and honest-verifier zero knowledge, all if $G$, $X$, and $U$ are mutually independent and $\mathcal{H}$ is a random oracle.
+We now prove that the protocol is perfectly complete, computationally sound, and perfectly special honest-verifier zero knowledge, all if $G$, $X$, and $U$ are mutually independent and $\mathcal{H}$ is a random oracle.
 
 \begin{proof}
-For completeness, note that $\forall i\in\{1,\ldots,n\}$, knowledge of $(x_i/y_i$, $z_i/y_i$, $1/y_i)$ is also enough to satisfy the proving relation, and
+For perfect completeness, note that $\forall i\in\{1,\ldots,n\}$, knowledge of $(x_i/y_i$, $z_i/y_i$, $1/y_i)$ is also enough to satisfy the proving relation, and
 \begin{align*}
 K_{t2,i} &= K_{t1,i} - X - \tilde{K}_i \\ &= (1/y_i)(x_i G + y_i X + z_i U) - X - (z_i/y_i)U \\
 &= (x_i/y_i)G + X + (z_i/y_i) U - X - (z_i/y_i)U \\ &= (x_i/y_i)G.
 \end{align*}
 Then the property follows from inspection.
 
-For honest-verifier zero knowledge, we construct a valid simulator producing transcripts with probability distribution identical to the probability distribution of actual valid transcripts by Prover and Verifier. The simulator generates $c, r_a, r_b, r_i \xleftarrow{\$}\mathbb{F}\ ,\ \forall i\in\{1,\ldots,n\}$. Then the simulator computes $A_{a}, A_{b}, \{A_{i}\}_{i=1}^n$ exactly according to Step 5 of the protocol description. Because of this last step, the Verifier will mark the simulated transcripts as \textit{valid}. Now assume that $G$, $X$, and $U$ are mutually independent and $\mathcal{H}$ is a random oracle. Observe that the simulated transcripts are all uniformly random because $c, r_a, r_b, \{r_i\}_{i=1}^n$ are uniformly randomly selected. On the other hand, observe that actual valid transcripts between Prover and Verifier are also uniformly random because the Prover's $\alpha_a, \alpha_b, \{\alpha_i\}_{i=1}^n$ and the Verifier's $c$ are all uniformly randomly selected. Hence the two probability distributions are identical.
+For perfect special HVZK, we construct a simulator producing accepted transcripts with probability distribution identical to the probability distribution of legitimate accepted transcripts by Prover and Verifier. The simulator generates $c, r_a, r_b, r_i \xleftarrow{\$}\mathbb{F}\ ,\ \forall i\in\{1,\ldots,n\}$. Then the simulator computes $A_{a}, A_{b}, \{A_{i}\}_{i=1}^n$ exactly according to Step 5 of the protocol description. Because of this last step, the Verifier will accept the simulated transcript. Now assume that $G$, $X$, and $U$ are mutually independent and $\mathcal{H}$ is a random oracle. Observe that the simulated transcript is uniformly random because $c, r_a, r_b, \{r_i\}_{i=1}^n$ are uniformly randomly selected. On the other hand, observe that a legitimate accepted transcript between Prover and Verifier is also uniformly random because the Prover's $\alpha_a, \alpha_b, \{\alpha_i\}_{i=1}^n$ and the Verifier's $c$ are all uniformly randomly selected. Hence the two probability distributions are identical.
 
-For computational soundness (with respect to DL assumption), the proof is by contraposition. Suppose that a $\textsf{PPT}$ adversarial prover $\mathcal{A}$ \textit{not} knowing a witness, can produce a valid transcript $(A_a, A_b, \{A_i\}_{i=1}^n,c, r_a, r_b, \{r_i\}_{i=1}^n)$ with an honest verifier with non-negligible probability. From the third equation in Step 5, $\forall i\in\{1,\ldots,n\}$:
+For computational soundness (with respect to DL assumption), the proof is by contraposition. Suppose that a $\textsf{PPT}$ adversarial prover $\mathcal{A}$ \textit{not} knowing a witness, can produce an accepted transcript $$(A_a, A_b, \{A_i\}_{i=1}^n,c, r_a, r_b, \{r_i\}_{i=1}^n)$$ with an honest verifier with non-negligible probability. From the third equation in Step 5, $\forall i\in\{1,\ldots,n\}$:
 \begin{align*}
 A_{i} &= r_i K_i + c K_{t1,i} \\
 \implies\alpha_i K_i &= r_i K_i + c (1/y_i)K_i \\
@@ -401,7 +500,7 @@ Fiat-Shamir heuristic transforms interactive protocols satisfying HVZK into non-
 We first present a lemma which is helpful in proofs by reduction.
 
 \begin{definition}\label{negl}
-A function $f:\mathbb{N}\rightarrow\mathbb{R}$ is \textbf{\em negligible} if for every polynomial $p(\cdot)$ there exists an $N\in\mathbb{N}$ such that for all integers $n>N$ it holds that $f(n)<\frac{1}{p(n)}$.
+A function $f:\mathbb{N}\rightarrow\mathbb{R}$ is \textbf{\em negligible} if for all polynomial $p(\cdot)$ there exists an $N\in\mathbb{N}$ such that for all integers $n>N$ it holds that $f(n)<\frac{1}{p(n)}$.
 \end{definition}
 \noindent Definition \ref{negl} is from Katz \& Lindell \cite{katz-lindell}. We prove the following lemma:
 
