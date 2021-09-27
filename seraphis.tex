@@ -166,7 +166,7 @@ For a start, we assume that the distributed ledger is immutable. Therefore, the 
 Subsections \ref{prov-prop} to \ref{Comm} outline the required security properties of the cryptographic components for Seraphis, then Subsection \ref{sec-thm} is the main security analysis of Seraphis, and Subsection \ref{sec-disc} discusses how some instantiations and modifications described in Section \ref{inst} affect the security analysis.
 
 \subsection{Proving systems security properties}\label{prov-prop}
-We define a proving system as a tuple $(\textsf{Setup}, \mathcal{P}, \mathcal{V})$. $\textsf{Setup}$ is the setup algorithm: $pp\leftarrow\textsf{Setup}(1^{\lambda})$, and $\mathcal{P}$ and $\mathcal{V}$ are $\textsf{PPT}$ algorithms called \textbf{Prover} and \textbf{Verifier}, respectively. We denote the \textit{transcript} (all data being sent and received in the protocol) produced by $\mathcal{P}$ and $\mathcal{V}$ when dealing with inputs $x$ and $y$ as $tr\leftarrow\langle\mathcal{P}(x), \mathcal{V}(y)\rangle$. Once the transcript is produced, we denote the transcript verification as $\mathcal{V}(tr)=1$ for accepted transcript and $\mathcal{V}(tr)=0$ for rejected. 
+We define a proving system as a tuple $(\textsf{Setup}, \mathcal{P}, \mathcal{V})$. $\textsf{Setup}$ is the setup algorithm: $pp\leftarrow\textsf{Setup}(1^{\lambda})$, and $\mathcal{P}$ and $\mathcal{V}$ are $\textsf{PPT}$ algorithms called \textbf{Prover} and \textbf{Verifier}, respectively. We denote the \textit{transcript} (all data being sent and received in the protocol) produced by $\mathcal{P}$ and $\mathcal{V}$ when dealing with inputs $x$ and $y$ as $tr\leftarrow\langle\mathcal{P}(x), \mathcal{V}(y)\rangle$. Once the transcript is produced, we denote the final transcript verification done by an algorithm $\mathcal{X}$ as $\mathcal{X}(tr)=1$ for accepted transcript and $\mathcal{X}(tr)=0$ for rejected. 
 
 Let $\mathcal{R}$ be an NP (polynomial-time verifiable) relation of the form $\{(x,w):P(x, w)\}$ where $x$ is the \textit{statement}, $w$ is the \textit{witness}, and $P$ is a predicate of $x$ and $w$. Then ``$(\textsf{Setup}, \mathcal{P}, \mathcal{V})$ is a proving system for the relation $\mathcal{R}$'' informally means that when $\mathcal{P}$ gives an $x$ to $\mathcal{V}$, $\mathcal{P}$ must convince $\mathcal{V}$ that it knows a $w$ such that $(x,w)\in\mathcal{R}$ by generating $tr\leftarrow\langle\mathcal{P}(pp, x, w), \mathcal{V}(pp, x)\rangle$ that $\mathcal{V}$ accepts.
 
@@ -204,7 +204,7 @@ $(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is computationally sound for
     &
     \begin{gathered}
         pp\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); (x, w)\leftarrow\mathcal{A}(pp); \\
-        tr\leftarrow\langle\mathcal{P}(pp,x,w), \mathcal{V}(pp,x)\rangle
+        tr\leftarrow\langle\mathcal{A}(pp,x,w), \mathcal{V}(pp,x)\rangle
     \end{gathered}
 \end{array}
 \right]
@@ -221,7 +221,7 @@ $(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is perfectly special honest-
 \begin{array}{c|c}
     \begin{gathered}
         (x,w)\in\mathcal{R}\\
-        \wedge\ \mathcal{V}(tr) = 1
+        \wedge\ \mathcal{A}(tr) = 1
     \end{gathered}
     &
     \begin{gathered}
@@ -234,7 +234,7 @@ $(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is perfectly special honest-
 \begin{array}{c|c}
     \begin{gathered}
         (x,w)\in\mathcal{R}\\
-        \wedge\ \mathcal{V}(tr) = 1
+        \wedge\ \mathcal{A}(tr) = 1
     \end{gathered}
     &
     \begin{gathered}
@@ -249,29 +249,29 @@ where $\rho$ is the public randomness used by $\mathcal{V}$.
 
 Fiat-Shamir heuristic \cite{fiat-shamir} is applied to make interactive proving systems non-interactive. Moreover, Fiat-Shamir heuristic transforms interactive protocols satisfying HVZK into non-interactive (fully) zero-knowledge (NIZK) protocols in the random oracle model. Hence, all proving systems for application to Seraphis should be transformed via Fiat-Shamir heuristic.
 
-For membership proofs, we need the following property which is based on the one from \cite{groth}:
-\begin{definition}[Perfect Anonymity]
-$(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is perfectly anonymous for $\mathcal{R}$ if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$,
+For membership proofs, we need the following property which is weaker than perfect special HVZK \cite{groth}:
+\begin{definition}[Witness Indistinguishability]
+$(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is witness indistinguishable for $\mathcal{R}$ if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
 \begin{align*}
-\emph{\textsf{Pr}}\left[
+\left| \frac{1}{2} - \emph{\textsf{Pr}}\left[
 \begin{array}{c|c}
     \begin{gathered}
         b' = b
     \end{gathered}
     &
     \begin{gathered}
-        pp\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); i_0, i_1 \in \{1,\ldots,s\}, \mathbb{S}^*\leftarrow\mathcal{A}(pp,\emph{\textsf{CorruptRing}}); \\
-        b\xleftarrow{\$}\{0,1\}; (x, w)\in\mathcal{R}\leftarrow\mathcal{P}(pp, \mathbb{S}^*, i_b); \\
-        tr\leftarrow\langle\mathcal{P}(pp,x,w), \mathcal{V}(pp,x)\rangle; b'\leftarrow\mathcal{A}(pp, x, tr)
+        pp\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); (x, w_0, w_1)\leftarrow\mathcal{A}(pp); \\
+        b\xleftarrow{\$}\{0,1\}; tr\leftarrow\langle\mathcal{P}(pp,x,w_b), \mathcal{V}(pp,x)\rangle; \\
+        b'\leftarrow\mathcal{A}(tr)
     \end{gathered}
 \end{array}
-\right]
-= \frac{1}{2}
+\right]\right|
+\le\emph{\textsf{negl}}(\lambda)
 \end{align*}
-where $\emph{\textsf{CorruptRing}}$ is an oracle that gives the corresponding private data for all ring members, making the adversary's ring $\mathbb{S}^*$ corrupted, $s=|\mathbb{S}^*|$ is the anonymity size, and $\mathcal{P}$ sets $\pi = i_b$ for the membership proof and replaces the $\pi$th element of $\mathbb{S}^*$ with its own (see Section \ref{mem} for details).
+where $\mathcal{A}(pp)$ always outputs $(x,w_0,w_1)$ such that $(x,w_0)\in\mathcal{R}\wedge(x,w_1)\in\mathcal{R}$.
 \end{definition}
 
-All proving systems for application to Seraphis must \textit{at least} have perfect completeness and computational soundness. Moreover, Ownership and Unspentness proofs and Range proofs must at least have perfect special HVZK, while Membership proofs must at least have perfect anonymity.
+All proving systems for application to Seraphis must \textit{at least} have perfect completeness and computational soundness. Moreover, Ownership and Unspentness proofs and Range proofs must at least have perfect special HVZK, while Membership proofs must at least have witness indistinguishability.
 
 \subsection{Authenticated symmetric encryption scheme}\label{sec-symm}
 We require that the authenticated symmetric encryption scheme has the following properties: indistinguishable against chosen-plaintext attack (IND-CPA), indistinguishable against adaptive chosen-ciphertext attack (IND-CCA2), and key-private under chosen-ciphertext attacks (IK-CCA).
@@ -300,6 +300,7 @@ A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is hiding if
 \le \emph{\textsf{negl}}(\lambda).
 \end{align*}
 \end{definition}
+A commitment scheme is \textit{perfectly hiding} if $\textsf{negl}(\lambda)$ is replaced by $0$.
 
 \begin{definition}[Binding Property]
 A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is binding if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
@@ -322,6 +323,8 @@ A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is binding i
 \le \emph{\textsf{negl}}(\lambda).
 \end{align*}
 \end{definition}
+A commitment scheme is \textit{perfectly binding} if $\textsf{negl}(\lambda)$ is replaced by $0$.
+
 \subsection{Seraphis security properties}\label{sec-thm}
 The required security properties are those in Omniring's security model \cite{omniring}, with modifications to fit in Seraphis. The Omniring paper presents a rigorous formalization of RingCT constructions, providing precision for security analysis against several realistic attacks. Proofs for the theorems are found in Section \ref{proofs}.
 
