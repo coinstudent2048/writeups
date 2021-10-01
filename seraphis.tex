@@ -326,7 +326,12 @@ A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is binding i
 A commitment scheme is \textit{perfectly binding} if $\textsf{negl}(\lambda)$ is replaced by $0$.
 
 \subsection{Seraphis security properties}\label{sec-thm}
-The required security properties are those in Omniring's security model \cite{omniring}, with modifications to fit in Seraphis. The Omniring paper presents a rigorous formalization of RingCT constructions, providing precision for security analysis against several realistic attacks. Proofs for the theorems are found in Section \ref{proofs}.
+The required security properties for Seraphis are based on Omniring's security model \cite{omniring}. The Omniring paper presents a rigorous formalization of RingCT constructions, providing precision for security analysis against several realistic attacks.
+
+It is important to note that the properties in subsection \ref{prov-prop} are the \textit{minimal} requirements, thus the properties presented in this subsection are the \textit{weakest}. Because of Seraphis's modularity, stronger properties for proving systems must yield stronger properties for Seraphis. Proofs for the theorems in this subsection, found in Appendix \ref{proofs}, can also serve a guide for proving stronger properties.
+
+Lastly, note that the mentioned proving systems in the theorems are in their ``original'' interactive versions. As Fiat-Shamir heuristic produces full zero-knowledge which is stronger than HVZK, the theorems should also apply to the non-interactive protocols transformed through the heuristic.
+
 
 We first define commitment functions $\textsf{CommAmount}:\mathbb{F}\times\mathbb{F}\rightarrow\mathbb{G}$ and $\textsf{CommTag}:\mathbb{F}\setminus\{0\}\times\mathbb{F}\times\mathbb{F}\rightarrow\mathbb{G}\times\mathbb{G}$ to be needed later on, as follows:
 \begin{align*}
@@ -337,26 +342,22 @@ $\textsf{CommAmount}$ corresponds to the structure of amount commitment $C$, whi
 
 The first security property is \textbf{Completeness} (called \textit{Correctness} in Omniring), which means that if an e-note appears on the ledger, then the user owning it can honestly generate an accepted transaction spending it. Seraphis satisfying completeness immediately follows from the completeness properties of the cryptographic components and by inspection of the protocol description.
 
-Next we consider the \textbf{Balance} property, which means that a spender adversary should never be able to spend more amounts than he truly owns, hence preventing double-spending. Balance property has two subproperties: the first involves the binding property. $\textsf{CommAmount}$ is binding means that the spender adversary should not be able to change the e-note amounts when spending the e-notes he owns, while $\textsf{CommTag}$ is binding means that the spender adversary should not be able to make a new linking tag from an e-note he already spent, which is an attempt of double-spending the e-note.
-
-The second subproperty involves an experiment $\textsf{BAL}(\mathcal{A}, \mathcal{E}_{\mathcal{A}}, 1^{\lambda})$ between a $\textsf{PPT}$ spender adversary $\mathcal{A}$ and a witness extractor $ \mathcal{E}_{\mathcal{A}}$. $\mathcal{A}$ succeeds in the experiment (i.e. $\textsf{BAL}(\mathcal{A}, \mathcal{E}_{\mathcal{A}}, 1^{\lambda})=1$) if he managed to generate a accepted transaction such that all private information related to amounts like the amounts themselves, discrete log of linking tags, spent e-note private keys, etc. are \textit{not all equal} to the data extracted by $\mathcal{E}_{\mathcal{A}}$. Now the two subproperties combined says that if $\mathcal{A}$ succeeds in the experiment, then it is guaranteed that he broke the binding properties of $\textsf{CommAmount}$ or $\textsf{CommTag}$.
+Next we consider the \textbf{Balance} property, which means that a spender adversary should never be able to spend more amounts than he truly owns, hence preventing double-spending. The one presented here would be weaker than the one in Omniring because the one in Omniring requires special soundness for proving systems, which we do not require. Balance property involves an experiment $\textsf{BAL}(\mathcal{A}, 1^{\lambda})$  on a $\textsf{PPT}$ adversary $\mathcal{A}$. The adversary succeeds in the experiment (i.e. $\textsf{BAL}(\mathcal{A}, 1^{\lambda})=1$) if he managed to generate an accepted transaction such that 1) some private information related to amounts like the discrete log of linking tags, spent e-note private keys, etc. are \textit{not equal} to what is originally given to him, or 2) the amount of the new e-note for the receiver is \textit{larger} than the supposed total amount of e-notes he owns.
 
 \begin{figure}[htbp]
 \centering
 \fbox{\begin{minipage}{0.85\textwidth}
-\underline{$\textsf{BAL}(\mathcal{A}, \mathcal{E}_{\mathcal{A}}, 1^{\lambda})$}
+\underline{$\textsf{BAL}(\mathcal{A}, 1^{\lambda})$}
 \begin{itemize}
 \item $pp\leftarrow\textsf{Setup}(1^{\lambda})$.
-\item $\mathcal{A}$ is provided $k_v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ in the ledger which are connected to that address, and a receiver's address ${\tt addr}_{\mathcal{B}} = (K_{\mathcal{B}}^{dh}, K_{\mathcal{B}}^v, K_{\mathcal{B}}^s)$.
-\item $T\leftarrow\mathcal{A}(pp, {\tt addr}_{\mathcal{A}}, {\tt addr}_{\mathcal{B}}, {\tt enote}_{\mathcal{A}})$. $\mathcal{A}$ spends some e-notes to ${\tt addr}_{\mathcal{B}}$.
-\item $(\{(t_{c,i}, t_{k,i}, k_{a,i}^o, k_{b,i}^o, \pi_i)\}_{i=1}^n, x_{\mathcal{B}}, a_{\mathcal{B}})\leftarrow\mathcal{E}_{\mathcal{A}}(pp, T)$.
-\item $b_0:=1$ if Verifier accepts $T$, else $:=0$.
-\item $b_1:=1$ if $\textsf{CommAmount}(a_{\mathcal{B}}; x_{\mathcal{B}}) = C$ in ${\tt enote}_{\mathcal{B}}$ in $T$, else $:=0$.
-\item $b_2:=1$ if for all $i\in\{1,\ldots,n\}$, $\textsf{CommAmount}(t_{c,i}; 0) = C_i' - C_{\pi_i}$ in $T$, else $:=0$.
-\item $b_3:=1$ if for all $i\in\{1,\ldots,n\}$, $\textsf{CommAmount}(t_{k,i}; 0) = K_i'^o - K_{\pi_i}^o$ in $T$, else $:=0$.
-\item $b_4:=1$ if for all $i\in\{1,\ldots,n\}$, $\textsf{CommTag}(k_{a,i}^o, k_{b,i}^o; t_{k,i}) = (K_i'^o, \tilde{K}_i)$ in $T$, else $:=0$.
-\item $b_5:=1$ if $\sum_{i=1}^n{a_{\mathcal{A}, i}}\ge a_{\mathcal{B}}$ where $a_{\mathcal{A}, i}$ is the amount of $i$th spent e-note and $a_{\mathcal{B}}$ is the amount received by ${\tt addr}_{\mathcal{B}}$, else $:=0$.
-\item Return $b_0 \wedge \neg(b_1 \wedge b_2 \wedge b_3 \wedge b_4 \wedge b_5)$.
+\item $\mathcal{A}$ is provided $k_v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, and $\{(k_{a,i}^o, k_{b,i}^o, a_i, x_i)\}_{i=1}^n$ that makes $\mathcal{A}$ the owner of ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ in the ledger.
+\item $\mathcal{A}$ can choose any receiver's address ${\tt addr}_{\mathcal{B}} = (K_{\mathcal{B}}^{dh}, K_{\mathcal{B}}^v, K_{\mathcal{B}}^s)$.
+\item $\{(k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i)\}_{i=1}^n \leftarrow\mathcal{A}(pp, {\tt enote}_{\mathcal{A}}, \{(k_{a,i}^o, k_{b,i}^o, a_i, x_i)\}_{i=1}^n)$.
+\item $T\leftarrow\mathcal{A}(pp, {\tt addr}_{\mathcal{A}}, {\tt addr}_{\mathcal{B}}, {\tt enote}_{\mathcal{A}}, \{(k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i)\}_{i=1}^n)$. $\mathcal{A}$ spends ${\tt enote}_{\mathcal{A}}$ to ${\tt addr}_{\mathcal{B}}$.
+\item $b_0:=1$ if Verifier accepts all transcripts in $T$, else $:=0$.
+\item $b_1:=1$ if $\exists i\in\{1,\ldots,n\}: (k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i) \ne (k_{a,i}^o, k_{b,i}^o, a_i, x_i)$, else $:=0$.
+\item $b_2:=1$ if $\sum_{i=1}^n{a_i} < a_{\mathcal{B}}$ where $a_{\mathcal{B}}$ is the amount of the new e-note for ${\tt addr}_{\mathcal{B}}$, else $:=0$.
+\item Return $b_0 \wedge (b_1 \vee b_2)$.
 \end{itemize}
 \end{minipage}}
 \caption{Balance experiment $\textsf{BAL}$}
@@ -364,25 +365,20 @@ The second subproperty involves an experiment $\textsf{BAL}(\mathcal{A}, \mathca
 \end{figure}
 
 \begin{definition}[Balance]
-Seraphis is balanced if it satisfies the following two conditions:
-\begin{enumerate}
-\item Both $(\emph{\textsf{Setup}},\emph{\textsf{CommAmount}})$ and $(\emph{\textsf{Setup}},\emph{\textsf{CommTag}})$ are binding.
-\item For every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a $\emph{\textsf{PPT}}$ extractor $\mathcal{E}_{\mathcal{A}}$ and a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+Seraphis is balanced if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
 \begin{align*}
 \emph{\textsf{Pr}}
 \left[
-\emph{\textsf{BAL}}(\mathcal{A}, \mathcal{E}_{\mathcal{A}}, 1^{\lambda})=1
+\emph{\textsf{BAL}}(\mathcal{A}, 1^{\lambda})=1
 \right]
 \le \emph{\textsf{negl}}(\lambda).
 \end{align*}
 where $\emph{\textsf{BAL}}$ is described in Figure \ref{exp-bal}.
-\end{enumerate}
 \end{definition}
 \begin{theorem}[Balance]
-If Ownership and Unspentness proofs are special sound, Range proofs are special sound, and Membership proofs are unforgeable, then Seraphis is balanced.  
+If both $(\emph{\textsf{Setup}},\emph{\textsf{CommAmount}})$ and $(\emph{\textsf{Setup}},\emph{\textsf{CommTag}})$ are binding, then Seraphis is balanced.  
 \end{theorem}
-
-Next we consider the \textbf{Privacy} property, which means that an adversary should never be able to detect the spender, receiver, and amounts in any transaction, hence providing sender and receiver anonymity, and confidential transfer of amounts. Privacy property involves an experiment $\textsf{PRV}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. The adversay $\mathcal{A}$ succeeds in the experiment (i.e. $\textsf{PRV}(\mathcal{A}, 1^{\lambda})=1$) if
+Next we consider the \textbf{Privacy} property, which means that an adversary should never be able to detect the spender, receiver, and amounts in any transaction, hence providing sender and receiver anonymity, and confidential transfer of amounts. Privacy property involves an experiment $\textsf{PRV}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. The adversary succeeds in the experiment if
 
 \begin{figure}[htbp]
 \centering
@@ -411,7 +407,7 @@ Seraphis is private if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, th
 where $\emph{\textsf{PRV}}$ is described in Figure \ref{exp-prv}.
 \end{definition}
 
-Lastly, we consider the \textbf{Non-slanderability}, which means that an adversary should never be able to spend e-notes on behalf of the owner of the e-notes.
+Lastly, we consider the \textbf{Non-slanderability}, which means that an adversary should never be able to spend e-notes on behalf of the owner of the e-notes. Non-slanderability property involves an experiment $\textsf{NSLAND}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. The adversary succeeds in the experiment if
 
 \begin{figure}[htbp]
 \centering
@@ -487,7 +483,7 @@ Then the property follows from inspection.
 
 For perfect special HVZK, we construct a simulator producing accepted transcripts with probability distribution identical to the probability distribution of legitimate accepted transcripts by Prover and Verifier. The simulator generates $c, r_a, r_b, r_i \xleftarrow{\$}\mathbb{F}\ ,\ \forall i\in\{1,\ldots,n\}$. Then the simulator computes $A_{a}, A_{b}, \{A_{i}\}_{i=1}^n$ exactly according to Step 5 of the protocol description. Because of this last step, the Verifier will accept the simulated transcript. Now assume that $G$, $X$, and $U$ are mutually independent and $\mathcal{H}$ is a random oracle. Observe that the simulated transcript is uniformly random because $c, r_a, r_b, \{r_i\}_{i=1}^n$ are uniformly randomly selected. On the other hand, observe that a legitimate accepted transcript between Prover and Verifier is also uniformly random because the Prover's $\alpha_a, \alpha_b, \{\alpha_i\}_{i=1}^n$ and the Verifier's $c$ are all uniformly randomly selected. Hence the two probability distributions are identical.
 
-For computational soundness (with respect to DL assumption), the proof is by contraposition. Suppose that a $\textsf{PPT}$ adversarial prover $\mathcal{A}$ \textit{not} knowing a witness, can produce an accepted transcript $$(A_a, A_b, \{A_i\}_{i=1}^n,c, r_a, r_b, \{r_i\}_{i=1}^n)$$ with an honest verifier with non-negligible probability. From the third equation in Step 5, $\forall i\in\{1,\ldots,n\}$:
+For computational soundness under the DL assumption, the proof is by contraposition. Suppose that a $\textsf{PPT}$ adversarial prover $\mathcal{A}$ \textit{not} knowing a witness, can produce an accepted transcript $$(A_a, A_b, \{A_i\}_{i=1}^n,c, r_a, r_b, \{r_i\}_{i=1}^n)$$ with an honest verifier with non-negligible probability. From the third equation in Step 5, $\forall i\in\{1,\ldots,n\}$:
 \begin{align*}
 A_{i} &= r_i K_i + c K_{t1,i} \\
 \implies\alpha_i K_i &= r_i K_i + c (1/y_i)K_i \\
@@ -516,29 +512,7 @@ The non-negligibility of $f$ means that there exists a polynomial $p(\cdot)$ suc
 \noindent Lemma \ref{negl-exp} justifies the usage of finite number of ``breaks'' in proofs by reduction. For a start, the probability for breaking a hardness assumption $\textsf{HA}$ is a function of $\lambda$. For now, we denote this function as $\textsf{Pr}[\textsf{HA}(\lambda)]$. Hence, for $m>1$, the probability for breaking $\textsf{HA}$ $m$-times $\textsf{Pr}[\wedge_{i=1}^{m}{\textsf{HA}_i(\lambda)}]\ge\textsf{Pr}[\textsf{HA}(\lambda)]^m$. Now Lemma \ref{negl-exp} says that if $\textsf{Pr}[\textsf{HA}(\lambda)]$ is non-negligible (or equivalently, for all negligible function $\textsf{negl}(\lambda)$, $\textsf{Pr}[\textsf{HA}(\lambda)]\ge\textsf{negl}(\lambda)$), then $\textsf{Pr}[\textsf{HA}(\lambda)]^m$ must also be non-negligible and hence $\textsf{Pr}[\wedge_{i=1}^{m}{\textsf{HA}_i(\lambda)}]$ is also non-negligible. Nevertheless, the number of breaks should still be documented in proofs.
 \\\\
 Now we present theorems that will be directly applied to the proofs of security properties of Seraphis:
-
 \begin{theorem}
-Let $(*)$ be the following hardness assumption relative to $\emph{\textsf{Setup}}$: for all $n>1$ and for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
-\begin{align*}
-\emph{\textsf{Pr}}\left[
-\begin{array}{c|c}
-    \begin{gathered}
-        \exists z_i(z_i \neq 0), i\in\{1, \ldots, n\} \\
-        \wedge\ \sum_{i=1}^{n}{z_i G_i}=H
-    \end{gathered}
-    &
-    \begin{gathered}
-        pp\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); \\
-        G_1,\ldots,G_n, H\xleftarrow{\$}\mathbb{G}; \\
-        \{z_i\}_{i=1}^n\in\mathbb{F}\leftarrow\mathcal{A}(pp, \{G_i\}_{i=1}^n, H) \\
-    \end{gathered}
-\end{array}
-\right]
-\le \emph{\textsf{negl}}(\lambda).
-\end{align*}
-Then if the DL assumption holds, then $(*)$ holds.
+$(\emph{\textsf{Setup}},\emph{\textsf{CommAmount}})$ and generally, Pedersen commitment, is perfectly hiding, and computationally binding under the DL assumption \emph{\cite{pedersen}}.
 \end{theorem}
-\begin{proof}
-The proof is by contraposition. Suppose that there exists an $n>1$ such that there exists a $\textsf{PPT}$ adversary $\mathcal{A}$ that solves $(*)$ with non-negligible probability. Let $A, B\in\mathbb{G}$ (both $\ne 0$) be some group elements to find discrete log for. Then set $G_1=G_2=\ldots=G_n=A, H=B$, and input these to $\mathcal{A}$, which with non-negligble probability, outputs $\{z_i\}_{i=1}^n$ such that $(\sum_{i=1}^n{z_i}) A = B$.
-\end{proof}
 \end{document}
