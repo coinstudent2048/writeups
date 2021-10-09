@@ -474,22 +474,22 @@ The protocol proceeds as follows:
 \begin{enumerate}
 \item The Prover generates $\alpha_a, \alpha_b, \alpha_i \xleftarrow{\$}\mathbb{F}\ ,\ \forall i\in\{1,\ldots,n\}$. The Prover computes $(A_a, A_b) = (\alpha_a G, \alpha_b U)$ and $A_{i}=\alpha_i K_i\ ,\ \forall i\in\{1,\ldots,n\}$, and sends $(A_a, A_b, \{A_i\}_{i=1}^n)$ to the verifier.
 \item Both the Prover and Verifier compute $K_{t2,i} = K_{t1,i} - X - \tilde{K}_i\ ,\ \forall i\in\{1,\ldots,n\}$.
-\item The Verifier sends a challenge $c\xleftarrow{\$}\mathbb{F}$ to the Prover.
+\item The Verifier sends a challenge $c\xleftarrow{\$}\mathbb{F}$ and random scalars $\mu_a,\mu_b\xleftarrow{\$}\mathbb{F}$ to the Prover.
 \item The Prover computes the responses:
 \begin{align*}
-r_{a} &= \alpha_a - c \sum_{j=1}^{n}{\mathcal{H}_7(\{K_{t2,i}\}_{i=1}^n, j) (x_j/y_j)} \\
-r_{b} &= \alpha_b - c \sum_{j=1}^{n}{\mathcal{H}_8(\{\tilde{K}_i\}_{i=1}^n, j) (z_j/y_j)} \\
+r_{a} &= \alpha_a - c \sum_{i=1}^{n}{\mu_a^{i-1} (x_i/y_i)} \\
+r_{b} &= \alpha_b - c \sum_{i=1}^{n}{\mu_b^{i-1}(z_i/y_i)} \\
 r_{i} &= \alpha_i - c (1/y_i)\ ,\ \forall i\in\{1,\ldots,n\}\\
 \end{align*}
 and sends those values to the Verifier.
 \item The Verifier checks the following equalities. If any of them fail, then the Prover has failed to satisfy the composition proof system.
 \begin{align*}
-A_{a} &= r_a G + c \sum_{j=1}^{n}{\mathcal{H}_7(\{K_{t2,i}\}_{i=1}^n, j) K_{t2,j}} \\
-A_{b} &= r_b U + c \sum_{j=1}^{n}{\mathcal{H}_8(\{\tilde{K}_i\}_{i=1}^n, j) \tilde{K}_j} \\
+A_{a} &= r_a G + c \sum_{i=1}^{n}{\mu_a^{i-1} K_{t2,i}} \\
+A_{b} &= r_b U + c \sum_{i=1}^{n}{\mu_b^{i-1} \tilde{K}_i} \\
 A_{i} &= r_i K_i + c K_{t1,i}\ ,\ \forall i\in\{1,\ldots,n\}\\
 \end{align*}
 \end{enumerate}
-We now prove that the protocol is perfectly complete, computationally sound, and perfectly special honest-verifier zero knowledge, all if $G$, $X$, and $U$ are mutually independent and $\mathcal{H}$ is a random oracle.
+We now prove that the protocol is perfectly complete, computationally sound, and perfectly special honest-verifier zero knowledge, all if $G$, $X$, and $U$ are mutually independent.
 
 \begin{proof}
 For perfect completeness, note that $\forall i\in\{1,\ldots,n\}$, knowledge of $(x_i/y_i$, $z_i/y_i$, $1/y_i)$ is also enough to satisfy the proving relation, and
@@ -499,9 +499,9 @@ K_{t2,i} &= K_{t1,i} - X - \tilde{K}_i \\ &= (1/y_i)(x_i G + y_i X + z_i U) - X 
 \end{align*}
 Then the property follows from inspection.
 
-For perfect special HVZK, we construct a simulator producing accepted transcripts with probability distribution identical to the probability distribution of legitimate accepted transcripts by Prover and Verifier. The simulator generates $c, r_a, r_b, r_i \xleftarrow{\$}\mathbb{F}\ ,\ \forall i\in\{1,\ldots,n\}$. Then the simulator computes $A_{a}, A_{b}, \{A_{i}\}_{i=1}^n$ exactly according to Step 5 of the protocol description. Because of this last step, the Verifier will accept the simulated transcript. Now assume that $G$, $X$, and $U$ are mutually independent and $\mathcal{H}$ is a random oracle. Observe that the simulated transcript is uniformly random because $c, r_a, r_b, \{r_i\}_{i=1}^n$ are uniformly randomly selected. On the other hand, observe that a legitimate accepted transcript between Prover and Verifier is also uniformly random because the Prover's $\alpha_a, \alpha_b, \{\alpha_i\}_{i=1}^n$ and the Verifier's $c$ are all uniformly randomly selected. Hence the two probability distributions are identical.
+For perfect special HVZK, we construct a simulator producing accepted transcripts with probability distribution identical to the probability distribution of legitimate accepted transcripts by Prover and Verifier. The simulator generates $c, \mu_a, \mu_b, r_a, r_b, r_i \xleftarrow{\$}\mathbb{F}\ ,\ \forall i\in\{1,\ldots,n\}$. Then the simulator computes $A_{a}, A_{b}, \{A_{i}\}_{i=1}^n$ exactly according to Step 5 of the protocol description. Because of this last step, the Verifier will accept the simulated transcript. Now assume that $G$, $X$, and $U$ are mutually independent. Observe that the simulated transcript is uniformly random because $c, \mu_a, \mu_b, r_a, r_b, \{r_i\}_{i=1}^n$ are uniformly randomly selected. On the other hand, observe that a legitimate accepted transcript between Prover and Verifier is also uniformly random because the Prover's $\alpha_a, \alpha_b, \{\alpha_i\}_{i=1}^n$ and the Verifier's $c, \mu_a, \mu_b$ are all uniformly randomly selected. Hence the two probability distributions are identical.
 
-For computational soundness under the DL assumption, the proof is by contraposition. Suppose that a $\textsf{PPT}$ adversarial prover $\mathcal{A}$ \textit{not} knowing a witness, can produce an accepted transcript $$(A_a, A_b, \{A_i\}_{i=1}^n,c, r_a, r_b, \{r_i\}_{i=1}^n)$$ with an honest verifier with non-negligible probability. From the third equation in Step 5, $\forall i\in\{1,\ldots,n\}$:
+For computational soundness under the DL assumption, the proof is by contraposition. Suppose that a $\textsf{PPT}$ adversarial prover $\mathcal{A}$ \textit{not} knowing a witness, can produce an accepted transcript $$(A_a, A_b, \{A_i\}_{i=1}^n,c, \mu_a, \mu_b, r_a, r_b, \{r_i\}_{i=1}^n)$$ with an honest verifier with non-negligible probability. From the third equation in Step 5, $\forall i\in\{1,\ldots,n\}$:
 \begin{align*}
 A_{i} &= r_i K_i + c K_{t1,i} \\
 \implies\alpha_i K_i &= r_i K_i + c (1/y_i)K_i \\
@@ -511,7 +511,7 @@ A_{i} &= r_i K_i + c K_{t1,i} \\
 Hence solving the discrete log (DL) problem for $K_{t1,i} = (1/y_i)K_i$ with non-negligible probability.
 \end{proof}
 
-Fiat-Shamir heuristic transforms interactive protocols satisfying HVZK into non-interactive (fully) zero-knowledge (NIZK) protocols in the random oracle model. Applying Fiat-Shamir heuristic to the composition proving system should be straightforward.
+Fiat-Shamir heuristic transforms interactive protocols satisfying HVZK into non-interactive (fully) zero-knowledge (NIZK) protocols in the random oracle model. Applying Fiat-Shamir heuristic to the composition proving system should be straightforward. Note that the $c$, $\mu_a$ and $\mu_b$ are generated through domain separation of hash function $\mathcal{H}$.
 
 \section{Security proofs for Seraphis}\label{proofs}
 We first present a lemma which is helpful in proofs by reduction.
