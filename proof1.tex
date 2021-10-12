@@ -22,28 +22,42 @@
 %\begin{abstract}
 %\end{abstract}
 
-%\section{The Thing}
-\noindent Let Let $\lambda$ be the security parameter. Let $\textsf{Setup}$ be the setup algorithm: $(\mathbb{G}, \mathbb{F})\leftarrow\textsf{Setup}(1^{\lambda})$, where $\mathbb{G}$ is a cyclic group of prime order and $\mathbb{F}$ is its scalar field. Let $Z\in\mathbb{G}$ be the identity element.
+\section{Mathematics}
+Let $\mathbb{N}=\{0,1,2,\ldots\}$ and let $\mathbb{R}_{\ge 0}=\{x\in\mathbb{R}\mid x\ge 0\}$. Let $\lambda$ be the security parameter. Let $\textsf{Setup}$ be the setup algorithm: $(\mathbb{G}, \mathbb{F})\leftarrow\textsf{Setup}(1^{\lambda})$, where $\mathbb{G}$ is a cyclic group of prime order and $\mathbb{F}$ is its scalar field. Let $Z\in\mathbb{G}$ be the identity element.
 
 The notation $\xleftarrow{\$}$ will be used to denote for a uniformly randomly chosen element, and $(1/x)$ for the modular inverse of $x\in\mathbb{F}$. Lastly, we use additive notation for group operations.
 
-\begin{definition}\label{negl}
-A function $f:\mathbb{N}\rightarrow\mathbb{R}$ is \textbf{\em negligible} if for every polynomial $p(\cdot)$ there exists an $N\in\mathbb{N}$ such that for all integers $n>N$ it holds that $f(n)<\frac{1}{p(n)}$.
+\begin{definition}\label{negl1}
+A function $f:\mathbb{N}\rightarrow\mathbb{R}_{\ge 0}$ is \textbf{\em negligible} if for all positive polynomial $p(\cdot)$ there exists an $N\in\mathbb{N}$ such that for all integers $n>N$ it holds that $f(n)<\frac{1}{p(n)}$.
 \end{definition}
 
-\noindent Definition \ref{negl} is copied from Katz \& Lindell. We first prove the following lemma:
+\begin{definition}\label{negl2}
+An equivalent formulation of negligibility for $f:\mathbb{N}\rightarrow\mathbb{R}_{\ge 0}$ is if for all $c\in\mathbb{N}$ there exists an $N\in\mathbb{N}$ such that for all integers $n>N$ it holds that $f(n)<n^{-c}$.
+\end{definition}
+
+\noindent Definitions \ref{negl1} and \ref{negl2} is copied from Katz \& Lindell. We first prove the following lemma:
 
 \begin{lemma}\label{negl-exp}
-If $f:\mathbb{N}\rightarrow\mathbb{R}$ is non-negligible, then $g(n)=f(n)^m$ for any $m\in\mathbb{N}$ and $m>1$ is non-negligible.
+If $f:\mathbb{N}\rightarrow\mathbb{R}_{\ge 0}$ is non-negligible, then $g(n)=f(n)^m$ for any $m\in\mathbb{N}$ and $m>1$ is non-negligible.
 \end{lemma}
 \begin{proof}
-The non-negligibility of $f$ means that there exists a polynomial $p(\cdot)$ such that for all $N\in\mathbb{N}$, there exists an $n>N$ such that $f(n)\ge\frac{1}{p(n)}$. Let $p_f(\cdot)$ be such polynomial and $n_f$ be such $n>N$. Then setting $p_g(\cdot)=p_f(\cdot)^m$ and $n_g=n_f$ suffices for non-negligibility of $g$ because $f(n_f)\ge\frac{1}{p_f(n_f)}\Rightarrow f(n_f)^m\ge\big(\frac{1}{p_f(n_f)}\big)^m$.
+We use the first definition. Non-negligibility of $f$ means that there exists a positive polynomial $p(\cdot)$ such that for all $N\in\mathbb{N}$, there exists an $n>N$ such that $f(n)\ge\frac{1}{p(n)}$. Let $p_f(\cdot)$ be such polynomial and $n_f$ be such $n>N$. Then setting $p_g(\cdot)=p_f(\cdot)^m$ and $n_g=n_f$ suffices for non-negligibility of $g$ because $f(n_f)\ge\frac{1}{p_f(n_f)}\implies f(n_f)^m\ge\big(\frac{1}{p_f(n_f)}\big)^m$.
+\end{proof}
+\noindent Lemma \ref{negl-exp} justifies the usage of finite number of breaks of one hardness assumption in proofs by reduction.
+\\\\
+\noindent I'll credit the proof idea of the following lemma to Atomfried (\texttt{@atomfried:matrix.org}).
+
+\begin{lemma}\label{negl-prod}
+If there exists an $n'>N$ that makes both $f_1:\mathbb{N}\rightarrow\mathbb{R}_{\ge 0}$ and $f_2:\mathbb{N}\rightarrow\mathbb{R}_{\ge 0}$ non-negligible, then $g(n)=f_1(n)f_2(n)$ is non-negligible.
+\end{lemma}
+\begin{proof}
+We use the second definition. Non-negligibility of $f$ means that there exists a $c\in\mathbb{N}$ such that for all $N\in\mathbb{N}$, there exists an $n>N$ such that $f(n)\ge n^{-c}$. Let $c_1, c_2$ be such $c\in\mathbb{N}$ for $f_1$ and $f_2$ respectively, and let $n'$ be, as being said in the lemma statement, such $n>N$ for both $f_1$ and $f_2$. Then setting $c_g=c_1 + c_2$ and $n_g=n'$ suffices for non-negligibility of $g$ because $f_1(n')\ge (n')^{-c_1} \wedge f_2(n')\ge (n')^{-c_2} \implies f_1(n')f_2(n') \ge (n')^{-c_1}  (n')^{-c_2} = (n')^{-(c_1+c_2)}$.
 \end{proof}
 
-\noindent Lemma \ref{negl-exp} justifies the usage of finite number of breaks in proof by reduction.
+\noindent Lemma \ref{negl-prod} can be used to further generalize Lemma \ref{negl-exp} to products of functions $g(n)=\prod_{i=1}^m f_i(n)$ through induction, \textit{as long as} there exists an $n'>N$ that makes all $f_i$ non-negligible.
 
 \begin{definition}[Discrete Logarithm (DL) Assumption]
-DL assumption holds relative to $\emph{\textsf{Setup}}$ if for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+DL assumption holds relative to $\emph{\textsf{Setup}}$ if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
 \begin{align*}
 \emph{\textsf{Pr}}\left[
 \begin{array}{c|c}
@@ -61,19 +75,19 @@ DL assumption holds relative to $\emph{\textsf{Setup}}$ if for every $\emph{\tex
 \end{align*}
 \end{definition}
 
-\begin{definition}[``One-time Address'' (OTA) Assumption]
-OTA assumption holds relative to $\emph{\textsf{Setup}}$ if for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+\begin{definition}[``Linking Tag'' (LT) Assumption]
+LT assumption holds relative to $\emph{\textsf{Setup}}$ if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
 \begin{align*}
 \emph{\textsf{Pr}}\left[
 \begin{array}{c|c}
     \begin{gathered}
-        C_1 = k_a U + k_b G \\
-        \wedge\ C_2 = (1/k_a)G
+        C_1 = t_k G + k_a X + k_b U \\
+        \wedge\ C_2 = (k_b/k_a)U
     \end{gathered}
     &
     \begin{gathered}
-        (\mathbb{G}, \mathbb{F})\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); U,G,C_1,C_2\xleftarrow{\$}\mathbb{G}; \\
-        k_a, k_b\in\mathbb{F}\leftarrow\mathcal{A}(\mathbb{G}, \mathbb{F}, U, G, C_1, C_2) \\
+        (\mathbb{G}, \mathbb{F})\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); G,X,U,C_1,C_2\xleftarrow{\$}\mathbb{G}; \\
+        t_k,k_a,k_b\in\mathbb{F}\leftarrow\mathcal{A}(\mathbb{G}, \mathbb{F}, G, X, U, C_1, C_2) \\
     \end{gathered}
 \end{array}
 \right]
@@ -82,54 +96,16 @@ OTA assumption holds relative to $\emph{\textsf{Setup}}$ if for every $\emph{\te
 \end{definition}
 
 \begin{theorem}
-OTA assumption holds if and only if DL assumption holds.
+LT assumption holds if and only if DL assumption holds.
 \end{theorem}
 \begin{proof}
 The proof consists of 2 parts:
 \begin{itemize}
-    \item \textit{DL is easy $\Rightarrow$ OTA is easy:} Applying the first DL break on $L$ base $G$ will give $1/k_a$, which will trivially give $k_a$. Then applying the second DL break on $K - k_a U$ base $G$ will give $k_b$.
-    \item \textit{OTA is easy $\Rightarrow$ DL is easy:} Let $A, B\in\mathbb{G}$ (both not equal to $Z$) be the group elements to find DL for (without loss of generality, $x\in\mathbb{F}$ such that $xA=B$). Then perform the following procedure on $A$:
-        \begin{enumerate}
-        \item Applying an OTA break on $(U, A)$ will give $k_a, k_b\in\mathbb{F}$ such that $U = k_a U + k_b G$ and $A = (1/k_a)G$. Hence, $k_a A = G \Rightarrow U = k_a U + k_b (k_a A)$.
-        \item Let $y_1\in\mathbb{F}$ such that $U=y_1 A$. Now $U = k_a U + k_b k_a A$ becomes $y_1 A = k_a (y_1 A) + k_b k_a A \Rightarrow y_1 = k_a y_1 + k_b k_a \Rightarrow y_1 - k_a y_1 = k_b k_a$. Therefore,
-        \begin{align*}
-            y_1 = k_b k_a (1/(1 - k_a)).
-        \end{align*}
-        \end{enumerate}
-Then perform the same procedure on $B$ (hence another OTA break). Now we have $y_1, y_2\in\mathbb{F}$ such that $U=y_1 A$ and $U=y_2 B$. Hence, $y_1 A = y_2 B \Rightarrow  y_1(1/y_2) A = B$.
-\end{itemize}
-This completes the proof.
-\end{proof}
+\item \textit{DL is broken $\implies$ LT is broken:} Assume that $\mathcal{A}$ can break DL with non-negligible probability. Applying the first DL break on $C_2$ base $U$ will give $k_b/k_a$.  $\mathcal{A}$ sets a random $k_a$ and computes $k_b = k_a(k_b/k_a)$. Then applying the second DL break on $C_1 - k_a X - k_b U$ base $G$ will give $t_k$.
 
-\begin{definition}[DL ``Vector'' Assumption]\label{vector}
-DL Vector assumption holds relative to $\emph{\textsf{Setup}}$ if for all $n>1$ and for every $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
-\begin{align*}
-\emph{\textsf{Pr}}\left[
-\begin{array}{c|c}
-    \begin{gathered}
-        \exists z_i(z_i \neq 0), i\in\{1, \ldots, n\} \\
-        \wedge\ \sum_{i=1}^{n}{z_i G_i}=H
-    \end{gathered}
-    &
-    \begin{gathered}
-        (\mathbb{G}, \mathbb{F})\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); \\
-        G_1,\ldots, G_n, H\xleftarrow{\$}\mathbb{G}; \\
-        z_1, \ldots, z_n\in\mathbb{F}\leftarrow\mathcal{A}(\mathbb{G}, \mathbb{F}, G_1, \ldots, G_n, H) \\
-    \end{gathered}
-\end{array}
-\right]
-\le \emph{\textsf{negl}}(\lambda).
-\end{align*}
-\end{definition}
+\item \textit{LT is broken $\implies$ DL is broken:} Assume that $\mathcal{A}$ can break LT with non-negligible probability. Let $A, B\in\mathbb{G}$ (both not equal to $Z$) be the group elements to find DL for (without loss of generality, $x\in\mathbb{F}$ such that $B=xA$). Then perform this procedure for $A$: applying an LT break on $(C_1, C_2) = (G, A)$ will give $t_k, k_a, k_b\in\mathbb{F}$ such that $G = t_k G + k_a X + k_b U$ and $A = (k_b/k_a)U$. Note that both $k_a$ and $k_b$ will never be $0$ because if one of them is, then $A \ne (k_b/k_a)U$, a contradiction.
 
-\begin{theorem}
-DL Vector assumption holds if and only if DL assumption holds.
-\end{theorem}
-\begin{proof}
-The proof consists of 2 parts:
-\begin{itemize}
-    \item \textit{DL is easy $\Rightarrow$ DL Vector is easy:} Set random scalars on $z_2,\ldots,z_n$ so that at least one of them is not zero. Then applying DL break on $H - \sum_{i=2}^{n}{z_i G_i}$ base $G_1$ will give $z_1$.
-    \item \textit{DL Vector is easy $\Rightarrow$ DL is easy:} Assume that there exists an $n>1$ such that finding $z_1,\ldots,z_n\in\mathbb{F}$ satisfying the properties in Definition \ref{vector} is ``easy''. Let $A, B\in\mathbb{G}$ (both not equal to $Z$) be the group elements to find DL for (without loss of generality, $x\in\mathbb{F}$ such that $xA=B$). Then applying a DL Vector break on $G_1=G_2=\ldots=G_n=A, H=B$ will give $\{z_i\}_{i=1}^n$ such that $(\sum_{i=1}^n{z_i}) A = B$.
+Then perform the same procedure for $B$ (hence another LT break). Now we have $y_1, y_2\in\mathbb{F}$ such that $A=y_1 U$ and $B=y_2 U$. Hence $B = y_2(1/y_1)A$.
 \end{itemize}
 This completes the proof.
 \end{proof}
