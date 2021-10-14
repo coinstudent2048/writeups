@@ -36,7 +36,7 @@ Lelantus Spark
 \subsection{Public parameters}
 Let $\lambda$ be the security parameter. Let $\mathbb{G}$ be a prime order group based on $\lambda$ where the Discrete Logarithm (DL), Computational Diffie-Hellman (CDH), and Decisional Diffie-Hellman (DDH) problems are hard, and let $\mathbb{F}$ be its scalar field. Let $G, H, X, U$ be generators of $\mathbb{G}$ with unknown DL relationship to each other. Note that these generators may be produced using public randomness. Let $a_{max}\in\mathbb{F}$ (to be used in range proofs) and $s\in\mathbb{N}$ (to be used in membership proofs). Let $\mathcal{H}:\{0,1\}^*\rightarrow\mathbb{F}$ be a cryptographic hash function. We add a subscript to $\mathcal{H}$, such as $\mathcal{H}_1$, in lieu of domain-separating the hash function explicitly; any domain-separation method may be used in practice. All these public parameters are collected as $pp$, and we now define the setup algorithm: $pp\leftarrow\textsf{Setup}(1^{\lambda})$. $\textsf{Setup}$ is implicitly executed by all players involved in the beginning, hence it can be omitted in protocol descriptions.
 
-The notation $\xleftarrow{\$}$ will be used to denote for a uniformly randomly chosen element, $\textsf{poly}(\cdot)$ for the set of outputs of polynomial functions, and $(1/x)$ for the modular inverse of $x\in\mathbb{F}$. Lastly, we use additive notation for group operations.
+The notation $\xleftarrow{\$}$ will be used to denote for a uniformly randomly chosen element, and $(1/x)$ for the modular inverse of $x\in\mathbb{F}$. Lastly, we use additive notation for group operations.
 
 \subsection{E-notes and e-note images}
 \begin{definition}\label{e-note}
@@ -285,7 +285,7 @@ We define a commitment scheme as a tuple $(\textsf{Setup}, \textsf{Comm})$. $\te
 To commit to a message $m \in M$, the sender selects $r\xleftarrow{\$}\chi$ and computes the commitment $C = \textsf{Comm}(m; r)$. We define the required security properties of commitment schemes.
 
 \begin{definition}[Hiding Property]
-A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is hiding if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is computationally hiding if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
 \begin{align*}
 \left| \frac{1}{2} - \emph{\textsf{Pr}}\left[
 \begin{array}{c|c}
@@ -306,7 +306,7 @@ A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is hiding if
 A commitment scheme is \textit{perfectly hiding} if $\textsf{negl}(\lambda)$ is replaced by $0$.
 
 \begin{definition}[Binding Property]
-A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is binding if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is computationally binding if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
 \begin{align*}
 \emph{\textsf{Pr}}
 \left[
@@ -328,19 +328,33 @@ A commitment scheme $(\emph{\textsf{Setup}}, \emph{\textsf{Comm}})$ is binding i
 \end{definition}
 A commitment scheme is \textit{perfectly binding} if $\textsf{negl}(\lambda)$ is replaced by $0$.
 
+\noindent The first kind of commitment we define is commonly known as \textbf{Pedersen commitments} \cite{pedersen}. We define two instances, $\textsf{PedersenC}:\mathbb{F}\times\mathbb{F}\rightarrow\mathbb{G}$ and $\textsf{PedersenK}:\mathbb{F}\times\mathbb{F}\rightarrow\mathbb{G}$ as follows:
+\begin{align*}
+\textsf{PedersenC}(a; x) &= x G + a H \ , \ x\xleftarrow{\$}\mathbb{F}\ \text{if}\ x\ \text{is not specified.} \\
+\textsf{PedersenK}(k_b^o;k_a^o) &= k_a^o X + k_b^o U \ , \ k_a^o\xleftarrow{\$}\mathbb{F}\ \text{if}\ k_a^o\ \text{is not specified.}
+\end{align*}
+$\textsf{PedersenC}$ corresponds to the structure of amount commitment $C$ and masked amount commitment $C'$, while $\textsf{PedersenK}$ corresponds to the structure of one-time address $K^o$.
+\begin{theorem}[From \cite{pedersen}]\label{thm-pedersen}
+Pedersen commitment is perfectly hiding and computationally binding under the DL assumption.
+\end{theorem}
+
+\noindent Then we define a custom commitment $\textsf{LinkTag}:\mathbb{F}\setminus\{0\}\times\mathbb{F}\times\mathbb{F}\rightarrow\mathbb{G}\times\mathbb{G}$ as follows:
+\begin{align*}
+\textsf{LinkTag}(k_a, k_b; t_k) = (t_k G + k_a X + k_b U, (k_b/k_a)U)\ , \ t_k\xleftarrow{\$}\mathbb{F}\ \text{if}\ t_k\ \text{is not specified.}
+\end{align*}
+$\textsf{LinkTag}$ corresponds to structure of the combination of masked address $K'^o$ and linking tag $\tilde{K}$.
+
+\begin{theorem}\label{thm-linktag}
+$\emph{\textsf{LinkTag}}$ is perfectly hiding and computationally binding under the DL assumption.
+\end{theorem}
+\noindent We prove this in Appendix \ref{proofs}.
+
 \subsection{Seraphis security properties}\label{sec-thm}
 The required security properties for Seraphis are based on Omniring's security model \cite{omniring}. The Omniring paper presents a rigorous formalization of RingCT constructions, providing precision for security analysis against several realistic attacks.
 
 It is important to note that the properties in subsection \ref{prov-prop} are the \textit{minimal} requirements, thus the properties presented in this subsection are the \textit{weakest}. Because of Seraphis's modularity, stronger properties for proving systems must yield stronger properties for Seraphis. Proofs for the theorems in this subsection, found in Appendix \ref{proofs}, can also serve a guide for proving stronger properties.
 
 Lastly, note that the mentioned proving systems in the theorems are in their ``original'' interactive versions. As Fiat-Shamir heuristic produces full zero-knowledge which is stronger than HVZK, the theorems should also apply to the non-interactive protocols transformed through the heuristic.
-
-We first define commitment functions $\textsf{CommAmount}:\mathbb{F}\times\mathbb{F}\rightarrow\mathbb{G}$ and $\textsf{CommTag}:\mathbb{F}\setminus\{0\}\times\mathbb{F}\times\mathbb{F}\rightarrow\mathbb{G}\times\mathbb{G}$ to be needed later on, as follows:
-\begin{align*}
-\textsf{CommAmount}(a; x) &= x G + a H \ , \ x\xleftarrow{\$}\mathbb{F}\ \text{if}\ x\ \text{is not specified.} \\
-\textsf{CommTag}(k_a, k_b; t_k) &= (t_k G + k_a X + k_b U, (k_b/k_a)U)\ , \ t_k\xleftarrow{\$}\mathbb{F}\ \text{if}\ t_k\ \text{is not specified.}
-\end{align*}
-$\textsf{CommAmount}$ corresponds to the structure of masked amount commitment $C'$, while $\textsf{CommTag}$ corresponds to the combination of structures of masked address $K'^o$ and linking tag $\tilde{K}$.
 
 The first security property is \textbf{Completeness} (called \textit{Correctness} in Omniring), which means that if an e-note appears on the ledger, then the user owning it can honestly generate an accepted transaction spending it. Seraphis satisfying completeness immediately follows from the completeness properties of the cryptographic components and by inspection of the protocol description.
 
@@ -352,7 +366,7 @@ Next we consider the \textbf{Balance} property, which means that a spender adver
 \underline{$\textsf{BAL}(\mathcal{A}, 1^{\lambda})$}
 \begin{itemize}
 \item $pp\leftarrow\textsf{Setup}(1^{\lambda})$.
-\item $\mathcal{A}$ is provided $k^v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, and $\{(k_{a,i}^o, k_{b,i}^o, a_i, x_i)\}_{i=1}^n$ (where $n\in\textsf{poly}(\lambda)$) that makes $\mathcal{A}$ the owner of ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ in the ledger.
+\item $\mathcal{A}$ is provided $k^v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, and $\{(k_{a,i}^o, k_{b,i}^o, a_i, x_i)\}_{i=1}^n$ that makes $\mathcal{A}$ the owner of ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ in the ledger.
 \item $\mathcal{A}$ can choose any receiver's address ${\tt addr}_{\mathcal{B}} = (K_{\mathcal{B}}^{dh}, K_{\mathcal{B}}^v, K_{\mathcal{B}}^s)$.
 \item $\{(k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i)\}_{i=1}^n \leftarrow\mathcal{A}(pp, {\tt enote}_{\mathcal{A}}, \{(k_{a,i}^o, k_{b,i}^o, a_i, x_i)\}_{i=1}^n)$.
 \item $T\leftarrow{\tt tx}(pp, {\tt addr}_{\mathcal{A}}, {\tt addr}_{\mathcal{B}}, {\tt enote}_{\mathcal{A}}, \{(k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i)\}_{i=1}^n)$. $\mathcal{A}$ spends all e-notes in ${\tt enote}_{\mathcal{A}}$ to send an amount $a_{send}$ to ${\tt addr}_{\mathcal{B}}$.
@@ -378,7 +392,7 @@ Seraphis is balanced if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, t
 where $\emph{\textsf{BAL}}$ is described in Figure \ref{exp-bal}.
 \end{definition}
 \begin{theorem}[Balance]
-If both $(\emph{\textsf{Setup}},\emph{\textsf{CommAmount}})$ and $(\emph{\textsf{Setup}},\emph{\textsf{CommTag}})$ are binding, then Seraphis is balanced.  
+If $(\emph{\textsf{Setup}},\emph{\textsf{PedersenC}})$, $(\emph{\textsf{Setup}},\emph{\textsf{PedersenK}})$ and $(\emph{\textsf{Setup}},\emph{\textsf{LinkTag}})$ are all binding, then Seraphis is balanced.  
 \end{theorem}
 Next we consider the \textbf{Privacy} property, which means that an adversary should never be able to detect the spender, receiver, and amounts in any transaction, hence providing sender and receiver anonymity, and confidential transfer of amounts. Privacy property involves an experiment $\textsf{PRV}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. Given a whole transaction $T$, the adversary succeeds in the experiment if she can guess the sender, the receiver, or the amount of the new e-note for the receiver, hence breaking the privacy of $T$.
 
@@ -388,7 +402,7 @@ Next we consider the \textbf{Privacy} property, which means that an adversary sh
 \underline{$\textsf{PRV}(\mathcal{A}, 1^{\lambda})$}
 \begin{itemize}
 \item $pp\leftarrow\textsf{Setup}(1^{\lambda})$.
-\item $\mathcal{A}$ is provided a random $\{\mathbb{S}_i\}_{i=1}^n$ (where $n\in\textsf{poly}(\lambda)$) \textit{with} potential sender addresses ${\tt send}_0$ and ${\tt send}_1$ such that both connect to exactly one e-note each in every $\mathbb{S}_i$, amounts of those one e-note each in every $\mathbb{S}_i$: $\{a_{0, i}\}_{i=1}^n$ and $\{a_{1, i}\}_{i=1}^n$ for ${\tt send}_0$ and ${\tt send}_1$, respectively, and potential receiver addresses ${\tt recv}_0$ and ${\tt recv}_1$.
+\item $\mathcal{A}$ is provided a random $\{\mathbb{S}_i\}_{i=1}^n$ \textit{with} potential sender addresses ${\tt send}_0$ and ${\tt send}_1$ such that both connect to exactly one e-note each in every $\mathbb{S}_i$, amounts of those one e-note each in every $\mathbb{S}_i$: $\{a_{0, i}\}_{i=1}^n$ and $\{a_{1, i}\}_{i=1}^n$ for ${\tt send}_0$ and ${\tt send}_1$, respectively, and potential receiver addresses ${\tt recv}_0$ and ${\tt recv}_1$.
 \item $\mathcal{A}$ chooses the amount the potential senders would send: $a_{\mathcal{A}, 0} \le \sum_{i=1}^n{a_{0, i}}$ and $a_{\mathcal{A}, 1} \le \sum_{i=1}^n{a_{1, i}}$ for ${\tt send}_0$ and ${\tt send}_1$, respectively.
 \item $b\xleftarrow{\$}\{0,1\}$.
 \item $T\leftarrow{\tt tx}(pp, {\tt send}_b, {\tt recv}_b, \{\mathbb{S}_i\}_{i=1}^n, a_{\mathcal{A}, b})$. The user who owns ${\tt send}_b$ spends the e-notes they own in $\{\mathbb{S}_i\}_{i=1}^n$ to send the amount $a_{\mathcal{A}, b}$ to ${\tt recv}_b$.
@@ -413,7 +427,7 @@ Seraphis is private if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, th
 where $\emph{\textsf{PRV}}$ is described in Figure \ref{exp-prv}.
 \end{definition}
 \begin{theorem}[Privacy]
-If both $(\emph{\textsf{Setup}},\emph{\textsf{CommAmount}})$ and $(\emph{\textsf{Setup}},\emph{\textsf{CommTag}})$ are hiding, both ownership and unspentness proof and range proof are perfect special HVZK, membership proof is witness indistinguishable, authenticated symmetric encryption scheme is IND-CCA2 and IK-CCA, and $\mathcal{H}$ is modeled as a random oracle, then Seraphis is private.  
+If $(\emph{\textsf{Setup}},\emph{\textsf{PedersenC}})$, $(\emph{\textsf{Setup}},\emph{\textsf{PedersenK}})$ and $(\emph{\textsf{Setup}},\emph{\textsf{LinkTag}})$ are all hiding, both ownership and unspentness proof and range proof are perfect special HVZK, membership proof is witness indistinguishable, authenticated symmetric encryption scheme is IND-CCA2 and IK-CCA, and $\mathcal{H}$ is modeled as a random oracle, then Seraphis is private.  
 \end{theorem}
 
 Lastly, we consider the \textbf{Non-slanderability} property, which means that an adversary should never be able to forge a linking tag of an honest user's e-notes when those would be spent. This property prevents the following attack known as \textit{denial-of-spending attack} \cite{denial-of-spend}: when the attacker first spends their e-notes with forged linking tags, a victim user owning e-notes with matching linking tags cannot spend their e-notes anymore because a match in linking tag implies a double-spend. Non-slanderability property involves an experiment $\textsf{NSLAND}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. The adversary succeeds in the experiment if they successfully accomplished a denial-of-spending attack.
@@ -424,9 +438,8 @@ Lastly, we consider the \textbf{Non-slanderability} property, which means that a
 \underline{$\textsf{NSLAND}(\mathcal{A}, 1^{\lambda})$}
 \begin{itemize}
 \item $pp\leftarrow\textsf{Setup}(1^{\lambda})$.
-\item $\mathcal{A}$ is provided $k^v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, and ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ (where $n\in\textsf{poly}(\lambda)$) in the ledger that $\mathcal{A}$ owns.
-\item $\mathcal{A}$ can choose $k'^v, k_a'^s, k_b'^s\in\mathbb{F}$ to construct the receiver's address ${\tt addr}_{\mathcal{B}} = (K_{\mathcal{B}}^{dh}, K_{\mathcal{B}}^v, K_{\mathcal{B}}^s)$ and can choose a victim address ${\tt addr}_{\mathcal{C}} = (K_{\mathcal{C}}^{dh}, K_{\mathcal{C}}^v, K_{\mathcal{C}}^s)$.
-\item $\mathcal{A}$ is provided ${\tt enote}_{\mathcal{C}}$ (where $|{\tt enote}_{\mathcal{C}}|\in\textsf{poly}(\lambda)$), which is all the e-notes in the ledger connected to ${\tt addr}_{\mathcal{C}}$. Let $\{\tilde{K}_{\mathcal{C}}\}$ be all the would-be linking tags of e-notes in ${\tt enote}_{\mathcal{C}}$ when those are spent honestly by the owner of ${\tt addr}_{\mathcal{C}}$.
+\item $\mathcal{A}$ is provided $k^v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, and ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ in the ledger that $\mathcal{A}$ owns. $\mathcal{A}$ is also provided a random victim address ${\tt addr}_{\mathcal{C}} = (K_{\mathcal{C}}^{dh}, K_{\mathcal{C}}^v, K_{\mathcal{C}}^s)$, and ${\tt enote}_{\mathcal{C}}$, which is all the e-notes in the ledger connected to ${\tt addr}_{\mathcal{C}}$. Let $\{\tilde{K}_{\mathcal{C}}\}$ be all the would-be linking tags of e-notes in ${\tt enote}_{\mathcal{C}}$ when those are spent honestly by the owner of ${\tt addr}_{\mathcal{C}}$.
+\item $\mathcal{A}$ can choose $k'^v, k_a'^s, k_b'^s\in\mathbb{F}$ to construct the receiver's address ${\tt addr}_{\mathcal{B}} = (K_{\mathcal{B}}^{dh}, K_{\mathcal{B}}^v, K_{\mathcal{B}}^s)$.
 \item $\{(k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i)\}_{i=1}^n \leftarrow\mathcal{A}(pp, (k'^v, k_a'^s, k_b'^s), {\tt addr}_{\mathcal{B}},  {\tt addr}_{\mathcal{C}}, {\tt enote}_{\mathcal{A}}, {\tt enote}_{\mathcal{C}})$.
 \item $T\leftarrow{\tt tx}(pp, {\tt addr}_{\mathcal{A}}, {\tt addr}_{\mathcal{B}}, {\tt enote}_{\mathcal{A}}, \{(k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i)\}_{i=1}^n)$. $\mathcal{A}$ spends all e-notes in ${\tt enote}_{\mathcal{A}}$ to send some amounts to ${\tt addr}_{\mathcal{B}}$. Let $\{\tilde{K}_{\mathcal{B}}\}$ be the linking tags of all spent e-notes in $T$.
 \item $b_0:=1$ if Verifier accepts $T$, else $:=0$
@@ -450,9 +463,9 @@ Seraphis is non-slanderable if for all $\emph{\textsf{PPT}}$ adversary $\mathcal
 where $\emph{\textsf{NSLAND}}$ is described in Figure \ref{exp-nsland}.
 \end{definition}
 \begin{theorem}[Non-slanderability]
-If $(\emph{\textsf{Setup}},\emph{\textsf{CommTag}})$ is hiding, all proving systems are (computational) sound, both ownership and unspentness proof and range proof are perfect special HVZK, membership proof is witness indistinguishable, and $\mathcal{H}$ is modeled as a random oracle, then Seraphis is non-slanderable.  
+If $(\emph{\textsf{Setup}},\emph{\textsf{LinkTag}})$ is hiding, all proving systems are (computational) sound, both ownership and unspentness proof and range proof are perfect special HVZK, membership proof is witness indistinguishable, and $\mathcal{H}$ is modeled as a random oracle, then Seraphis is non-slanderable.  
 \end{theorem}
-Non-slanderability and the binding of linking tags to a unique spent e-note one-time private key implies that an adversary should never be able to forge an accepted transaction of another honest user, a property known as \textbf{Unforgeability}. Since the binding property of $(\textsf{Setup},\textsf{CommTag})$ is already required in the balance property, there is no need to formally define and prove an unforgeability property.
+Non-slanderability and the binding of linking tags to a unique spent e-note one-time private key implies that an adversary should never be able to forge an accepted transaction of another honest user, a property known as \textbf{Unforgeability}. Since the binding property of $(\textsf{Setup},\textsf{LinkTag})$ is already required in the balance property, there is no need to formally define and prove an unforgeability property.
 
 \subsection{Discussions}\label{sec-disc}
 
@@ -489,7 +502,7 @@ A_{b} &= r_b U + c \sum_{i=1}^{n}{\mu_b^{i-1} \tilde{K}_i} \\
 A_{i} &= r_i K_i + c K_{t1,i}\ ,\ \forall i\in\{1,\ldots,n\}\\
 \end{align*}
 \end{enumerate}
-We now prove that the protocol is perfectly complete, computationally sound, and perfectly special honest-verifier zero knowledge, all if $G$, $X$, and $U$ are mutually independent.
+We now prove that the protocol is perfectly complete, computationally sound, and perfectly special honest-verifier zero knowledge, all if $G$, $X$, and $U$ are mutually independent and $\mathcal{H}$ is a random oracle.
 
 \begin{proof}
 For perfect completeness, note that $\forall i\in\{1,\ldots,n\}$, knowledge of $(x_i/y_i$, $z_i/y_i$, $1/y_i)$ is also enough to satisfy the proving relation, and
@@ -513,7 +526,7 @@ Hence solving the discrete log (DL) problem for $K_{t1,i} = (1/y_i)K_i$ with non
 
 Fiat-Shamir heuristic transforms interactive protocols satisfying HVZK into non-interactive (fully) zero-knowledge (NIZK) protocols in the random oracle model. Applying Fiat-Shamir heuristic to the composition proving system should be straightforward. Note that the $c$, $\mu_a$ and $\mu_b$ are generated through domain separation of hash function $\mathcal{H}$.
 
-\section{Security proofs for Seraphis}\label{proofs}
+\section{Proofs of some theorems in Section \ref{sec}}\label{proofs}
 We first present a lemma which is helpful in proofs by reduction.
 
 \begin{definition}\label{negl}
@@ -527,18 +540,13 @@ If $f:\mathbb{N}\rightarrow\mathbb{R}$ is non-negligible, then $g(\cdot)=f(\cdot
 \begin{proof}
 The non-negligibility of $f$ means that there exists a polynomial $p(\cdot)$ such that for all $N\in\mathbb{N}$, there exists an $n>N$ such that $f(n)\ge\frac{1}{p(n)}$. Let $p_f(\cdot)$ be such polynomial and $n_f$ be such $n>N$. Then setting $p_g(\cdot)=p_f(\cdot)^m$ and $n_g=n_f$ suffices for non-negligibility of $g$ because $f(n_f)\ge\frac{1}{p_f(n_f)}\implies f(n_f)^m\ge\frac{1}{p_f(n_f)^m}$.
 \end{proof}
-\noindent Lemma \ref{negl-exp} justifies the usage of finite number of ``breaks'' in proofs by reduction. For a start, the probability for breaking a hardness assumption $\textsf{HA}$ is a function of $\lambda$. For now, we denote this function as $\textsf{Pr}[\textsf{HA}(\lambda)]$. Hence, for $m>1$, the probability for breaking $\textsf{HA}$ $m$-times $\textsf{Pr}[\wedge_{i=1}^{m}{\textsf{HA}_i(\lambda)}]\ge\textsf{Pr}[\textsf{HA}(\lambda)]^m$. Now Lemma \ref{negl-exp} says that if $\textsf{Pr}[\textsf{HA}(\lambda)]$ is non-negligible (or equivalently, for all negligible function $\textsf{negl}(\lambda)$, $\textsf{Pr}[\textsf{HA}(\lambda)]\ge\textsf{negl}(\lambda)$), then $\textsf{Pr}[\textsf{HA}(\lambda)]^m$ must also be non-negligible and hence $\textsf{Pr}[\wedge_{i=1}^{m}{\textsf{HA}_i(\lambda)}]$ is also non-negligible. Nevertheless, the number of breaks should still be documented in proofs.
-\\\\
-Now we present theorems that will be directly applied to the proofs of security properties of Seraphis:
-\begin{theorem}\label{thm-pedersen}
-$(\emph{\textsf{Setup}},\emph{\textsf{CommAmount}})$ and generally, Pedersen commitment, is perfectly hiding, and computationally binding under the DL assumption \emph{\cite{pedersen}}.
-\end{theorem}
-\begin{theorem}
-Let $\emph{\textsf{CommMask}}:\mathbb{G}\times\mathbb{F}\rightarrow\mathbb{G}$ be the following:
-$$\emph{\textsf{CommMask}}(J; t) = t G + J \ , \ t\xleftarrow{\$}\mathbb{F}\ \text{if}\ t\ \text{is not specified.}$$
-Then $(\emph{\textsf{Setup}},\emph{\textsf{CommMask}})$ is perfectly hiding, and computationally binding under the DL assumption.
-\end{theorem}
-\begin{proof}
-Similar to the proof for Theorem \ref{thm-pedersen}.
+\noindent Lemma \ref{negl-exp} justifies the usage of finite number of ``breaks'' of one hardness assumption in proofs by reduction. For a start, the probability of breaking the hardness assumption $\textsf{HA}$ is a function of $\lambda$. Just here we denote this as $\textsf{Pr}[\textsf{HA}(\lambda)]$. Hence, for $m>1$, the probability for breaking $\textsf{HA}$ $m$-times, $\textsf{Pr}[\wedge_{i=1}^{m}{\textsf{HA}_i(\lambda)}]\ge\textsf{Pr}[\textsf{HA}(\lambda)]^m$. Now Lemma \ref{negl-exp} says that if $\textsf{Pr}[\textsf{HA}(\lambda)]$ is non-negligible (or equivalently, for all negligible function $\textsf{negl}(\lambda)$, $\textsf{Pr}[\textsf{HA}(\lambda)]\ge\textsf{negl}(\lambda)$), then $\textsf{Pr}[\textsf{HA}(\lambda)]^m$ must also be non-negligible and hence $\textsf{Pr}[\wedge_{i=1}^{m}{\textsf{HA}_i(\lambda)}]$ is also non-negligible. Nevertheless, the number of breaks should still be documented in proofs.
+
+\begin{proof}[Proof of Theorem \ref{thm-linktag}]
+Perfect hiding follows from the proof of perfect hiding of Pedersen commitments because the blinding factor $t_k$ is only used in one of the pair output: the one corresponding to $K'^o$.
+
+Computational binding is proven by showing that if DL assumption holds, then every $\textsf{PPT}$ adversary $\mathcal{A}$ can \textit{break} $\textsf{LinkTag}$ only with negligible probability, where breaking $\textsf{LinkTag}$ means finding a correct triple input $(k_a, k_b, t_k)$ for a given pair output $(K'^o, \tilde{K})$. 
+
+The proof is by contraposition: Assume that an $\mathcal{A}$ can break $\textsf{LinkTag}$ with non-negligible probability. Let $A, B\xleftarrow{\$}\mathbb{G}$ (both $\ne 0$) be the group elements to find DL for. $\mathcal{A}$ performs a $\textsf{LinkTag}$ break for $(K'^o, \tilde{K})=(G, A)$, giving $t_k, k_a, k_b\in\mathbb{F}$ such that $G = t_k G + k_a X + k_b U$ and $A = (k_b/k_a)U$. Note that both $k_a$ and $k_b$ will never be $0$ because if one of them is, then $A \ne (k_b/k_a)U$, a contradiction. Then $\mathcal{A}$ performs another $\textsf{LinkTag}$ break, this time for $(K'^o, \tilde{K})=(G, B)$ (for a total of 2 breaks). Now we have $y_1, y_2\in\mathbb{F}$ such that $A=y_1 U$ and $B=y_2 U$. This implies $B = y_2(1/y_1)A$.
 \end{proof}
 \end{document}
