@@ -3,7 +3,8 @@
 \usepackage{amsmath,amssymb,amsthm,amsfonts}
 \usepackage[utf8]{inputenc}
 \usepackage{hyperref}
-\usepackage{graphicx}
+\usepackage{mathtools}
+%\usepackage{graphicx}
 
 \newtheorem{definition}{Definition}[section]
 \newtheorem{theorem}{Theorem}[section]
@@ -68,7 +69,7 @@ The required security properties for application to Seraphis are described in Se
 \section{A Seraphis transaction}\label{ser-tx}
 We now describe a simple Seraphis transaction. This will be used as the basis for further instantiations and modifications (Section \ref{inst}) and for the security model (Section \ref{sec}).
 
-Suppose that Alice would send $a_t\in\mathbb{F}$ amount of funds to Bob. Alice owns a set of e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$ with a total amount of $\big(\sum_{i=1}^{n}{a_i}\big)\ge a_t$, all \textit{connected} to a receiver address $(K_{ali}^{dh}, K_{ali}^v, K_{ali}^s)$. This ``connection'' will be elaborated later on. On the other hand, Bob owns a receiver address $(K_{bob}^{dh}, K_{bob}^v, K_{bob}^s)$. For Bob to receive the funds, he will now send his receiver address to Alice. Alice will actually send funds to two addresses: to Bob's and to herself (for the ``change'' $a_c = \sum_{i=1}^{n}{a_i} - a_t$ \textit{even if} $a_c=0$). Hence, Alice must create 2 new e-notes. She starts the transaction by doing the following:
+Suppose that Alice would send $a_t\in\mathbb{F}$ amount of funds to Bob. Alice owns a set of e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$ with a total amount of $\big(\sum_{i=1}^{n}{a_i}\big)\ge a_t$, all \textit{connected} to a receiver address $(K_{ali}^{dh}, K_{ali}^v, K_{ali}^s)$. This ``connection'' will be elaborated later on. On the other hand, Bob owns a receiver address $(K_{bob}^{dh}, K_{bob}^v, K_{bob}^s)$. For Bob to receive the funds, he will now send his receiver address to Alice. Alice will actually send funds to two addresses: to Bob's and to herself (for the ``change'' $a_{ch} = \sum_{i=1}^{n}{a_i} - a_t$ \textit{even if} $a_{ch}=0$). Hence, Alice must create 2 new e-notes. She starts the transaction by doing the following:
 \begin{enumerate}
     \item Generate $r_{ali}, r_{bob}\xleftarrow{\$}\mathbb{F}$ and independent to each other.
     \item Compute $R_{ali} = r_{ali}K_{ali}^{dh}$ and $R_{bob} = r_{bob}K_{bob}^{dh}$, then store $R_{ali}$ and $R_{bob}$ to new (empty) memos $m_{ali}$ and $m_{bob}$, respectively. The name for $K^{dh}$ should now be clear.
@@ -366,8 +367,8 @@ Next we consider the \textbf{Balance} property, which means that a spender adver
 \underline{$\textsf{BAL}(\mathcal{A}, 1^{\lambda})$}
 \begin{itemize}
 \item $pp\leftarrow\textsf{Setup}(1^{\lambda})$.
-\item $\mathcal{A}$ is provided $k^v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, and $\{(k_{a,i}^o, k_{b,i}^o, a_i, x_i)\}_{i=1}^n$ that makes $\mathcal{A}$ the owner of ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ in the ledger.
-\item $\mathcal{A}$ can choose any receiver's address ${\tt addr}_{\mathcal{B}} = (K_{\mathcal{B}}^{dh}, K_{\mathcal{B}}^v, K_{\mathcal{B}}^s)$.
+\item $\mathcal{A}$ is provided random $k^v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, and $\{(k_{a,i}^o, k_{b,i}^o, a_i, x_i)\}_{i=1}^n$ that makes ${\tt addr}_{\mathcal{A}}$ connect to ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ in the ledger.
+\item $\mathcal{A}$ chooses any receiver address ${\tt addr}_{\mathcal{B}} = (K_{\mathcal{B}}^{dh}, K_{\mathcal{B}}^v, K_{\mathcal{B}}^s)$.
 \item $\{(k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i)\}_{i=1}^n \leftarrow\mathcal{A}(pp, {\tt enote}_{\mathcal{A}}, \{(k_{a,i}^o, k_{b,i}^o, a_i, x_i)\}_{i=1}^n)$.
 \item $T\leftarrow{\tt tx}(pp, {\tt addr}_{\mathcal{A}}, {\tt addr}_{\mathcal{B}}, {\tt enote}_{\mathcal{A}}, \{(k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i)\}_{i=1}^n)$. $\mathcal{A}$ spends all e-notes in ${\tt enote}_{\mathcal{A}}$ to send an amount $a_{send}$ to ${\tt addr}_{\mathcal{B}}$.
 \item $b_0:=1$ if Verifier accepts $T$, else $:=0$.
@@ -391,8 +392,8 @@ Seraphis is balanced if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, t
 \end{align*}
 where $\emph{\textsf{BAL}}$ is described in Figure \ref{exp-bal}.
 \end{definition}
-\begin{theorem}[Balance]
-If $(\emph{\textsf{Setup}},\emph{\textsf{PedersenC}})$, $(\emph{\textsf{Setup}},\emph{\textsf{PedersenK}})$ and $(\emph{\textsf{Setup}},\emph{\textsf{LinkTag}})$ are all binding, then Seraphis is balanced.  
+\begin{theorem}[Balance]\label{thm-bal}
+If $(\emph{\textsf{Setup}},\emph{\textsf{PedersenC}})$ and $(\emph{\textsf{Setup}},\emph{\textsf{LinkTag}})$ are both binding, then Seraphis is balanced.  
 \end{theorem}
 Next we consider the \textbf{Privacy} property, which means that an adversary should never be able to detect the spender, receiver, and amounts in any transaction, hence providing sender and receiver anonymity, and confidential transfer of amounts. Privacy property involves an experiment $\textsf{PRV}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. Given a whole transaction $T$, the adversary succeeds in the experiment if she can guess the sender, the receiver, or the amount of the new e-note for the receiver, hence breaking the privacy of $T$.
 
@@ -402,8 +403,9 @@ Next we consider the \textbf{Privacy} property, which means that an adversary sh
 \underline{$\textsf{PRV}(\mathcal{A}, 1^{\lambda})$}
 \begin{itemize}
 \item $pp\leftarrow\textsf{Setup}(1^{\lambda})$.
-\item $\mathcal{A}$ is provided a random $\{\mathbb{S}_i\}_{i=1}^n$ \textit{with} potential sender addresses ${\tt send}_0$ and ${\tt send}_1$ such that both connect to exactly one e-note each in every $\mathbb{S}_i$, amounts of those one e-note each in every $\mathbb{S}_i$: $\{a_{0, i}\}_{i=1}^n$ and $\{a_{1, i}\}_{i=1}^n$ for ${\tt send}_0$ and ${\tt send}_1$, respectively, and potential receiver addresses ${\tt recv}_0$ and ${\tt recv}_1$.
-\item $\mathcal{A}$ chooses the amount the potential senders would send: $a_{\mathcal{A}, 0} \le \sum_{i=1}^n{a_{0, i}}$ and $a_{\mathcal{A}, 1} \le \sum_{i=1}^n{a_{1, i}}$ for ${\tt send}_0$ and ${\tt send}_1$, respectively.
+\item $\mathcal{A}$ is provided two random potential sender addresses ${\tt send}_0$ and ${\tt send}_1$, sets of e-notes ${\tt enote}_0$ and ${\tt enote}_1$ (with $|{\tt enote}_0|=|{\tt enote}_1|=n$) connected to ${\tt send}_0$ and ${\tt send}_1$ respectively, amounts $\{a_{0, i}\}_{i=1}^n$ and $\{a_{1, i}\}_{i=1}^n$ of each e-note in ${\tt enote}_0$ and ${\tt enote}_1$, respectively, and two random potential receiver addresses ${\tt recv}_0$ and ${\tt recv}_1$.
+\item $\mathcal{A}$ constructs $\{\mathbb{S}_i\}_{i=1}^n$ such that each $\mathbb{S}_i$ contains one e-note connected to ${\tt send}_0$ and another e-note connected to ${\tt send}_1$.
+\item $\mathcal{A}$ chooses any valid amount the potential senders would send: $0 \le a_{\mathcal{A}, 0} \le \sum_{i=1}^n{a_{0, i}}$ and $0 \le a_{\mathcal{A}, 1} \le \sum_{i=1}^n{a_{1, i}}$ for ${\tt send}_0$ and ${\tt send}_1$, respectively.
 \item $b\xleftarrow{\$}\{0,1\}$.
 \item $T\leftarrow{\tt tx}(pp, {\tt send}_b, {\tt recv}_b, \{\mathbb{S}_i\}_{i=1}^n, a_{\mathcal{A}, b})$. The user who owns ${\tt send}_b$ spends the e-notes they own in $\{\mathbb{S}_i\}_{i=1}^n$ to send the amount $a_{\mathcal{A}, b}$ to ${\tt recv}_b$.
 \item If Verifier rejects $T$, then return $0$.
@@ -426,7 +428,7 @@ Seraphis is private if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, th
 \end{align*}
 where $\emph{\textsf{PRV}}$ is described in Figure \ref{exp-prv}.
 \end{definition}
-\begin{theorem}[Privacy]
+\begin{theorem}[Privacy]\label{thm-prv}
 If $(\emph{\textsf{Setup}},\emph{\textsf{PedersenC}})$, $(\emph{\textsf{Setup}},\emph{\textsf{PedersenK}})$ and $(\emph{\textsf{Setup}},\emph{\textsf{LinkTag}})$ are all hiding, both ownership and unspentness proof and range proof are perfect special HVZK, membership proof is witness indistinguishable, authenticated symmetric encryption scheme is IND-CCA2 and IK-CCA, and $\mathcal{H}$ is modeled as a random oracle, then Seraphis is private.  
 \end{theorem}
 
@@ -438,8 +440,8 @@ Lastly, we consider the \textbf{Non-slanderability} property, which means that a
 \underline{$\textsf{NSLAND}(\mathcal{A}, 1^{\lambda})$}
 \begin{itemize}
 \item $pp\leftarrow\textsf{Setup}(1^{\lambda})$.
-\item $\mathcal{A}$ is provided $k^v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, and ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ in the ledger that $\mathcal{A}$ owns. $\mathcal{A}$ is also provided a random victim address ${\tt addr}_{\mathcal{C}} = (K_{\mathcal{C}}^{dh}, K_{\mathcal{C}}^v, K_{\mathcal{C}}^s)$, and ${\tt enote}_{\mathcal{C}}$, which is all the e-notes in the ledger connected to ${\tt addr}_{\mathcal{C}}$. Let $\{\tilde{K}_{\mathcal{C}}\}$ be all the would-be linking tags of e-notes in ${\tt enote}_{\mathcal{C}}$ when those are spent honestly by the owner of ${\tt addr}_{\mathcal{C}}$.
-\item $\mathcal{A}$ can choose $k'^v, k_a'^s, k_b'^s\in\mathbb{F}$ to construct the receiver's address ${\tt addr}_{\mathcal{B}} = (K_{\mathcal{B}}^{dh}, K_{\mathcal{B}}^v, K_{\mathcal{B}}^s)$.
+\item $\mathcal{A}$ is provided random $k^v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, and ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ in the ledger connected to ${\tt addr}_{\mathcal{A}}$. $\mathcal{A}$ is also provided a random victim address ${\tt addr}_{\mathcal{C}} = (K_{\mathcal{C}}^{dh}, K_{\mathcal{C}}^v, K_{\mathcal{C}}^s)$, and ${\tt enote}_{\mathcal{C}}$, which is all the e-notes in the ledger connected to ${\tt addr}_{\mathcal{C}}$. Let $\{\tilde{K}_{\mathcal{C}}\}$ be all the would-be linking tags of e-notes in ${\tt enote}_{\mathcal{C}}$ when those are spent honestly by the owner of ${\tt addr}_{\mathcal{C}}$.
+\item $\mathcal{A}$ chooses any receiver address ${\tt addr}_{\mathcal{B}} = (K_{\mathcal{B}}^{dh}, K_{\mathcal{B}}^v, K_{\mathcal{B}}^s)$.
 \item $\{(k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i)\}_{i=1}^n \leftarrow\mathcal{A}(pp, (k'^v, k_a'^s, k_b'^s), {\tt addr}_{\mathcal{B}},  {\tt addr}_{\mathcal{C}}, {\tt enote}_{\mathcal{A}}, {\tt enote}_{\mathcal{C}})$.
 \item $T\leftarrow{\tt tx}(pp, {\tt addr}_{\mathcal{A}}, {\tt addr}_{\mathcal{B}}, {\tt enote}_{\mathcal{A}}, \{(k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i)\}_{i=1}^n)$. $\mathcal{A}$ spends all e-notes in ${\tt enote}_{\mathcal{A}}$ to send some amounts to ${\tt addr}_{\mathcal{B}}$. Let $\{\tilde{K}_{\mathcal{B}}\}$ be the linking tags of all spent e-notes in $T$.
 \item $b_0:=1$ if Verifier accepts $T$, else $:=0$
@@ -462,7 +464,7 @@ Seraphis is non-slanderable if for all $\emph{\textsf{PPT}}$ adversary $\mathcal
 \end{align*}
 where $\emph{\textsf{NSLAND}}$ is described in Figure \ref{exp-nsland}.
 \end{definition}
-\begin{theorem}[Non-slanderability]
+\begin{theorem}[Non-slanderability]\label{thm-nsland}
 If $(\emph{\textsf{Setup}},\emph{\textsf{LinkTag}})$ is hiding, all proving systems are (computational) sound, both ownership and unspentness proof and range proof are perfect special HVZK, membership proof is witness indistinguishable, and $\mathcal{H}$ is modeled as a random oracle, then Seraphis is non-slanderable.  
 \end{theorem}
 Non-slanderability and the binding of linking tags to a unique spent e-note one-time private key implies that an adversary should never be able to forge an accepted transaction of another honest user, a property known as \textbf{Unforgeability}. Since the binding property of $(\textsf{Setup},\textsf{LinkTag})$ is already required in the balance property, there is no need to formally define and prove an unforgeability property.
@@ -527,7 +529,7 @@ Hence solving the discrete log (DL) problem for $K_{t1,i} = (1/y_i)K_i$ with non
 Fiat-Shamir heuristic transforms interactive protocols satisfying HVZK into non-interactive (fully) zero-knowledge (NIZK) protocols in the random oracle model. Applying Fiat-Shamir heuristic to the composition proving system should be straightforward. Note that the $c$, $\mu_a$ and $\mu_b$ are generated through domain separation of hash function $\mathcal{H}$.
 
 \section{Proofs of some theorems in Section \ref{sec}}\label{proofs}
-We first present a lemma which is helpful in proofs by reduction.
+We first present a lemma which may be helpful in proofs by reduction.
 
 \begin{definition}\label{negl}
 A function $f:\mathbb{N}\rightarrow\mathbb{R}$ is \textbf{\em negligible} if for all polynomial $p(\cdot)$ there exists an $N\in\mathbb{N}$ such that for all integers $n>N$ it holds that $f(n)<\frac{1}{p(n)}$.
@@ -545,8 +547,25 @@ The non-negligibility of $f$ means that there exists a polynomial $p(\cdot)$ suc
 \begin{proof}[Proof of Theorem \ref{thm-linktag}]
 Perfect hiding follows from the proof of perfect hiding of Pedersen commitments because the blinding factor $t_k$ is only used in one of the pair output: the one corresponding to $K'^o$.
 
-Computational binding is proven by showing that if DL assumption holds, then every $\textsf{PPT}$ adversary $\mathcal{A}$ can \textit{break} $\textsf{LinkTag}$ only with negligible probability, where breaking $\textsf{LinkTag}$ means finding a correct triple input $(k_a, k_b, t_k)$ for a given pair output $(K'^o, \tilde{K})$. 
+Computational binding is proven by contraposition: if $\mathcal{A}$ can find $(k_a, k_b, t_k)$ and $(k'_a, k'_b, t'_k)$ such that the two are \textit{not} equal and $\textsf{LinkTag}(k_a, k_b; t_k) = \textsf{LinkTag}(k'_a, k'_b; t'_k)$, then $\mathcal{A}$ can find a DL relationship among $G,X,U\in\mathbb{G}$ which (this is very important) supposedly have unknown DL relationship to each other. Assume that $\mathcal{A}$ found one such $(k_a, k_b, t_k)$ and $(k'_a, k'_b, t'_k)$. Then $t_k G + k_a X + k_b U = t'_k G + k'_a X + k'_b U$ and $(k_b/k_a)U = (k'_b/k'_a)U$ implies that 1) $(t_k - t'_k)G + (k_a - k'_a)X + (k_b - k'_b)U = 0$ and 2) $k'_a k_b = k_a k'_b$. We will focus more on equation 1 because equation 2 only adds a restriction to the solution space. Now by Lemma \ref{negl-exp}, $\mathcal{A}$ can find another $(k_{a,2}, k_{b,2}, t_{k,2})$ and $(k'_{a,2}, k'_{b,2}, t'_{k,2})$ (for a total of 2 breaks) such that the two are not equal and $\textsf{LinkTag}(k_{a,2}, k_{b,2}; t_{k,2}) = \textsf{LinkTag}(k'_{a,2}, k'_{b,2}; t'_{k,2})$. The second version of equation 1 would be $(t_{k,2} - t'_{k,2})G + (k_{a,2} - k'_{a,2})X + (k_{b,2} - k'_{b,2})U = 0$. Multiplying $(k_{b,2} - k'_{b,2})$ to the first version of equation 1, multiplying  $(k_b - k'_b)$ to the second version of equation 1, and subtracting the two equations together will yield
+\begin{gather*}
+\begin{multlined}
+[(k_{b,2} - k'_{b,2})(t_k - t'_k)G + (k_{b,2} - k'_{b,2})(k_a - k'_a)X + (k_{b,2} - k'_{b,2})(k_b - k'_b)U] \\ -\ [(k_b - k'_b)(t_{k,2} - t'_{k,2})G + (k_b - k'_b)(k_{a,2} - k'_{a,2})X + (k_b - k'_b)(k_{b,2} - k'_{b,2})U] = 0
+\end{multlined} \\
+\implies [(k_{b,2} - k'_{b,2})(t_k - t'_k)- (k_b - k'_b)(t_{k,2} - t'_{k,2})]G + [(k_{b,2} - k'_{b,2})(k_a - k'_a) - (k_b - k'_b)(k_{a,2} - k'_{a,2})]X = 0 \\
+\implies X = \Bigg[-\frac{(k_{b,2} - k'_{b,2})(t_k - t'_k)- (k_b - k'_b)(t_{k,2} - t'_{k,2})}{(k_{b,2} - k'_{b,2})(k_a - k'_a) - (k_b - k'_b)(k_{a,2} - k'_{a,2})}\Bigg]G
+\end{gather*}
+which gives the DL relationship between $G$ and $X$.
+\end{proof}
+\begin{proof}[Proof of Theorem \ref{thm-bal}]
+We prove by contraposition. Assume that $\mathcal{A}$ succeeds in the $\textsf{BAL}$ experiment with non-negligible probability. There are two cases: $b_0 \wedge b_1 = 1$ and $b_0 \wedge b_2 = 1$. The theorem would be proven if for both cases, the binding of $(\textsf{Setup},\textsf{PedersenC})$ \textit{or} $(\textsf{Setup}, \textsf{LinkTag})$ is broken.
 
-The proof is by contraposition: Assume that an $\mathcal{A}$ can break $\textsf{LinkTag}$ with non-negligible probability. Let $A, B\xleftarrow{\$}\mathbb{G}$ (both $\ne 0$) be the group elements to find DL for. $\mathcal{A}$ performs a $\textsf{LinkTag}$ break for $(K'^o, \tilde{K})=(G, A)$, giving $t_k, k_a, k_b\in\mathbb{F}$ such that $G = t_k G + k_a X + k_b U$ and $A = (k_b/k_a)U$. Note that both $k_a$ and $k_b$ will never be $0$ because if one of them is, then $A \ne (k_b/k_a)U$, a contradiction. Then $\mathcal{A}$ performs another $\textsf{LinkTag}$ break, this time for $(K'^o, \tilde{K})=(G, B)$ (for a total of 2 breaks). Now we have $y_1, y_2\in\mathbb{F}$ such that $A=y_1 U$ and $B=y_2 U$. This implies $B = y_2(1/y_1)A$.
+For the first case, $b_0 \wedge b_1 = 1$ implies that there exists $i\in\{1,\ldots,n\}$ such that in the e-note image, $K_i'^o = t_{k,i} G + k_{a,i}^o X + k_{b,i}^o U = t'_{k,i} G + k_{a,i}'^o X + k_{b,i}'^o U$ (where $t'_{k,i}\in\mathbb{F}$ is also computed by $\mathcal{A}$) and $\tilde{K}_i = (k_{b,i}^o/k_{a,i}^o)U = (k_{b,i}'^o/k_{a,i}'^o)U$. This means that $(k_{a,i}^o, k_{b,i}, t_{k,i})$ and $( k_{a,i}'^o, k_{b,i}'^o, t'_{k,i})$ serves as a break of the binding property of $(\textsf{Setup}, \textsf{LinkTag})$, hence the binding property of at least one of the two commitments is broken.
+
+For the second case,  $b_0 \wedge b_2 = 1$ implies that the amount balance $\sum_{i=1}^n{C_i'}=C_{ch}+C_{send}$ (where $C_{ch}$ is the ``change'' e-note) is satisfied, but $\sum_{i=1}^n{a_i} < a_{send}$. Since any sender (adversary or not) can construct $C_{ch}$ and $C_{send}$ correctly, this implies that there exists $i\in\{1,\ldots,n\}$ such that $C'_i = v_{c,i} G + a_i H = v'_{c,i} G + a'_i H$ (where $v'_{c,i}\in\mathbb{F}$ is also computed by $\mathcal{A}$) \textit{and} $a'_i > a_i$. This means that $( v_{c,i}, a_i)$ and $(v'_{c,i}, a'_i)$ serves as a break of the binding property of $(\textsf{Setup}, \textsf{PedersenC})$, hence the binding property of at least one of the two commitments is broken.
+\end{proof}
+\begin{proof}[Proof of Theorem \ref{thm-prv}]
+\end{proof}
+\begin{proof}[Proof of Theorem \ref{thm-nsland}]
 \end{proof}
 \end{document}
