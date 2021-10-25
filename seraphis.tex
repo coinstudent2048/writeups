@@ -82,13 +82,13 @@ Alice now has two new e-notes: ${\tt enote}_{ali} = (C_{ali}, K_{ali}^o, m_{ali}
 
 For specific instances of Seraphis, there might be changes in some parts of the above steps, and by reflection, in some parts of the Receipt. Here are some notable changes:
 \begin{itemize}
-\item For some addressing schemes, the input to $\mathcal{H}_2$, the input to $\mathcal{H}_3$, and the key for both ${\tt enc}$ and ${\tt dec}$ may be constructed differently and different to each other. Nevertheless, these inputs and key must still be sender-receiver shared secrets.
+\item For some addressing schemes (Subsection \ref{addr-scheme}), the input to $\mathcal{H}_2$, the input to $\mathcal{H}_3$, and the key for both ${\tt enc}$ and ${\tt dec}$ may be constructed differently and different to each other. Nevertheless, these inputs and key must still be sender-receiver shared secrets.
 \item A Seraphis transaction can easily have multiple receivers aside from Bob, which implies that Alice will create more than 2 new e-notes. See Subsection \ref{sec-disc} for a discussion of how this affects the security model.
 \item A Seraphis transaction can be collaboratively constructed by multiple players. This is the subject of the so-called ``proof dependency'' (Subsection \ref{proof-dep}). Also see Subsection \ref{sec-disc} for a discussion of how this affects the security model.
 \end{itemize}
 
 \subsection{Ownership and unspentness proofs}\label{own-unsp}
-For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
+For each of Alice's owned e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
 \begin{enumerate}
     \item If the masked address $K_i'^o$ is already in the e-note image ${\tt enimg}_i$ in $T$, then go to next step. Else generate $K_i'^o$ from $(C_i, K_i^o, m_i)$ as per definition, and insert it to ${\tt enimg}_i$ in $T$.
     \item If the linking tag $\tilde{K}_i$ is already in ${\tt enimg}_i$ in $T$, then go to next step. Else generate $\tilde{K}_i$ from $(C_i, K_i^o, m_i)$ as per definition, and insert it to ${\tt enimg}_i$ in $T$.
@@ -101,7 +101,7 @@ Aside from verifying the proof transcript, the Verifier must confirm that the li
 The required security properties for application to Seraphis are described in Section \ref{prov-prop}. Unlike what's presented above, we recommend a composition proving system in which instead of one $\Pi_{\text{o\&u}, i}$ per $i$, Alice only needs to produce one proof transcript for all $i$'s. We present this in Appendix \ref{comp-prov}, and provide proof that it satisfies the required security requirements.
 
 \subsection{Amount balance}\label{amt-bal}
-For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
+For each of Alice's owned e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
 \begin{enumerate}
     \item If the masked amount commitment $C_i'$ is already in ${\tt enimg}_i$ in $T$, then exit this subsection. Else generate $C_i'$ from $(C_i, K_i^o, m_i)$ as per definition, \textit{except} for $i=n$. For the case of $i=n$, set
     $$v_{c,n} = \mathcal{H}_3(q_{ali}) + \mathcal{H}_3(q_{bob}) - \sum_{i=1}^{n-1}{v_{c,i}}.$$
@@ -111,7 +111,7 @@ For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must d
 The generation of $v_{c,n}$ is as such so that the Verifier can verify the amount balance $\sum_{i=1}^n{C_i'}=C_{ali}+C_{bob}$.
 
 \subsection{Membership proofs}\label{mem}
-For each of Alice's owned e-notes in $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
+For each of Alice's owned e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
 \begin{enumerate}
     \item If the masked amount commitment $C_i'$ is already in ${\tt enimg}_i$ in $T$, then go to next step. Else generate $C_i'$ from $(C_i, K_i^o, m_i)$ exactly like in Step 1 of Subsection \ref{amt-bal}, and insert it to ${\tt enimg}_i$ in $T$.
     \item If the masked address $K_i'^o$ is already in ${\tt enimg}_i$ in $T$, then go to next step. Else generate $K_i'^o$ from $(C_i, K_i^o, m_i)$ as per definition, and insert it to ${\tt enimg}_i$ in $T$.
@@ -278,7 +278,7 @@ where $\mathcal{A}(pp)$ always outputs $(x,w_0,w_1)$ such that $(x,w_0)\in\mathc
 All proving systems for application to Seraphis must \textit{at least} have perfect completeness and computational soundness. Moreover, ownership and unspentness proofs and range proofs must at least have perfect special HVZK, while membership proofs must at least have witness indistinguishability.
 
 \subsection{Authenticated symmetric encryption scheme}\label{sec-symm}
-We require that the authenticated symmetric encryption scheme must at least have the following properties: indistinguishable against adaptive chosen-ciphertext attack (IND-CCA2) and key-private under chosen-ciphertext attacks (IK-CCA).
+We require that the authenticated symmetric encryption scheme must at least have the following properties: indistinguishable against adaptive chosen-ciphertext attack (IND-CCA2) and key-private under chosen-ciphertext attacks (IK-CCA). These properties are defined in the Appendix A.4 of \cite{omniring}.
 
 \subsection{Commitment schemes}\label{Comm}
 
@@ -393,7 +393,7 @@ Seraphis is balanced if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, t
 where $\emph{\textsf{BAL}}$ is described in Figure \ref{exp-bal}.
 \end{definition}
 \begin{theorem}[Balance]\label{thm-bal}
-If $(\emph{\textsf{Setup}},\emph{\textsf{PedersenC}})$ and $(\emph{\textsf{Setup}},\emph{\textsf{LinkTag}})$ are both binding, then Seraphis is balanced.  
+If $(\emph{\textsf{Setup}},\emph{\textsf{PedersenC}})$ and $(\emph{\textsf{Setup}},\emph{\textsf{LinkTag}})$ are both binding, and all proving systems are (computational) sound, then Seraphis is balanced.  
 \end{theorem}
 Next we consider the \textbf{Privacy} property, which means that an adversary should never be able to detect the spender, receiver, and amounts in any transaction, hence providing sender and receiver anonymity, and confidential transfer of amounts. Privacy property involves an experiment $\textsf{PRV}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. Given a whole transaction $T$, the adversary succeeds in the experiment if she can guess the sender, the receiver, or the amount of the new e-note for the receiver, hence breaking the privacy of $T$.
 
@@ -429,7 +429,7 @@ Seraphis is private if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, th
 where $\emph{\textsf{PRV}}$ is described in Figure \ref{exp-prv}.
 \end{definition}
 \begin{theorem}[Privacy]\label{thm-prv}
-If $(\emph{\textsf{Setup}},\emph{\textsf{PedersenC}})$, $(\emph{\textsf{Setup}},\emph{\textsf{PedersenK}})$ and $(\emph{\textsf{Setup}},\emph{\textsf{LinkTag}})$ are all hiding, both ownership and unspentness proof and range proof are perfect special HVZK, membership proof is witness indistinguishable, authenticated symmetric encryption scheme is IND-CCA2 and IK-CCA, and $\mathcal{H}$ is modeled as a random oracle, then Seraphis is private.  
+If $(\emph{\textsf{Setup}},\emph{\textsf{PedersenC}})$, $(\emph{\textsf{Setup}},\emph{\textsf{PedersenK}})$ and $(\emph{\textsf{Setup}},\emph{\textsf{LinkTag}})$ are all hiding, ownership and unspentness proof and range proof are both perfect special HVZK, membership proof is witness indistinguishable, authenticated symmetric encryption scheme is IND-CCA2 and IK-CCA, and $\mathcal{H}$ is modeled as a random oracle, then Seraphis is private.  
 \end{theorem}
 
 Lastly, we consider the \textbf{Non-slanderability} property, which means that an adversary should never be able to forge a linking tag of an honest user's e-notes when those would be spent. This property prevents the following attack known as \textit{denial-of-spending attack} \cite{denial-of-spend}: when the attacker first spends their e-notes with forged linking tags, a victim user owning e-notes with matching linking tags cannot spend their e-notes anymore because a match in linking tag implies a double-spend. Non-slanderability property involves an experiment $\textsf{NSLAND}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. The adversary succeeds in the experiment if they successfully accomplished a denial-of-spending attack.
@@ -465,7 +465,7 @@ Seraphis is non-slanderable if for all $\emph{\textsf{PPT}}$ adversary $\mathcal
 where $\emph{\textsf{NSLAND}}$ is described in Figure \ref{exp-nsland}.
 \end{definition}
 \begin{theorem}[Non-slanderability]\label{thm-nsland}
-If $(\emph{\textsf{Setup}},\emph{\textsf{LinkTag}})$ is hiding, all proving systems are (computational) sound, both ownership and unspentness proof and range proof are perfect special HVZK, membership proof is witness indistinguishable, and $\mathcal{H}$ is modeled as a random oracle, then Seraphis is non-slanderable.  
+If $(\emph{\textsf{Setup}},\emph{\textsf{LinkTag}})$ is hiding, all proving systems are (computational) sound, ownership and unspentness proof and range proof are both perfect special HVZK, membership proof is witness indistinguishable, and $\mathcal{H}$ is modeled as a random oracle, then Seraphis is non-slanderable.  
 \end{theorem}
 Non-slanderability and the binding of linking tags to a unique spent e-note one-time private key implies that an adversary should never be able to forge an accepted transaction of another honest user, a property known as \textbf{Unforgeability}. Since the binding property of $(\textsf{Setup},\textsf{LinkTag})$ is already required in the balance property, there is no need to formally define and prove an unforgeability property.
 
@@ -558,13 +558,20 @@ Computational binding is proven by contraposition: if $\mathcal{A}$ can find $(k
 which gives the DL relationship between $G$ and $X$.
 \end{proof}
 \begin{proof}[Proof of Theorem \ref{thm-bal}]
-We prove by contraposition. Assume that $\mathcal{A}$ succeeds in the $\textsf{BAL}$ experiment with non-negligible probability. There are two cases: $b_0 \wedge b_1 = 1$ and $b_0 \wedge b_2 = 1$. The theorem would be proven if for both cases, the binding of $(\textsf{Setup},\textsf{PedersenC})$ \textit{or} $(\textsf{Setup}, \textsf{LinkTag})$ is broken.
+We prove by contraposition. Assume that $\mathcal{A}$ succeeds in the $\textsf{BAL}$ experiment with non-negligible probability. There are two cases, each with sub-cases: $b_0 \wedge b_1 = 1$ or $b_0 \wedge b_2 = 1$. The theorem would be proven if for all sub-cases of all cases, at least one of the following is broken: binding of $(\textsf{Setup},\textsf{PedersenC})$ and $(\textsf{Setup}, \textsf{LinkTag})$, and soundness of any proving system.
 
-For the first case, $b_0 \wedge b_1 = 1$ implies that there exists $i\in\{1,\ldots,n\}$ such that in the e-note image, $K_i'^o = t_{k,i} G + k_{a,i}^o X + k_{b,i}^o U = t'_{k,i} G + k_{a,i}'^o X + k_{b,i}'^o U$ (where $t'_{k,i}\in\mathbb{F}$ is also computed by $\mathcal{A}$) and $\tilde{K}_i = (k_{b,i}^o/k_{a,i}^o)U = (k_{b,i}'^o/k_{a,i}'^o)U$. This means that $(k_{a,i}^o, k_{b,i}, t_{k,i})$ and $( k_{a,i}'^o, k_{b,i}'^o, t'_{k,i})$ serves as a break of the binding property of $(\textsf{Setup}, \textsf{LinkTag})$, hence the binding property of at least one of the two commitments is broken.
+For the first case, assume that $b_0 \wedge b_1 = 1$. One sub-case is that there exists $i\in\{1,\ldots,n\}$ such that in the e-note image, $K_i'^o = t_{k,i} G + k_{a,i}^o X + k_{b,i}^o U = t'_{k,i} G + k_{a,i}'^o X + k_{b,i}'^o U$ (where $t'_{k,i}\in\mathbb{F}$ is also computed by $\mathcal{A}$) and $\tilde{K}_i = (k_{b,i}^o/k_{a,i}^o)U = (k_{b,i}'^o/k_{a,i}'^o)U$. This means that $(k_{a,i}^o, k_{b,i}, t_{k,i})$ and $( k_{a,i}'^o, k_{b,i}'^o, t'_{k,i})$ serves as a break of the binding property of $(\textsf{Setup}, \textsf{LinkTag})$. Another sub-case is that $( k_{a,i}'^o, k_{b,i}'^o, t'_{k,i})$ does \textit{not} satisfy proving relations involving those values, yet $\mathcal{A}$ managed to create accepted proofs, but this also serves as a break of the soundness property of ownership and unspentness proof and membership proof. Hence for all sub-cases, least one supposed property of a cryptographic construction is broken.
 
-For the second case,  $b_0 \wedge b_2 = 1$ implies that the amount balance $\sum_{i=1}^n{C_i'}=C_{ch}+C_{send}$ (where $C_{ch}$ is the ``change'' e-note) is satisfied, but $\sum_{i=1}^n{a_i} < a_{send}$. Since any sender (adversary or not) can construct $C_{ch}$ and $C_{send}$ correctly, this implies that there exists $i\in\{1,\ldots,n\}$ such that $C'_i = v_{c,i} G + a_i H = v'_{c,i} G + a'_i H$ (where $v'_{c,i}\in\mathbb{F}$ is also computed by $\mathcal{A}$) \textit{and} $a'_i > a_i$. This means that $( v_{c,i}, a_i)$ and $(v'_{c,i}, a'_i)$ serves as a break of the binding property of $(\textsf{Setup}, \textsf{PedersenC})$, hence the binding property of at least one of the two commitments is broken.
+For the second case, assume that $b_0 \wedge b_2 = 1$. One sub-case is that the new e-notes are constructed honestly and amount balance $\sum_{i=1}^n{C_i'}=C_{ch}+C_{send}$ (where $C_{ch}$ is the ``change'' e-note) is satisfied, but $\sum_{i=1}^n{a_i} < a_{send}$. This implies that there exists $i\in\{1,\ldots,n\}$ such that $C'_i = v_{c,i} G + a_i H = v'_{c,i} G + a'_i H$ (where $v'_{c,i}\in\mathbb{F}$ is also computed by $\mathcal{A}$) \textit{and} $a'_i > a_i$. Thus $( v_{c,i}, a_i)$ and $(v'_{c,i}, a'_i)$ serves as a break of the binding property of $(\textsf{Setup}, \textsf{PedersenC})$. Another sub-case is that $\mathcal{A}$ managed to create an accepted range proof for the amount $a$ committed in a new e-note such that $C \ne x G + a H$ or $\neg (0 \le a \le a_{max})$, but this also serves as a break of the soundness property of range proof. Hence for all sub-cases, least one supposed property of a cryptographic construction is broken.
 \end{proof}
 \begin{proof}[Proof of Theorem \ref{thm-prv}]
+Assume that $\mathcal{A}$ succeeds in the $\textsf{PRV}$ experiment with non-negligible probability. There are three cases, each with sub-cases: the sender is distinguished, the receiver is distinguished, or the sent amount is distinguished. The theorem would be proven if for all sub-cases of all cases, at least one of the following is broken: hiding of $(\textsf{Setup},\textsf{PedersenC})$, $(\textsf{Setup},\textsf{PedersenK})$ and $(\textsf{Setup},\textsf{LinkTag})$, perfect special HVZK of ownership and unspentness proof and range proof, witness indistinguishability of membership proof, IND-CCA2 and IK-CCA of authenticated symmetric encryption scheme, and ``random oracle-ness'' of $\mathcal{H}$.
+
+For the first case, assume that $\mathcal{A}$ distinguished the sender. One sub-case is that . Hence for all sub-cases, least one supposed property of a cryptographic construction is broken.
+
+For the second case, assume that $\mathcal{A}$ distinguished the receiver. One sub-case is that . Hence for all sub-cases, least one supposed property of a cryptographic construction is broken.
+
+For the third case, assume that $\mathcal{A}$ distinguished the sent amount. One sub-case is that . Hence for all sub-cases, least one supposed property of a cryptographic construction is broken.
 \end{proof}
 \begin{proof}[Proof of Theorem \ref{thm-nsland}]
 \end{proof}
