@@ -539,7 +539,7 @@ Fiat-Shamir heuristic transforms interactive protocols satisfying HVZK into non-
 \begin{proof}[Proof of Theorem \ref{thm-linktag}]
 Perfect hiding follows from the proof of perfect hiding of Pedersen commitments because the blinding factor $t_k$ is only used in one of the pair output: the one corresponding to $K'^o$.
 
-Computational binding follows from contraposition: if $\mathcal{A}$ can find $(k_a^o, k_b^o, t_k)$ and $(k_a'^o, k_b'^o, t'_k)$ such that the two are \textit{not} equal and $\textsf{LinkTag}(k_a^o, k_b^o; t_k) = \textsf{LinkTag}(k_a'^o, k_b'^o; t'_k)$, then $(k_a^o, k_b^o)$ and $(k_a'^o, k_b'^o)$ already breaks the computational binding property of $(\textsf{Setup}, \textsf{PedersenK})$, and by Theorem \ref{thm-pedersen}, this breaks the DL assumption.
+Computational binding follows from contraposition: if $\mathcal{A}$ can find $(k_a^o, k_b^o, t_k)$ and $(k_a'^o, k_b'^o, t'_k)$ such that the two are \textit{not} equal and $\textsf{LinkTag}(k_a^o, k_b^o; t_k) = \textsf{LinkTag}(k_a'^o, k_b'^o; t'_k)$, then $(k_a^o / t_k, k_b^o / t_k)$ and $(k_a'^o / t'_k, k_b'^o / t'_k)$ already breaks the computational binding property of $(\textsf{Setup}, \textsf{PedersenK})$, and by Theorem \ref{thm-pedersen}, this breaks the DL assumption.
 \end{proof}
 \begin{proof}[Proof of Theorem \ref{thm-bal}]
 We prove by contraposition. Assume that $\mathcal{A}$ succeeds in the $\textsf{BAL}$ experiment with non-negligible probability. There are two cases as to \textit{why} $\mathcal{A}$ succeeded, each with sub-cases: $b_0 \wedge b_1 = 1$ or $b_0 \wedge b_2 = 1$.
