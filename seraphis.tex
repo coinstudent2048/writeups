@@ -3,7 +3,6 @@
 \usepackage{amsmath,amssymb,amsthm,amsfonts}
 \usepackage[utf8]{inputenc}
 \usepackage{hyperref}
-\usepackage{mathtools}
 %\usepackage{graphicx}
 
 \newtheorem{definition}{Definition}[section]
@@ -83,8 +82,8 @@ Alice now has two new e-notes: ${\tt enote}_{ali} = (C_{ali}, K_{ali}^o, m_{ali}
 For specific instances of Seraphis, there might be changes in some parts of the above steps, and by reflection, in some parts of the Receipt. Here are some notable changes:
 \begin{itemize}
 \item For some addressing schemes (Subsection \ref{addr-scheme}), the input to $\mathcal{H}_2$, the input to $\mathcal{H}_3$, and the key for both ${\tt enc}$ and ${\tt dec}$ may be constructed differently and different to each other. Nevertheless, these inputs and key must be random sender-receiver shared secrets.
-\item A Seraphis transaction can easily have multiple receivers aside from Bob, which implies that Alice will create more than 2 new e-notes. See Subsection \ref{sec-disc} for a discussion of how this affects the security model.
-\item A Seraphis transaction can be collaboratively constructed by multiple players. This is the subject of the so-called ``proof dependency'' (Subsection \ref{proof-dep}). Also see Subsection \ref{sec-disc} for a discussion of how this affects the security model.
+\item A Seraphis transaction can easily have multiple receivers aside from Bob, which implies that Alice will create more than 2 new e-notes. % See Subsection \ref{sec-disc} for a discussion of how this affects the security model.
+\item A Seraphis transaction can be collaboratively constructed by multiple players. This is the subject of the so-called ``proof dependency'', which will be discussed in Subsection \ref{proof-dep}). % Also see Subsection \ref{sec-disc} for a discussion of how this affects the security model.
 \end{itemize}
 
 \subsection{Ownership and unspentness proofs}\label{own-unsp}
@@ -167,7 +166,7 @@ There are a number of details to consider when implementing Seraphis in a real c
 \section{Security model}\label{sec}
 For a start, we assume that the distributed ledger is immutable. Therefore, the adversary in our analysis will never be able to modify transactions already stored in the ledger. This ledger immutability can be actualized through, for instance, the Nakamoto consensus protocol \cite{bitcoin}.
 
-Subsections \ref{prov-prop} to \ref{Comm} outline the required security properties of the cryptographic components for Seraphis, then Subsection \ref{sec-thm} is the main security analysis of Seraphis, and Subsection \ref{sec-disc} discusses how some instantiations and modifications described in Section \ref{inst} affect the security analysis.
+Subsections \ref{prov-prop} to \ref{Comm} outline the required security properties of the cryptographic components for Seraphis, and then Subsection \ref{sec-thm} is the main security analysis of Seraphis. % and Subsection \ref{sec-disc} discusses how some instantiations and modifications described in Section \ref{inst} affect the security analysis.
 
 \subsection{Proving systems security properties}\label{prov-prop}
 We define a proving system as a tuple $(\textsf{Setup}, \mathcal{P}, \mathcal{V})$. $\textsf{Setup}$ is the setup algorithm: $pp\leftarrow\textsf{Setup}(1^{\lambda})$, and $\mathcal{P}$ and $\mathcal{V}$ are $\textsf{PPT}$ algorithms called \textbf{Prover} and \textbf{Verifier}, respectively. We denote the \textit{transcript} (all data being sent and received in the protocol) produced by $\mathcal{P}$ and $\mathcal{V}$ when dealing with inputs $x$ and $y$ as $tr\leftarrow\langle\mathcal{P}(x), \mathcal{V}(y)\rangle$. Once the transcript is produced, we denote the final transcript verification done by an algorithm $\mathcal{X}$ as $\mathcal{X}(tr)=1$ for accepted transcript and $\mathcal{X}(tr)=0$ for rejected. 
@@ -331,8 +330,8 @@ A commitment scheme is \textit{perfectly binding} if $\textsf{negl}(\lambda)$ is
 
 \noindent The first kind of commitment we define is commonly known as \textbf{Pedersen commitments} \cite{pedersen}. We define two instances, $\textsf{PedersenC}:\mathbb{F}\times\mathbb{F}\rightarrow\mathbb{G}$ and $\textsf{PedersenK}:\mathbb{F}\times\mathbb{F}\rightarrow\mathbb{G}$ as follows:
 \begin{align*}
-\textsf{PedersenC}(a; x) &= x G + a H \ , \ x\xleftarrow{\$}\mathbb{F}\ \text{if}\ x\ \text{is not specified.} \\
-\textsf{PedersenK}(k_b^o;k_a^o) &= k_a^o X + k_b^o U \ , \ k_a^o\xleftarrow{\$}\mathbb{F}\ \text{if}\ k_a^o\ \text{is not specified.}
+\textsf{PedersenC}(a; x) &= x G + a H \\
+\textsf{PedersenK}(k_b^o;k_a^o) &= k_a^o X + k_b^o U
 \end{align*}
 $\textsf{PedersenC}$ corresponds to the structure of amount commitment $C$ and masked amount commitment $C'$, while $\textsf{PedersenK}$ corresponds to the structure of one-time address $K^o$.
 \begin{theorem}[From \cite{pedersen}]\label{thm-pedersen}
@@ -341,7 +340,7 @@ Pedersen commitment is perfectly hiding and computationally binding under the DL
 
 \noindent Then we define a custom commitment $\textsf{LinkTag}:\mathbb{F}\setminus\{0\}\times\mathbb{F}\times\mathbb{F}\rightarrow\mathbb{G}\times\mathbb{G}$ as follows:
 \begin{align*}
-\textsf{LinkTag}(k_a, k_b; t_k) = (t_k G + k_a X + k_b U, (k_b/k_a)U)\ , \ t_k\xleftarrow{\$}\mathbb{F}\ \text{if}\ t_k\ \text{is not specified.}
+\textsf{LinkTag}(k_a^o, k_b^o; t_k) = (t_k G + k_a^o X + k_b^o U, (k_b^o/k_a^o)U)
 \end{align*}
 $\textsf{LinkTag}$ corresponds to structure of the combination of masked address $K'^o$ and linking tag $\tilde{K}$.
 
@@ -357,7 +356,7 @@ It is important to note that the properties in subsection \ref{prov-prop} are th
 
 Lastly, note that the mentioned proving systems in the theorems are in their ``original'' interactive versions. As Fiat-Shamir heuristic produces full zero-knowledge which is stronger than HVZK, the theorems should also apply to the non-interactive protocols transformed through the heuristic.
 
-The first security property is \textbf{Completeness} (called \textit{Correctness} in Omniring), which means that if an e-note appears on the ledger, then the user owning it can honestly generate an accepted transaction spending it. Seraphis satisfying completeness immediately follows from the completeness properties of the cryptographic components and by inspection of the protocol description.
+The first security property is \textbf{Completeness} (called \textit{Correctness} in Omniring), which means that if an e-note appears on the ledger, then its owner can honestly generate an accepted transaction spending it. Seraphis satisfying completeness immediately follows from the completeness properties of the cryptographic components and by inspection of the protocol description.
 
 Next we consider the \textbf{Balance} property, which means that a spender adversary should never be able to spend more amounts than he truly owns, hence preventing double-spending. The one presented here would be weaker than the one in Omniring because the one in Omniring requires special soundness for proving systems, which we do not require. Balance property involves an experiment $\textsf{BAL}(\mathcal{A}, 1^{\lambda})$  on a $\textsf{PPT}$ adversary $\mathcal{A}$. The adversary succeeds in the experiment (i.e. $\textsf{BAL}(\mathcal{A}, 1^{\lambda})=1$) if he managed to generate an accepted transaction such that 1) some of spent e-note one-time private keys are \textit{not equal} to what is originally given to him, leading to a double-spend of same e-notes under different linking tags, or 2) the amount of the new e-note for the receiver is \textit{larger} than the supposed total amount of e-notes he owns.
 
@@ -368,7 +367,7 @@ Next we consider the \textbf{Balance} property, which means that a spender adver
 \begin{itemize}
 \item $pp\leftarrow\textsf{Setup}(1^{\lambda})$.
 \item $\mathcal{A}$ is provided random $k^v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, and $\{(k_{a,i}^o, k_{b,i}^o, a_i, x_i)\}_{i=1}^n$ that makes ${\tt addr}_{\mathcal{A}}$ connect to ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ in the ledger.
-\item $\mathcal{A}$ chooses any receiver address ${\tt addr}_{\mathcal{B}} = (K_{\mathcal{B}}^{dh}, K_{\mathcal{B}}^v, K_{\mathcal{B}}^s)$.
+\item $\mathcal{A}$ chooses any receiver address ${\tt addr}_{\mathcal{B}}$.
 \item $\{(k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i)\}_{i=1}^n \leftarrow\mathcal{A}(pp, {\tt enote}_{\mathcal{A}}, \{(k_{a,i}^o, k_{b,i}^o, a_i, x_i)\}_{i=1}^n)$.
 \item $T\leftarrow{\tt tx}(pp, {\tt addr}_{\mathcal{A}}, {\tt addr}_{\mathcal{B}}, {\tt enote}_{\mathcal{A}}, \{(k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i)\}_{i=1}^n)$. $\mathcal{A}$ spends all e-notes in ${\tt enote}_{\mathcal{A}}$ to send an amount $a_t$ to ${\tt addr}_{\mathcal{B}}$.
 \item $b_0:=1$ if Verifier accepts $T$, else $:=0$.
@@ -395,7 +394,7 @@ where $\emph{\textsf{BAL}}$ is described in Figure \ref{exp-bal}.
 \begin{theorem}[Balance]\label{thm-bal}
 If $(\emph{\textsf{Setup}},\emph{\textsf{PedersenC}})$ and $(\emph{\textsf{Setup}},\emph{\textsf{LinkTag}})$ are both binding, and all proving systems are (computational) sound, then Seraphis is balanced.  
 \end{theorem}
-Next we consider the \textbf{Privacy} property, which means that an adversary should never be able to detect the spender, receiver, and amounts in any transaction, hence providing sender and receiver anonymity, and confidential transfer of amounts. Privacy property involves an experiment $\textsf{PRV}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. In the experiment, it is as if $\mathcal{A}$ himself \textit{sent} amounts to the two potential senders, hence he is provided the sender addresses, the e-notes themselves, and the private scalars of the amount commitment $C$ in those e-notes. Given a whole transaction $T$, the adversary succeeds in the experiment if she can guess the sender, the receiver, or the amount of the new e-note for the receiver, hence breaking the privacy of $T$.
+Next we consider the \textbf{Privacy} property, which means that an adversary should never be able to detect the spender, receiver, and amounts in any transaction, hence providing sender and receiver anonymity, and confidential transfer of amounts. Privacy property involves an experiment $\textsf{PRV}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. In the experiment, it is as if $\mathcal{A}$ himself ``sent'' amounts to the two potential senders, hence he is provided the sender addresses, the e-notes themselves, and the private scalars of the amount commitment $C$ in those e-notes. Given a whole transaction $T$, the adversary succeeds in the experiment if she can guess the sender, the receiver, or the amount of the new e-note for the receiver, hence breaking the privacy of $T$.
 
 \begin{figure}[htbp]
 \centering
@@ -407,7 +406,7 @@ Next we consider the \textbf{Privacy} property, which means that an adversary sh
 \item $\mathcal{A}$ constructs $\{\mathbb{S}_i\}_{i=1}^n$ such that each $\mathbb{S}_i$ contains one e-note in ${\tt enote}_0$ and one e-note in ${\tt enote}_1$.
 \item $\mathcal{A}$ chooses any valid amount the potential senders would send: $0 \le a_{\mathcal{A}, 0} \le \sum_{i=1}^n{a_{0, i}}$ and $0 \le a_{\mathcal{A}, 1} \le \sum_{i=1}^n{a_{1, i}}$ for ${\tt send}_0$ and ${\tt send}_1$, respectively.
 \item $b\xleftarrow{\$}\{0,1\}$.
-\item $T\leftarrow{\tt tx}(pp, {\tt send}_b, {\tt recv}_b, \{\mathbb{S}_i\}_{i=1}^n, a_{\mathcal{A}, b})$. The user who owns ${\tt send}_b$ spends the e-notes they own in $\{\mathbb{S}_i\}_{i=1}^n$ to send the amount $a_{\mathcal{A}, b}$ to ${\tt recv}_b$.
+\item $T\leftarrow{\tt tx}(pp, {\tt send}_b, {\tt recv}_b, {\tt enote}_b, \{\mathbb{S}_i\}_{i=1}^n, a_{\mathcal{A}, b})$. The owner of ${\tt send}_b$ honestly spends all e-notes in ${\tt enote}_b$ (which are also in $\{\mathbb{S}_i\}_{i=1}^n$) to send the amount $a_{\mathcal{A}, b}$ to ${\tt recv}_b$.
 \item If Verifier rejects $T$, then return $0$.
 \item $b'\leftarrow\mathcal{A}(pp, T, \{( {\tt send}_j, {\tt recv}_j, \{(x_{j, i}, a_{j,i})\}_{i=1}^n, a_{\mathcal{A},j})\}_{j\in \{0,1\}})$.
 \item Return $1$ if $b = b'$, else $0$.
@@ -432,7 +431,7 @@ where $\emph{\textsf{PRV}}$ is described in Figure \ref{exp-prv}.
 If $(\emph{\textsf{Setup}},\emph{\textsf{PedersenC}})$, $(\emph{\textsf{Setup}},\emph{\textsf{PedersenK}})$ and $(\emph{\textsf{Setup}},\emph{\textsf{LinkTag}})$ are all hiding, ownership and unspentness proof and range proof are both perfect special HVZK, membership proof is witness indistinguishable, and authenticated symmetric encryption scheme is IND-CCA2 and IK-CCA, then Seraphis is private.  
 \end{theorem}
 
-Lastly, we consider the \textbf{Non-slanderability} property, which means that an adversary should never be able to forge a linking tag of an honest user's e-notes when those would be spent. This property prevents the following attack known as \textit{denial-of-spending attack} \cite{denial-of-spend}: when the attacker first spends their e-notes with forged linking tags, a victim user owning e-notes with matching linking tags cannot spend their e-notes anymore because a match in linking tag implies a double-spend. Non-slanderability property involves an experiment $\textsf{NSLAND}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. The adversary succeeds in the experiment if they successfully accomplished a denial-of-spending attack.
+Lastly, we consider the \textbf{Non-slanderability} property, which means that an adversary should never be able to forge a linking tag of an honest user's e-notes when those are spent. Non-slanderability property involves an experiment $\textsf{NSLAND}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. This property prevents the following attack known as \textit{denial-of-spending attack} \cite{denial-of-spend}: $\mathcal{A}$ acts as a miner and as a verifier of a victim transaction $T$. This means that $\mathcal{A}$ can see the linking tags in $T$. $\mathcal{A}$ then temporarily blocks $T$ from entering the ledger, creates a new transaction $T'$ that matches some linking tags in $T$, and enters $T'$ first in the ledger before finally entering $T$. This way $T$ is marked as a double-spend, and some e-notes of the victim sender are now unspendable. Now the adversary succeeds in the experiment if they successfully accomplished a denial-of-spending attack.
 
 \begin{figure}[htbp]
 \centering
@@ -440,12 +439,15 @@ Lastly, we consider the \textbf{Non-slanderability} property, which means that a
 \underline{$\textsf{NSLAND}(\mathcal{A}, 1^{\lambda})$}
 \begin{itemize}
 \item $pp\leftarrow\textsf{Setup}(1^{\lambda})$.
-\item $\mathcal{A}$ is provided random $k^v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, and ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ in the ledger connected to ${\tt addr}_{\mathcal{A}}$. $\mathcal{A}$ is also provided a random victim address ${\tt addr}_{\mathcal{C}} = (K_{\mathcal{C}}^{dh}, K_{\mathcal{C}}^v, K_{\mathcal{C}}^s)$, and ${\tt enote}_{\mathcal{C}}$, which is all the e-notes in the ledger connected to ${\tt addr}_{\mathcal{C}}$. Let $\{\tilde{K}_{\mathcal{C}}\}$ be all the would-be linking tags of e-notes in ${\tt enote}_{\mathcal{C}}$ when those are spent honestly by the owner of ${\tt addr}_{\mathcal{C}}$.
-\item $\mathcal{A}$ chooses any receiver address ${\tt addr}_{\mathcal{B}} = (K_{\mathcal{B}}^{dh}, K_{\mathcal{B}}^v, K_{\mathcal{B}}^s)$.
-\item $\{(k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i)\}_{i=1}^n \leftarrow\mathcal{A}(pp, (k'^v, k_a'^s, k_b'^s), {\tt addr}_{\mathcal{B}},  {\tt addr}_{\mathcal{C}}, {\tt enote}_{\mathcal{A}}, {\tt enote}_{\mathcal{C}})$.
-\item $T\leftarrow{\tt tx}(pp, {\tt addr}_{\mathcal{A}}, {\tt addr}_{\mathcal{B}}, {\tt enote}_{\mathcal{A}}, \{(k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i)\}_{i=1}^n)$. $\mathcal{A}$ spends all e-notes in ${\tt enote}_{\mathcal{A}}$ to send some amounts to ${\tt addr}_{\mathcal{B}}$. Let $\{\tilde{K}_{\mathcal{B}}\}$ be the linking tags of all spent e-notes in $T$.
-\item $b_0:=1$ if Verifier accepts $T$, else $:=0$
-\item $b_1:=1$ if $\{\tilde{K}_{\mathcal{B}}\}\cap \{\tilde{K}_{\mathcal{C}}\}\ne\emptyset$, else $:=0$
+\item $\mathcal{A}$ is provided random $k^v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, and ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ in the ledger connected to ${\tt addr}_{\mathcal{A}}$.
+\item $\mathcal{A}$ chooses any receiver address ${\tt addr}_{\mathcal{B}}$.
+\item Let ${\tt addr}_{\mathcal{C}}$ be the random victim address, ${\tt addr}_{\mathcal{D}}$ be another random address, and ${\tt enote}_{\mathcal{C}}$ be all the e-notes in the ledger connected to ${\tt addr}_{\mathcal{C}}$.
+\item $T\leftarrow{\tt tx}(pp, {\tt addr}_{\mathcal{C}}, {\tt addr}_{\mathcal{D}}, {\tt enote}_{\mathcal{C}})$. The owner of ${\tt addr}_{\mathcal{C}}$ honestly spends all e-notes in ${\tt enote}_{\mathcal{C}}$ to send some amounts to ${\tt addr}_{\mathcal{D}}$. Let $\{\tilde{K}_{\mathcal{C}}\}$ be all the linking tags in $T$.
+\item $\mathcal{A}$ is provided $T$ and verifies it honestly. If $\mathcal{A}$ rejects $T$, then return 0.
+\item $\{(k_{a,i}'^o, k_{b,i}'^o)\}_{i=1}^n \leftarrow\mathcal{A}(pp, {\tt enote}_{\mathcal{A}}, T)$.
+\item $T'\leftarrow{\tt tx}(pp, {\tt addr}_{\mathcal{A}}, {\tt addr}_{\mathcal{B}}, {\tt enote}_{\mathcal{A}}, \{(k_{a,i}'^o, k_{b,i}'^o)\}_{i=1}^n)$. $\mathcal{A}$ spends all e-notes in ${\tt enote}_{\mathcal{A}}$ to send some amounts to ${\tt addr}_{\mathcal{B}}$. Let $\{\tilde{K}_{\mathcal{A}}\}$ be all the linking tags in $T'$.
+\item $b_0:=1$ if Verifier accepts $T'$, else $:=0$
+\item $b_1:=1$ if $\{\tilde{K}_{\mathcal{A}}\}\cap \{\tilde{K}_{\mathcal{C}}\}\ne\emptyset$, else $:=0$
 \item Return $b_0 \wedge b_1$.
 \end{itemize}
 \end{minipage}}
@@ -465,11 +467,11 @@ Seraphis is non-slanderable if for all $\emph{\textsf{PPT}}$ adversary $\mathcal
 where $\emph{\textsf{NSLAND}}$ is described in Figure \ref{exp-nsland}.
 \end{definition}
 \begin{theorem}[Non-slanderability]\label{thm-nsland}
-If $(\emph{\textsf{Setup}},\emph{\textsf{LinkTag}})$ is hiding, all proving systems are (computational) sound, ownership and unspentness proof and range proof are both perfect special HVZK, and membership proof is witness indistinguishable, then Seraphis is non-slanderable.  
+If $(\emph{\textsf{Setup}},\emph{\textsf{PedersenK}})$ is hiding, $(\emph{\textsf{Setup}},\emph{\textsf{LinkTag}})$ is hiding and binding, ownership and unspentness proof is sound and perfect special HVZK, and membership proof is sound and witness indistinguishable, then Seraphis is non-slanderable.
 \end{theorem}
-Non-slanderability and the binding of linking tags to a unique spent e-note one-time private key implies that an adversary should never be able to forge an accepted transaction of another honest user, a property known as \textbf{Unforgeability}. Since the binding property of $(\textsf{Setup},\textsf{LinkTag})$ is already required in the balance property, there is no need to formally define and prove an unforgeability property.
+Because of the binding property of $(\textsf{Setup},\textsf{LinkTag})$ (for e-note images in both $T$ and $T'$), non-slanderability already captures that an adversary should never be able to forge an accepted transaction of another honest user, a property known as \textbf{Unforgeability}. Hence there is no need to formally define and prove an unforgeability property.
 
-\subsection{Discussions}\label{sec-disc}
+% \subsection{Discussions}\label{sec-disc}
 
 \section{Efficiency}
 
@@ -534,33 +536,10 @@ Since only computational soundness is proven for this protocol, this cannot be c
 Fiat-Shamir heuristic transforms interactive protocols satisfying HVZK into non-interactive (fully) zero-knowledge (NIZK) protocols in the random oracle model. Applying Fiat-Shamir heuristic to the composition proving system should be straightforward. Note that the $c$, $\mu_a$ and $\mu_b$ are generated through domain separation of hash function $\mathcal{H}$.
 
 \section{Proofs of some theorems in Section \ref{sec}}\label{proofs}
-We first present a lemma which may be helpful in proofs by reduction.
-
-\begin{definition}\label{negl}
-A function $f:\mathbb{N}\rightarrow\mathbb{R}$ is \textbf{\em negligible} if for all polynomial $p(\cdot)$ there exists an $N\in\mathbb{N}$ such that for all integers $n>N$ it holds that $f(n)<\frac{1}{p(n)}$.
-\end{definition}
-\noindent Definition \ref{negl} is from Katz \& Lindell \cite{katz-lindell}. We prove the following lemma:
-
-\begin{lemma}\label{negl-exp}
-If $f:\mathbb{N}\rightarrow\mathbb{R}$ is non-negligible, then $g(\cdot)=f(\cdot)^m$ for any $m\in\mathbb{N}$ and $m>1$ is non-negligible.
-\end{lemma}
-\begin{proof}
-The non-negligibility of $f$ means that there exists a polynomial $p(\cdot)$ such that for all $N\in\mathbb{N}$, there exists an $n>N$ such that $f(n)\ge\frac{1}{p(n)}$. Let $p_f(\cdot)$ be such polynomial and $n_f$ be such $n>N$. Then setting $p_g(\cdot)=p_f(\cdot)^m$ and $n_g=n_f$ suffices for non-negligibility of $g$ because $f(n_f)\ge\frac{1}{p_f(n_f)}\implies f(n_f)^m\ge\frac{1}{p_f(n_f)^m}$.
-\end{proof}
-\noindent Lemma \ref{negl-exp} justifies the usage of finite number of ``breaks'' of one hardness assumption in proofs by reduction. For a start, the probability of breaking the hardness assumption $\textsf{HA}$ is a function of $\lambda$. Just here we denote this as $\textsf{Pr}[\textsf{HA}(\lambda)]$. Hence, for $m>1$, the probability for breaking $\textsf{HA}$ $m$ times, $\textsf{Pr}[\wedge_{i=1}^{m}{\textsf{HA}_i(\lambda)}]\ge\textsf{Pr}[\textsf{HA}(\lambda)]^m$. Now Lemma \ref{negl-exp} says that if $\textsf{Pr}[\textsf{HA}(\lambda)]$ is non-negligible (or equivalently, for all negligible function $\textsf{negl}(\lambda)$, $\textsf{Pr}[\textsf{HA}(\lambda)]\ge\textsf{negl}(\lambda)$), then $\textsf{Pr}[\textsf{HA}(\lambda)]^m$ must also be non-negligible and hence $\textsf{Pr}[\wedge_{i=1}^{m}{\textsf{HA}_i(\lambda)}]$ is also non-negligible. Nevertheless, the number of breaks should still be documented in proofs.
-
 \begin{proof}[Proof of Theorem \ref{thm-linktag}]
 Perfect hiding follows from the proof of perfect hiding of Pedersen commitments because the blinding factor $t_k$ is only used in one of the pair output: the one corresponding to $K'^o$.
 
-Computational binding is proven by contraposition: if $\mathcal{A}$ can find $(k_a, k_b, t_k)$ and $(k'_a, k'_b, t'_k)$ such that the two are \textit{not} equal and $\textsf{LinkTag}(k_a, k_b; t_k) = \textsf{LinkTag}(k'_a, k'_b; t'_k)$, then $\mathcal{A}$ can find a DL relationship among $G,X,U\in\mathbb{G}$ which (this is very important) supposedly have unknown DL relationship to each other. Assume that $\mathcal{A}$ found one such $(k_a, k_b, t_k)$ and $(k'_a, k'_b, t'_k)$. Then $t_k G + k_a X + k_b U = t'_k G + k'_a X + k'_b U$ and $(k_b/k_a)U = (k'_b/k'_a)U$ implies that 1) $(t_k - t'_k)G + (k_a - k'_a)X + (k_b - k'_b)U = 0$ and 2) $k'_a k_b = k_a k'_b$. We will focus more on equation 1 because equation 2 only adds a restriction to the solution space. Now by Lemma \ref{negl-exp}, $\mathcal{A}$ can find another $(k_{a,2}, k_{b,2}, t_{k,2})$ and $(k'_{a,2}, k'_{b,2}, t'_{k,2})$ (for a total of 2 breaks) such that the two are not equal and $\textsf{LinkTag}(k_{a,2}, k_{b,2}; t_{k,2}) = \textsf{LinkTag}(k'_{a,2}, k'_{b,2}; t'_{k,2})$. The second version of equation 1 would be $(t_{k,2} - t'_{k,2})G + (k_{a,2} - k'_{a,2})X + (k_{b,2} - k'_{b,2})U = 0$. Multiplying $(k_{b,2} - k'_{b,2})$ to the first version of equation 1, multiplying  $(k_b - k'_b)$ to the second version of equation 1, and subtracting the two equations together will yield
-\begin{gather*}
-\begin{multlined}
-[(k_{b,2} - k'_{b,2})(t_k - t'_k)G + (k_{b,2} - k'_{b,2})(k_a - k'_a)X + (k_{b,2} - k'_{b,2})(k_b - k'_b)U] \\ -\ [(k_b - k'_b)(t_{k,2} - t'_{k,2})G + (k_b - k'_b)(k_{a,2} - k'_{a,2})X + (k_b - k'_b)(k_{b,2} - k'_{b,2})U] = 0
-\end{multlined} \\
-\implies [(k_{b,2} - k'_{b,2})(t_k - t'_k)- (k_b - k'_b)(t_{k,2} - t'_{k,2})]G + [(k_{b,2} - k'_{b,2})(k_a - k'_a) - (k_b - k'_b)(k_{a,2} - k'_{a,2})]X = 0 \\
-\implies X = \Bigg[-\frac{(k_{b,2} - k'_{b,2})(t_k - t'_k)- (k_b - k'_b)(t_{k,2} - t'_{k,2})}{(k_{b,2} - k'_{b,2})(k_a - k'_a) - (k_b - k'_b)(k_{a,2} - k'_{a,2})}\Bigg]G
-\end{gather*}
-which gives the DL relationship between $G$ and $X$.
+Computational binding follows from contraposition: if $\mathcal{A}$ can find $(k_a^o, k_b^o, t_k)$ and $(k_a'^o, k_b'^o, t'_k)$ such that the two are \textit{not} equal and $\textsf{LinkTag}(k_a^o, k_b^o; t_k) = \textsf{LinkTag}(k_a'^o, k_b'^o; t'_k)$, then $(k_a^o, k_b^o)$ and $(k_a'^o, k_b'^o)$ already breaks the computational binding property of $(\textsf{Setup}, \textsf{PedersenK})$, and by Theorem \ref{thm-pedersen}, this breaks the DL assumption.
 \end{proof}
 \begin{proof}[Proof of Theorem \ref{thm-bal}]
 We prove by contraposition. Assume that $\mathcal{A}$ succeeds in the $\textsf{BAL}$ experiment with non-negligible probability. There are two cases as to \textit{why} $\mathcal{A}$ succeeded, each with sub-cases: $b_0 \wedge b_1 = 1$ or $b_0 \wedge b_2 = 1$.
@@ -579,5 +558,10 @@ For the second case, assume that $\mathcal{A}$ distinguished the receiver. One s
 For the third case, assume that $\mathcal{A}$ distinguished the sent amount. One sub-case is that $\mathcal{A}$ determined that the $C_t$ of new e-note hides $a_{\mathcal{A}, b}$, but this breaks the hiding property of $(\textsf{Setup}, \textsf{PedersenC})$. Another sub-case is that $\mathcal{A}$ recognized in $T$ that $C'_i - t_{c, i}G = x_{b,i}G + a_{b,i}H$ for some $i \in \{1, \ldots, n\}$, but this breaks the randomness of $t_c$. Another subcase is that the proving systems leak information related to amounts, but this breaks the perfect special HVZK of range proof and witness indistinguishability of membership proof. Moreover, leaking $t_c$ from membership proof leads to the previous case. The last subcase is that $\mathcal{A}$ can non-negligibly decrypt $\overline{a_{\mathcal{A},b}}$ without correct key, but this breaks the IND-CCA2 property of authenticated symmetric encryption scheme. Hence for all sub-cases, at least one supposed property of a cryptographic construction is broken.
 \end{proof}
 \begin{proof}[Proof of Theorem \ref{thm-nsland}]
+Assume that $\mathcal{A}$ succeeds in the $\textsf{NSLAND}$ experiment with non-negligible probability. The first step of $\mathcal{A}$ is to get the discrete logarithm $k_i$ of some $\tilde{K}_i \in \{\tilde{K}_{\mathcal{C}}\}$ (base $U$), and the second step of $\mathcal{A}$ is to find $(k_{a,i}'^o, k_{b,i}'^o, t'_{k,i})$ (for e-note image in $T'$) such that $k_{b,i}'^o/k_{a,i}'^o = k_i$, making $\tilde{K}_i \in \{\tilde{K}_{\mathcal{A}}\}$.
+
+For the first step, one case is to simply find $k_i$ by breaking the DL assumption. Another case is to get $(k_a^o, k_b^o, t_k)$ that $K_i'^o$ and $\tilde{K}_i$ hides and simply set $k_i = k_b^o / k_a^o$, but this breaks the hiding property of $(\textsf{Setup}, \textsf{LinkTag})$. Another case is to get $(k_a^o, k_b^o)$ that the $K_{\pi_i}^o$ in $\mathbb{S}_i$ (i.e. the one-time address of the true spent e-note) hides, but this breaks the hiding property of $(\textsf{Setup}, \textsf{PedersenK})$. The last case is that the proving systems may leak the same $(k_a^o, k_b^o, t_k)$ from the second case above, but this breaks the perfect special HVZK of ownership and unspentness proof and witness indistinguishability of membership proof. Hence for all cases, at least one supposed property of a cryptographic construction is broken.
+
+For the second step, one case is that in $T'$, $K_i'^o = t'_{k,i} G+ K^o$, with $K^o$ the one-time address of an e-note in ${\tt enote}_{\mathcal{A}}$, but this breaks the binding property of $(\textsf{Setup}, \textsf{LinkTag})$. The other case is the negation of the previous case: $K_i'^o \ne t'_{k,i} G+ K^o$, yet $\mathcal{A}$ can non-negligibly create accepted proofs, but this breaks the soundness property of ownership and unspentness proof and membership proof. Hence for all cases, at least one supposed property of a cryptographic construction is broken.
 \end{proof}
 \end{document}
