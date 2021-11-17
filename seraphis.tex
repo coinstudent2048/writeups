@@ -350,7 +350,7 @@ $\emph{\textsf{LinkTag}}$ is perfectly hiding and computationally binding under 
 \noindent We prove this in Appendix \ref{proofs}.
 
 \subsection{Seraphis security properties}\label{sec-thm}
-The required security properties for Seraphis are based on Omniring's security model \cite{omniring}. The Omniring paper presents a rigorous formalization of RingCT constructions, providing precision for security analysis against several realistic attacks.
+The required security properties for Seraphis are based on Omniring's security model \cite{omniring}, with modifications to fit Seraphis. The Omniring paper presents a rigorous treatment of RingCT constructions, providing precision for security analysis against several realistic attacks. However, we will not be fully formal in this presentation: we may treat algorithms such as $\mathcal{A}$ like \textit{agents}. For instance, we may simply write ``$\mathcal{A}$ outputs $x_1$ and $x_2$'' instead of ``we run a part of $\mathcal{A}$ twice to get outputs $x_1$ and $x_2$''.
 
 It is important to note that the properties in subsection \ref{prov-prop} are the \textit{minimal} requirements, thus the properties presented in this subsection are the \textit{weakest}. Because of Seraphis's modularity, stronger properties for proving systems must yield stronger properties for Seraphis. Proofs for the theorems in this subsection, found in Appendix \ref{proofs}, can also serve a guide for proving stronger properties.
 
@@ -358,7 +358,7 @@ Lastly, note that the mentioned proving systems in the theorems are in their ``o
 
 The first security property is \textbf{Completeness} (called \textit{Correctness} in Omniring), which means that if an e-note appears on the ledger, then its owner can honestly generate an accepted transaction spending it. Seraphis satisfying completeness immediately follows from the completeness properties of the cryptographic components and by inspection of the protocol description.
 
-Next we consider the \textbf{Balance} property, which means that a spender adversary should never be able to spend more amounts than he truly owns, hence preventing double-spending. The one presented here would be weaker than the one in Omniring because the one in Omniring requires special soundness for proving systems, which we do not require. Balance property involves an experiment $\textsf{BAL}(\mathcal{A}, 1^{\lambda})$  on a $\textsf{PPT}$ adversary $\mathcal{A}$. The adversary succeeds in the experiment (i.e. $\textsf{BAL}(\mathcal{A}, 1^{\lambda})=1$) if he managed to generate an accepted transaction such that 1) some of spent e-notes are supposedly owned by others 2) some of spent e-note one-time private keys are \textit{not equal} to what is originally given to him, leading to a double-spend of same e-notes under different linking tags, or 3) the amount of the new e-note for the receiver is \textit{larger} than the supposed total amount of e-notes he owns.
+Next we consider the \textbf{Balance} property, which means that a spender adversary should never be able to spend more amounts than it truly owns, hence preventing double-spending. The one presented here would be weaker than the one in Omniring because the one in Omniring requires special soundness for proving systems, which we do not require. Balance property involves an experiment $\textsf{BAL}(\mathcal{A}, 1^{\lambda})$  on a $\textsf{PPT}$ adversary $\mathcal{A}$. The adversary succeeds in the experiment (i.e. $\textsf{BAL}(\mathcal{A}, 1^{\lambda})=1$) if it managed to generate an accepted transaction such that 1) some of spent e-notes are supposedly owned by others 2) some of spent e-note one-time private keys are \textit{not equal} to what is originally given to him, leading to a double-spend of same e-notes under different linking tags, or 3) the amount of the new e-note for the receiver is \textit{larger} than the supposed total amount of e-notes it owns.
 
 \begin{figure}[htbp]
 \centering
@@ -395,7 +395,7 @@ where $\emph{\textsf{BAL}}$ is described in Figure \ref{exp-bal}.
 \begin{theorem}[Balance]\label{thm-bal}
 If $\emph{\textsf{PedersenC}}$ and $\emph{\textsf{PedersenK}}$ are both binding, and all proving systems are (computational) sound, then Seraphis is balanced.  
 \end{theorem}
-Next we consider the \textbf{Privacy} property, which means that an adversary should never be able to detect the spender, receiver, and amounts in any transaction, hence providing sender and receiver anonymity, and confidential transfer of amounts. Privacy property involves an experiment $\textsf{PRV}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. In the experiment, it is as if $\mathcal{A}$ himself ``sent'' amounts to the two potential senders, hence she is provided the sender addresses, the e-notes themselves, and the private scalars of the amount commitment $C$ in those e-notes. Given a whole transaction $T$, the adversary succeeds in the experiment if she can guess the sender, the receiver, or the amount of the new e-note for the receiver, hence breaking the privacy of $T$.
+Next we consider the \textbf{Privacy} property, which means that an adversary should never be able to detect the spender, receiver, and amounts in any transaction, hence providing sender and receiver anonymity, and confidential transfer of amounts. Privacy property involves an experiment $\textsf{PRV}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. In the experiment, it is as if $\mathcal{A}$ itself ``sent'' amounts to the two potential senders, hence $\mathcal{A}$ is provided the sender addresses, the e-notes themselves, and the private scalars of the amount commitment $C$ in those e-notes. Given a whole transaction $T$, the adversary succeeds in the experiment if it can guess the sender, the receiver, or the amount of the new e-note for the receiver, hence breaking the privacy of $T$.
 
 \begin{figure}[htbp]
 \centering
@@ -432,7 +432,7 @@ where $\emph{\textsf{PRV}}$ is described in Figure \ref{exp-prv}.
 If $\emph{\textsf{PedersenC}}$, $\emph{\textsf{PedersenK}}$, and $\emph{\textsf{LinkTag}}$ are all hiding, ownership and unspentness proof and range proof are both perfect special HVZK, membership proof is witness indistinguishable, and authenticated symmetric encryption scheme is IND-CCA2 and IK-CCA, then Seraphis is private.  
 \end{theorem}
 
-Lastly, we consider the \textbf{Non-slanderability} property, which means that an adversary should never be able to forge a linking tag of an honest user's e-notes when those are spent. Non-slanderability property involves an experiment $\textsf{NSLAND}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. This property prevents the following attack known as \textit{denial-of-spending attack} \cite{denial-of-spend}: $\mathcal{A}$ acts as a miner and as a verifier of a victim transaction $T$. This means that $\mathcal{A}$ can see the linking tags in $T$. $\mathcal{A}$ then temporarily blocks $T$ from entering the ledger, creates a new transaction $T'$ that matches some linking tags in $T$, and enters $T'$ first in the ledger before finally entering $T$. This way $T$ is marked as a double-spend, and some e-notes of the victim sender are now unspendable. Now the adversary succeeds in the experiment if they successfully accomplished a denial-of-spending attack.
+Lastly, we consider the \textbf{Non-slanderability} property, which means that an adversary should never be able to forge a linking tag of an honest user's e-notes when those are spent. Non-slanderability property involves an experiment $\textsf{NSLAND}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. This property prevents the following attack known as \textit{denial-of-spending attack} \cite{denial-of-spend}: the adversary is in a remote note that can receive transactions, and also acts as a verifier of a victim transaction $T$. This means that $\mathcal{A}$ can see the linking tags in $T$. $\mathcal{A}$ then temporarily blocks $T$ from entering the ledger, creates a new transaction $T'$ that matches some linking tags in $T$, and enters $T'$ first in the ledger before finally entering $T$. This way $T$ is marked as a double-spend, and some e-notes of the victim sender are now unspendable. Now the adversary succeeds in the experiment if it successfully accomplished a denial-of-spending attack.
 
 \begin{figure}[htbp]
 \centering
@@ -552,7 +552,7 @@ DL Relation assumption holds relative to $\emph{\textsf{Setup}}$ if for all $n \
 	\begin{gathered}
 		(\mathbb{G}, \mathbb{F})\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); \\
 		\{G_i\}_{i=1}^n \xleftarrow{\$}\mathbb{G}; \\
-		\{x_j\}_{j=1}^n \leftarrow\mathcal{A}(\mathbb{G}, \mathbb{F}, \{G_i\}_{i=1}^n) \\
+		\{x_i\}_{i=1}^n \leftarrow\mathcal{A}(\mathbb{G}, \mathbb{F}, \{G_i\}_{i=1}^n) \\
 	\end{gathered}
 \end{array}
 \right]

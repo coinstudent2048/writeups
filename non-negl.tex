@@ -1,0 +1,84 @@
+\documentclass{article}
+\usepackage[top=1.0in,bottom=1.0in,left=1.0in,right=1.0in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,amsfonts}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+
+\newtheorem{definition}{Definition}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem*{remark}{Remark}
+
+\title{Non-negligible Functions and Reduction Proofs}
+\author{coinstudent2048}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We present a lemma about non-negligible functions that is helpful in reduction proofs in cryptography. We also provide a reduction proof as a demonstration.
+\end{abstract}
+
+\section{The Thing}
+Let $\mathbb{R}_{\ge 0}$ be the set of non-negative real numbers. Let us define the concept of \textit{negligible function} first:
+
+\begin{definition}\label{negl}
+A function $f:\mathbb{N}\rightarrow\mathbb{R}_{\ge 0}$ is \textbf{\em negligible} if for all polynomial $p(\cdot)$ there exists an $N\in\mathbb{N}$ such that for all integers $n>N$ it holds that $f(n)<\frac{1}{p(n)}$.
+\end{definition}
+\noindent Definition \ref{negl} is from Katz \& Lindell \cite{katz-lindell}. We now prove the following lemma:
+
+\begin{lemma}\label{non-negl-exp}
+If $f:\mathbb{N}\rightarrow\mathbb{R}_{\ge 0}$ is non-negligible, then $g(\cdot)=f(\cdot)^m$ for any $m\in\mathbb{N}$ and $m>1$ is non-negligible.
+\end{lemma}
+\begin{proof}
+The function $f$ being not negligible means that there exists a polynomial $p(\cdot)$ such that for all $N\in\mathbb{N}$, there exists an $n>N$ such that $f(n)\ge\frac{1}{p(n)}$. Let $p_f(\cdot)$ be such polynomial and $n_f$ be such $n>N$. Then setting $p_g(\cdot)=p_f(\cdot)^m$ and $n_g=n_f$ suffices for non-negligibility of $g$ because $f(n_f)\ge\frac{1}{p_f(n_f)}\implies f(n_f)^m\ge\frac{1}{p_f(n_f)^m}$.
+\end{proof}
+\noindent Lemma \ref{non-negl-exp} justifies the usage of finite number of ``breaks'' of one hardness assumption in reduction proofs. For a start, the probability of breaking the hardness assumption $\textsf{HA}$ is a function of the security parameter $\lambda$. Just here we denote this as $\textsf{Pr}[\textsf{HA}(\lambda)]$. Hence, for $m>1$, the probability for breaking $\textsf{HA}$ $m$ times, $\textsf{Pr}[\wedge_{i=1}^{m}{\textsf{HA}_i(\lambda)}]\ge\textsf{Pr}[\textsf{HA}(\lambda)]^m$. Now Lemma \ref{non-negl-exp} says that if $\textsf{Pr}[\textsf{HA}(\lambda)]$ is non-negligible (or equivalently, for all negligible function $\textsf{negl}(\lambda)$, $\textsf{Pr}[\textsf{HA}(\lambda)]\ge\textsf{negl}(\lambda)$), then $\textsf{Pr}[\textsf{HA}(\lambda)]^m$ must also be non-negligible and hence $\textsf{Pr}[\wedge_{i=1}^{m}{\textsf{HA}_i(\lambda)}]$ is also non-negligible.
+
+\section{The Demo}
+Let $\mathbb{G}$ be a cyclic group where the Discrete Logarithm (DL) assumption holds, and $\mathbb{F}$ be its scalar field. We now present a hardness assumption used in Bulletproofs \cite{bp}, Bulletproofs+ \cite{bp-plus}, and Halo \cite{halo}:
+
+\begin{definition}[Discrete Logarithm Relation Assumption]
+	DL Relation assumption holds relative to $\emph{\textsf{Setup}}$ if for all $n \ge 2$ and  $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+	\begin{align*}
+		\emph{\textsf{Pr}}\left[
+		\begin{array}{c|c}
+			\begin{gathered}
+				\exists i \in \{1, \ldots, n\}: x_i \ne 0 \\
+				\wedge \sum_{i=1}^{n} x_i G_i = 0
+			\end{gathered}
+			&
+			\begin{gathered}
+				(\mathbb{G}, \mathbb{F})\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); \\
+				\{G_i\}_{i=1}^n \xleftarrow{\$}\mathbb{G}; \\
+				\{x_i\}_{i=1}^n \leftarrow\mathcal{A}(\mathbb{G}, \mathbb{F}, \{G_i\}_{i=1}^n) \\
+			\end{gathered}
+		\end{array}
+		\right]
+		\le \emph{\textsf{negl}}(\lambda).
+	\end{align*}
+\end{definition}
+\noindent Note that the $\sum_i x_i G_i$ operation is also called \textit{multi-scalar multiplication}.
+
+\begin{theorem}\label{equiv-demo}
+DL relation assumption holds if and only if DL assumption holds.
+\end{theorem}
+\begin{proof}
+The forward direction is trivial. For the backward direction, we prove by induction on $n$:
+
+\textit{Base case ($n=2$)}: Assume that $\mathcal{A}$ breaks DL relation. Hence for any $G_1, G_2 \in \mathbb{G}$, $\mathcal{A}$ outputs $x_1, x_2 \in \mathbb{F}$ such that $x_1 G_1 + x_2 G_2 = 0$. Then $G_1 = (-x_2 / x_1) G_2$, breaks DL assumption.
+
+\textit{Inductive case}: Assume that the backward direction of Theorem \ref{equiv-demo} holds for case $n$. Then we prove the same for case $n+1$. Assume that $\mathcal{A}$ breaks DL relation for case $n+1$. By Lemma \ref{non-negl-exp}, $\mathcal{A}$ can break it \textit{twice}: for any $\{G_i\}_{i=1}^{n+1}$, $\mathcal{A}$ outputs $\{x_j\}_{j=1}^{n+1}$ \textit{and} $\{x'_j\}_{j=1}^{n+1}$ such that both satisfy the multi-scalar multiplication with $\{G_i\}_{i=1}^{n+1}$ to zero. Now observe that
+\begin{align*}
+x'_1 \sum_{i=1}^{n+1} x_i G_i = x'_1 \cdot 0 = 0\ \wedge\ x_1 \sum_{i=1}^{n+1} x'_i G_i = x_1 \cdot 0 = 0 \\
+\implies \sum_{i=1}^{n+1} x'_1 x_i G_i - \sum_{i=1}^{n+1} x_1 x'_i G_i = 0 - 0 = 0 \\
+\implies \sum_{n=1}^{n+1} (x'_1 x_i - x_1 x'_i) G_i = 0 \\
+\implies  \sum_{n=2}^{n+1} (x'_1 x_i - x_1 x'_i) G_i = 0
+\end{align*}
+with the last implication because $x'_1 x_1 - x_1 x'_1 = 0$. Now the last implication has only $n$ addends, hence this breaks DL relation assumption for case $n$. From the above assumption of the backward direction of Theorem \ref{equiv-demo} holding for case $n$, this must also break DL assumption.
+\end{proof}
+\bibliographystyle{plain}
+\bibliography{non-negl}
+\end{document}
