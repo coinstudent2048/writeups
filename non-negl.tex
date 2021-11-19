@@ -52,7 +52,7 @@ Let $\mathbb{G}$ be a cyclic group where the Discrete Logarithm (DL) assumption 
 			&
 			\begin{gathered}
 				(\mathbb{G}, \mathbb{F})\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); \\
-				\{G_i\}_{i=1}^n \xleftarrow{\$}\mathbb{G}; \\
+				\{G_i\}_{i=1}^n \xleftarrow{\$}\mathbb{G}^n; \\
 				\{x_i\}_{i=1}^n \leftarrow\mathcal{A}(\mathbb{G}, \mathbb{F}, \{G_i\}_{i=1}^n) \\
 			\end{gathered}
 		\end{array}
@@ -68,9 +68,9 @@ DL relation assumption holds if and only if DL assumption holds.
 \begin{proof}
 The forward direction is trivial. For the backward direction, we prove by induction on $n$:
 
-\textit{Base case ($n=2$)}: Assume that $\mathcal{A}$ breaks DL relation. Hence for any $G_1, G_2 \in \mathbb{G}$, $\mathcal{A}$ outputs $x_1, x_2 \in \mathbb{F}$ such that $x_1 G_1 + x_2 G_2 = 0$. Then $G_1 = (-x_2 / x_1) G_2$, breaks DL assumption.
+\textit{Base case ($n=2$)}: Assume that $\mathcal{A}$ breaks DL relation: with non-negligible probability, for $G_1, G_2 \xleftarrow{\$} \mathbb{G}$, $\mathcal{A}$ outputs $x_1, x_2 \in \mathbb{F}$ such that $x_1 G_1 + x_2 G_2 = 0$. Then $G_1 = (-x_2 / x_1) G_2$, breaks DL assumption.
 
-\textit{Inductive case}: Assume that the backward direction of Theorem \ref{equiv-demo} holds for case $n$. Then we prove the same for case $n+1$. Assume that $\mathcal{A}$ breaks DL relation for case $n+1$. By Lemma \ref{non-negl-exp}, $\mathcal{A}$ can break it \textit{twice}: for any $\{G_i\}_{i=1}^{n+1}$, $\mathcal{A}$ outputs $\{x_j\}_{j=1}^{n+1}$ \textit{and} $\{x'_j\}_{j=1}^{n+1}$ such that both satisfy the multi-scalar multiplication with $\{G_i\}_{i=1}^{n+1}$ to zero. Now observe that
+\textit{Inductive case}: Assume that the backward direction of Theorem \ref{equiv-demo} holds for case $n$. Then we prove the same for case $n+1$. Assume that $\mathcal{A}$ breaks DL relation for case $n+1$. By Lemma \ref{non-negl-exp}, $\mathcal{A}$ can break it \textit{twice}: with non-negligible probability, for $\{G_i\}_{i=1}^{n+1} \xleftarrow{\$} \mathbb{G}^{n+1}$, $\mathcal{A}$ outputs $\{x_i\}_{i=1}^{n+1}$ \textit{and} $\{x'_i\}_{i=1}^{n+1}$ such that both satisfy the multi-scalar multiplication with $\{G_i\}_{i=1}^{n+1}$ to zero. Now observe that
 \begin{align*}
 x'_1 \sum_{i=1}^{n+1} x_i G_i = x'_1 \cdot 0 = 0\ \wedge\ x_1 \sum_{i=1}^{n+1} x'_i G_i = x_1 \cdot 0 = 0 \\
 \implies \sum_{i=1}^{n+1} x'_1 x_i G_i - \sum_{i=1}^{n+1} x_1 x'_i G_i = 0 - 0 = 0 \\
