@@ -63,7 +63,7 @@ $K^{dh}$ is called the \textbf{Diffie-Hellman base public key}, the $v$ superscr
 \subsection{Authenticated symmetric encryption scheme}
 We require the use of an authenticated symmetric encryption scheme. The Diffie-Hellman base public key enables shared secrets between the sender and the receiver, which can be used to produce the key for encryption and the authentication tag. We denote the encryption and decryption of data $x$ with the input $k$ for Key Derivation Function (KDF) as ${\tt enc}[k](x)$ and ${\tt dec}[k](x)$, respectively. We put overlines (e.g. $\overline{x}$) to indicate encrypted data.
 
-The required security properties for application to Seraphis are described in Section \ref{sec-symm}.
+The required security properties for application to Seraphis are described in Subsection \ref{sec-symm}.
 
 \section{A Seraphis transaction}\label{ser-tx}
 We now describe a simple Seraphis transaction. This will be used as the basis for further instantiations and modifications (Section \ref{inst}) and for the security model (Section \ref{sec}).
@@ -82,7 +82,7 @@ Alice now has two new e-notes: ${\tt enote}_{ali} = (C_{ali}, K_{ali}^o, m_{ali}
 For specific instances of Seraphis, there might be changes in some parts of the above steps, and by reflection, in some parts of the Receipt. Here are some notable changes:
 \begin{itemize}
 \item For some addressing schemes (Subsection \ref{addr-scheme}), the input to $\mathcal{H}_2$, the input to $\mathcal{H}_3$, and the key for both ${\tt enc}$ and ${\tt dec}$ may be constructed differently and different to each other. Nevertheless, these inputs and key must be random sender-receiver shared secrets.
-\item A Seraphis transaction can easily have multiple receivers aside from Bob, which implies that Alice will create more than 2 new e-notes. % See Subsection \ref{sec-disc} for a discussion of how this affects the security model.
+\item A Seraphis transaction can easily have multiple receivers aside from Bob, which implies that Alice will create more than 2 new e-notes. This technically breaks the privacy property described in Subsection \ref{sec-thm}. However, the same property guarantees that the number of receivers would be the \textit{only} break. % See Subsection \ref{sec-disc} for a discussion of how this affects the security model.
 \item A Seraphis transaction can be collaboratively constructed by multiple players. This is the subject of the so-called ``proof dependency'', which will be discussed in Subsection \ref{proof-dep}). % Also see Subsection \ref{sec-disc} for a discussion of how this affects the security model.
 \end{itemize}
 
@@ -97,7 +97,7 @@ $$\{(G, X, U, K_i'^o, \tilde{K}_i\in\mathbb{G}; t_{k,i}, k_{a,i}^o, k_{b,i}^o\in
 \end{enumerate}
 Aside from verifying the proof transcript, the Verifier must confirm that the linking tags do not yet appear in the ledger.
 
-The required security properties for application to Seraphis are described in Section \ref{prov-prop}. Unlike what's presented above, we recommend a composition proving system in which instead of one $\Pi_{\text{o\&u}, i}$ per $i$, Alice only needs to produce one proof transcript for all $i$'s. We present this in Appendix \ref{comp-prov}, and provide proof that it satisfies the required security requirements.
+The required security properties for application to Seraphis are described in Subsection \ref{prov-prop}. We also introduce a \textit{composition proving system} in which instead of one $\Pi_{\text{o\&u}, i}$ per $i$ (as presented above), Alice only needs to produce one proof transcript for all $i$'s. We present this in Appendix \ref{comp-prov}, and provide proof that it satisfies the required security requirements.
 
 \subsection{Amount balance}\label{amt-bal}
 For each of Alice's owned e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
@@ -120,7 +120,11 @@ For each of Alice's owned e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do t
 $$\{(G, C_i', K_i'^o \in\mathbb{G}, \mathbb{S}_i\subset\mathbb{G}^2; \pi_i\in\mathbb{N}, t_{c,i}, t_{k,i}\in\mathbb{F}): 1\le\pi_i\le s \wedge C_i' - C_{\pi_i} = t_{c,i} G \wedge K_i'^o - K_{\pi_i}^o = t_{k,i} G \}$$
     \item Append $(\mathbb{S}_i, \Pi_{\text{mem}, i})$ to $({\tt enimg}_i, \ldots)$ in $T$.
 \end{enumerate}
-The required security properties for application to Seraphis are described in Section \ref{prov-prop}. Specific proving systems satisfying the requirement include CSAG (CLSAG \cite{clsag} without linking) and One-out-of-Many proving system adapted from Groth and Bootle \textit{et al.} \cite{groth, bootle}.
+Aside from verifying the proof transcript, the Verifier must confirm that all the collected e-notes in rings appear in the ledger.
+
+The required security properties for application to Seraphis are described in Subsection \ref{prov-prop}. Specific proving systems satisfying the requirement include CSAG (CLSAG \cite{clsag} without linking) and One-out-of-Many proving system adapted from Groth and Bootle \textit{et al.} \cite{groth, bootle}.
+
+We also introduce an alternative to the above proving relation that allows for relatively simpler and more efficient proof structures. We call it the \textit{squashed e-note model}. We present this in Appendix \ref{squashed} and provide proof that it satisfies the required security requirements.
 
 \subsection{Range proofs}\label{range}
 For the new e-notes ${\tt enote}_{ali}$ and ${\tt enote}_{bob}$, Alice must do the following:
@@ -131,12 +135,12 @@ $$\{(G, H, C \in\mathbb{G}, a_{max}\in\mathbb{F}; x, a\in\mathbb{F}): C = x G + 
     \item Store $\Pi_{\text{ran}, ali}$ and $\Pi_{\text{ran}, bob}$ to $T$.
 \end{enumerate}
 
-The required security properties for application to Seraphis are described in Section \ref{prov-prop}. Specific proving systems satisfying the requirement include Bulletproofs \cite{bp} and Bulletproofs+ \cite{bp-plus}.
+The required security properties for application to Seraphis are described in Subsection \ref{prov-prop}. Specific proving systems satisfying the requirement include Bulletproofs \cite{bp} and Bulletproofs+ \cite{bp-plus}.
 
 \subsection{Receipt}
 Once the construction of $T$ is completed, Alice sends it to the network. Its contents must now be
 $$T=({\tt enote}_{ali}, {\tt enote}_{bob}, \Pi_{\text{ran}, ali}, \Pi_{\text{ran}, bob}, d_a, d_b, \{({\tt enimg}_i, \Pi_{\text{o\&u}, i}, \mathbb{S}_i, \Pi_{\text{mem}, i})\}_{i=1}^n).$$
-We denote the full construction of $T$ as the function ${\tt tx}(\cdot)$. This function would be used for describing Seraphis security properties (Section \ref{sec-thm}).
+We denote the full construction of $T$ as the function ${\tt tx}(\cdot)$. This function would be used for describing Seraphis security properties (Subsection \ref{sec-thm}).
 
 Suppose that the Verifier accepts $T$, hence $T$ is now stored in the ledger. When Bob scans the ledger for new transactions, he must do the following for every $T$ he encounters:
 \begin{enumerate}
@@ -160,7 +164,6 @@ There are a number of details to consider when implementing Seraphis in a real c
 \subsubsection*{Transaction Chaining}
 \subsection{Transaction fees}
 \subsection{Coinbase transactions}
-\subsection{Squashed e-note model}
 \subsection{?????}
 
 \section{Security model}\label{sec}
@@ -352,7 +355,7 @@ $\emph{\textsf{LinkTag}}$ is perfectly hiding and computationally binding under 
 \subsection{Seraphis security properties}\label{sec-thm}
 The required security properties for Seraphis are based on Omniring's security model \cite{omniring}, with modifications to fit Seraphis. The Omniring paper presents a rigorous treatment of RingCT constructions, providing precision for security analysis against several realistic attacks. However, we will not be fully formal in this presentation: we may treat algorithms such as $\mathcal{A}$ like \textit{agents}. For instance, we may simply write ``$\mathcal{A}$ outputs $x_1$ and $x_2$'' instead of ``we run a part of $\mathcal{A}$ twice to get outputs $x_1$ and $x_2$''.
 
-It is important to note that the properties in subsection \ref{prov-prop} are the \textit{minimal} requirements, thus the properties presented in this subsection are the \textit{weakest}. Because of Seraphis's modularity, stronger properties for proving systems must yield stronger properties for Seraphis. Proofs for the theorems in this subsection, found in Appendix \ref{proofs}, can also serve a guide for proving stronger properties.
+It is important to note that the properties in Subsection \ref{prov-prop} are the \textit{minimal} requirements, thus the properties presented in this subsection are the \textit{weakest}. Because of Seraphis's modularity, stronger properties for proving systems must yield stronger properties for Seraphis. Proofs for the theorems in this subsection, found in Appendix \ref{proofs}, can also serve a guide for proving stronger properties.
 
 Lastly, note that the mentioned proving systems in the theorems are in their ``original'' interactive versions. As Fiat-Shamir heuristic produces full zero-knowledge which is stronger than HVZK, the theorems should also apply to the non-interactive protocols transformed through the heuristic.
 
@@ -536,6 +539,30 @@ Since only computational soundness is proven for this protocol, this cannot be c
 
 Fiat-Shamir heuristic transforms interactive protocols satisfying HVZK into non-interactive (fully) zero-knowledge (NIZK) protocols in the random oracle model. Applying Fiat-Shamir heuristic to the composition proving system should be straightforward. Note that the $c$, $\mu_a$ and $\mu_b$ are generated through domain separation of hash function $\mathcal{H}$.
 
+\section{Squashed e-note model}\label{squashed}
+The following definitions are only applicable in membership proofs.
+\begin{definition}\label{sq-e-note}
+The \textbf{\em squashed e-note} for e-note $(C, K^o, m)$ is a pair $(Q, m)$ such that $Q = \mathcal{H}_4(C, K^o) K^o + C$, and $m$ is the same memo field.
+\end{definition}
+\begin{definition}\label{sq-e-note-img}
+A \textbf{\em squashed e-note image} for e-note image $(C', K'^o, \tilde{K})$ is a pair $(Q', \tilde{K})$ such that $Q' = \mathcal{H}_4(C, K^o) K'^o + C'$, and $\tilde{K}$ is the same linking tag.
+\end{definition}
+
+Going back to Step 4 of Subsection \ref{mem}, each e-note in the collection (of size $s$) are converted to squashed e-notes, and extract only the $Q$'s. Then arrange the $s$ e-notes in random positions. Alice now has an array (of length $s$): $\mathbb{Q}_i = \{Q_j\}_{j=1}^s$, which is called the \textbf{squashed ring}. On the other hand, the e-note image for the true spent e-note is converted to squashed e-note image.
+
+The squashed e-note model is the following proving relation for $\Pi_{\text{mem}, i}$:
+$$\{(G, Q'_i \in\mathbb{G}, \mathbb{Q}_i\subset\mathbb{G}; C_i, K_i^o \in \mathbb{G}, \pi_i\in\mathbb{N}, t_{c,i}, t_{k,i}\in\mathbb{F}): 1\le\pi_i\le s \wedge Q'_i - Q_{\pi_i} = ( \mathcal{H}_4(C_i, K_i^o) t_{k,i} + t_{c,i}) G \}$$
+
+The benefit of this specialization compared to the original membership proof model is you only need to prove knowledge of one discrete logarithm rather than two. Now for analysis of this specialization, we prove the following three properties which are described informally:
+\begin{enumerate}
+\item It is impossible to find an input e-note such that the output of the transformation is \textit{not} in the above new proving relation. 
+\item It is difficult for a $\textsf{PPT}$ adversary $\mathcal{A}$ to find an element of the above new proving relation if $\mathcal{A}$ does \textit{not} know the input e-note.
+\item The above new proving relation does not leak any private information of the input e-note.
+\end{enumerate}
+\begin{proof}
+The first property immediately follows from inspection of the above transformation. The third property immediately holds because the private keys of $C$ and $K^o$ are still perfectly hidden (as those are Pedersen commitments) when producing $Q$ and $Q'$. Lastly, for the second property: [I can't prove it].
+\end{proof}
+
 \section{Proofs of some theorems in Section \ref{sec}}\label{proofs}
 We first present another hardness assumption which will be helpful for the next proof. This assumption is used in Bulletproofs \cite{bp} and Bulletproofs+ \cite{bp-plus}:
 
@@ -564,7 +591,7 @@ It is said in \cite{bp} and \cite{bp-plus} that this assumption and the DL assum
 \begin{proof}[Proof of Theorem \ref{thm-linktag}]
 Perfect hiding follows from the proof of perfect hiding of Pedersen commitments because the blinding factor $t_k$ is only used in one of the pair output: the one corresponding to $K'^o$.
 
-For computational binding, we prove by contraposition. By breaking the binding of $\textsf{LinkTag}$, $\mathcal{A}$ finds $(k_a^o, k_b^o, t_k)$ and $(k_a'^o, k_b'^o, t'_k)$ such that the two are \textit{not} equal and $\textsf{LinkTag}(k_a^o, k_b^o; t_k) = \textsf{LinkTag}(k_a'^o, k_b'^o; t'_k)$. This implies that
+Since $t_k$ can be any scalar, the restriction of $\tilde{K}$ for $k_a^o, k_b^o$ is not enough to make $\textsf{LinkTag}$ perfectly binding. Now we prove computational binding by contraposition. By breaking the binding of $\textsf{LinkTag}$, $\mathcal{A}$ finds $(k_a^o, k_b^o, t_k)$ and $(k_a'^o, k_b'^o, t'_k)$ such that the two are \textit{not} equal and $\textsf{LinkTag}(k_a^o, k_b^o; t_k) = \textsf{LinkTag}(k_a'^o, k_b'^o; t'_k)$. This implies that
 $$(t_k - t'_k) G + (k_a^o - k_a'^o) X + (k_b^o - k_b'^o) U = 0$$
 and this breaks the DL relation assumption of $G, X, U \in \mathbb{G}$.
 \end{proof}
