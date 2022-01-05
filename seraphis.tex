@@ -5,10 +5,13 @@
 \usepackage{hyperref}
 %\usepackage{graphicx}
 
+\theoremstyle{plain}
 \newtheorem{definition}{Definition}[section]
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[theorem]
 \newtheorem{lemma}[theorem]{Lemma}
+
+\theoremstyle{remark}
 \newtheorem*{remark}{Remark}
 
 \title{A Report on Seraphis}
@@ -220,6 +223,28 @@ $(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is computationally sound for
 
 There is another notion of soundness called \textit{Special Soundness}. For a proving system to be special sound, there must exist a \textit{witness extractor} that has an ability to ``rewind time'' and make the Prover answer several different challenges, and it must be able to extract a witness given the several accepted transcripts with the Prover. Because of this, proving systems satisfying special soundness are called \textit{Proofs of Knowledge}. Special soundness is a stronger notion of soundness, hence this already implies computational soundness.
 
+\begin{definition}[Witness Indistinguishability]
+	$(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is witness indistinguishable for $\mathcal{R}$ if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
+	\begin{align*}
+		\left| \frac{1}{2} - \emph{\textsf{Pr}}\left[
+		\begin{array}{c|c}
+			\begin{gathered}
+				b' = b
+			\end{gathered}
+			&
+			\begin{gathered}
+				pp\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); (x, w_0, w_1)\leftarrow\mathcal{A}(pp); \\
+				b\xleftarrow{\$}\{0,1\}; tr\leftarrow\langle\mathcal{P}(pp,x,w_b), \mathcal{V}(pp,x)\rangle; \\
+				b'\leftarrow\mathcal{A}(tr)
+			\end{gathered}
+		\end{array}
+		\right]\right|
+		\le\emph{\textsf{negl}}(\lambda)
+	\end{align*}
+	where $\mathcal{A}(pp)$ always outputs $(x,w_0,w_1)$ such that $(x,w_0)\in\mathcal{R}\wedge(x,w_1)\in\mathcal{R}$.
+\end{definition}
+
+Witness indistinguishability is weaker \cite{groth} than the following more well-known property:
 \begin{definition}[Perfect Special HVZK]
 $(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is perfectly special honest-verifier zero knowledge (HVZK) for $\mathcal{R}$ if there exists a $\emph{\textsf{PPT}}$ simulator $\mathcal{S}$ such that for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$,
 \begin{align*}
@@ -253,31 +278,9 @@ $(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is perfectly special honest-
 where $\rho$ is the public randomness used by $\mathcal{V}$.
 \end{definition}
 
-Fiat-Shamir heuristic \cite{fiat-shamir} is applied to make interactive proving systems non-interactive. Moreover, Fiat-Shamir heuristic transforms interactive protocols satisfying HVZK into non-interactive (fully) zero-knowledge (NIZK) protocols in the random oracle model. Hence, all proving systems for application to Seraphis should be transformed via Fiat-Shamir heuristic.
+Fiat-Shamir heuristic \cite{fiat-shamir} is applied to make interactive proving systems non-interactive. Moreover, it transforms interactive protocols satisfying HVZK into non-interactive (fully) zero-knowledge (NIZK) protocols in the random oracle model.
 
-For membership proofs, we need the following property which is weaker than perfect special HVZK \cite{groth}:
-\begin{definition}[Witness Indistinguishability]
-$(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is witness indistinguishable for $\mathcal{R}$ if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
-\begin{align*}
-\left| \frac{1}{2} - \emph{\textsf{Pr}}\left[
-\begin{array}{c|c}
-    \begin{gathered}
-        b' = b
-    \end{gathered}
-    &
-    \begin{gathered}
-        pp\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); (x, w_0, w_1)\leftarrow\mathcal{A}(pp); \\
-        b\xleftarrow{\$}\{0,1\}; tr\leftarrow\langle\mathcal{P}(pp,x,w_b), \mathcal{V}(pp,x)\rangle; \\
-        b'\leftarrow\mathcal{A}(tr)
-    \end{gathered}
-\end{array}
-\right]\right|
-\le\emph{\textsf{negl}}(\lambda)
-\end{align*}
-where $\mathcal{A}(pp)$ always outputs $(x,w_0,w_1)$ such that $(x,w_0)\in\mathcal{R}\wedge(x,w_1)\in\mathcal{R}$.
-\end{definition}
-
-All proving systems for application to Seraphis must \textit{at least} have perfect completeness and computational soundness. Moreover, ownership and unspentness proofs and range proofs must at least have perfect special HVZK, while membership proofs must at least have witness indistinguishability.
+All proving systems for application to Seraphis must \textit{at least} have perfect completeness,  computational soundness, and witness indistinguishability. However, it is better for proving systems to satisfy the stronger properties, special soundness and perfect special HVZK.
 
 \subsection{Authenticated symmetric encryption scheme}\label{sec-symm}
 We require that the authenticated symmetric encryption scheme must at least have the following properties: indistinguishable against adaptive chosen-ciphertext attack (IND-CCA2) and key-private under chosen-ciphertext attacks (IK-CCA). These properties are defined in the Appendix A.4 of \cite{omniring}.
@@ -355,13 +358,13 @@ $\emph{\textsf{LinkTag}}$ is perfectly hiding and computationally binding under 
 \subsection{Seraphis security properties}\label{sec-thm}
 The required security properties for Seraphis are based on Omniring's security model \cite{omniring}, with modifications to fit Seraphis. The Omniring paper presents a rigorous treatment of RingCT constructions, providing precision for security analysis against several realistic attacks. However, we will not be fully formal in this presentation: we may treat algorithms such as $\mathcal{A}$ like \textit{agents}. For instance, we may simply write ``$\mathcal{A}$ outputs $x_1$ and $x_2$'' instead of ``we run a part of $\mathcal{A}$ twice to get outputs $x_1$ and $x_2$''.
 
-It is important to note that the properties in Subsection \ref{prov-prop} are the \textit{minimal} requirements, thus the properties presented in this subsection are the \textit{weakest}. Because of Seraphis's modularity, stronger properties for proving systems must yield stronger properties for Seraphis. Proofs for the theorems in this subsection, found in Appendix \ref{proofs}, can also serve a guide for proving stronger properties.
+It is important to note that the properties in Subsection \ref{prov-prop} are the \textit{minimal} requirements, thus the properties presented in this subsection are the \textit{weakest}. Because of Seraphis's modularity, stronger properties for proving systems must yield stronger properties for Seraphis. The `logic' of proofs for the theorems in this subsection, found in Appendix \ref{proofs}, can serve a guide for proving stronger properties.
 
-Lastly, note that the mentioned proving systems in the theorems are in their ``original'' interactive versions. As Fiat-Shamir heuristic produces full zero-knowledge which is stronger than HVZK, the theorems should also apply to the non-interactive protocols transformed through the heuristic.
+Lastly, note that the mentioned proving systems in the theorems are in their ``original'' interactive versions. As Fiat-Shamir heuristic produces full zero-knowledge which is stronger than HVZK (in the random oracle model), the theorems should also apply to the non-interactive protocols transformed through the heuristic.
 
 The first security property is \textbf{Completeness} (called \textit{Correctness} in Omniring), which means that if an e-note appears on the ledger, then its owner can honestly generate an accepted transaction spending it. Seraphis satisfying completeness immediately follows from the completeness properties of the cryptographic components and by inspection of the protocol description.
 
-Next we consider the \textbf{Balance} property, which means that a spender adversary should never be able to spend more amounts than it truly owns, hence preventing double-spending. The one presented here would be weaker than the one in Omniring because the one in Omniring requires special soundness for proving systems, which we do not require. Balance property involves an experiment $\textsf{BAL}(\mathcal{A}, 1^{\lambda})$  on a $\textsf{PPT}$ adversary $\mathcal{A}$. The adversary succeeds in the experiment (i.e. $\textsf{BAL}(\mathcal{A}, 1^{\lambda})=1$) if it managed to generate an accepted transaction such that 1) some of spent e-notes are supposedly owned by others 2) some of spent e-note one-time private keys are \textit{not equal} to what is originally given to him, leading to a double-spend of same e-notes under different linking tags, or 3) the amount of the new e-note for the receiver is \textit{larger} than the supposed total amount of e-notes it owns.
+Next we consider the \textbf{Balance} property, which means that a spender adversary should never be able to spend more amounts than it truly owns, hence preventing double-spending. Balance property involves an experiment $\textsf{BAL}(\mathcal{A}, 1^{\lambda})$  on a $\textsf{PPT}$ adversary $\mathcal{A}$. The adversary succeeds in the experiment (i.e. $\textsf{BAL}(\mathcal{A}, 1^{\lambda})=1$) if it managed to generate an accepted transaction such that 1) some of spent e-notes are supposedly owned by others 2) some of spent e-note one-time private keys are \textit{not equal} to what is originally given to him, leading to a double-spend of same e-notes under different linking tags, or 3) the amount of the new e-note for the receiver is \textit{larger} than the supposed total amount of e-notes it owns.
 
 \begin{figure}[htbp]
 \centering
@@ -471,7 +474,7 @@ Seraphis is non-slanderable if for all $\emph{\textsf{PPT}}$ adversary $\mathcal
 where $\emph{\textsf{NSLAND}}$ is described in Figure \ref{exp-nsland}.
 \end{definition}
 \begin{theorem}[Non-slanderability]\label{thm-nsland}
-If $\emph{\textsf{PedersenK}}$ is hiding, $\emph{\textsf{LinkTag}}$ is hiding and binding, ownership and unspentness proof is sound and perfect special HVZK, and membership proof is sound and witness indistinguishable, then Seraphis is non-slanderable.
+If $\emph{\textsf{PedersenK}}$ is hiding, $\emph{\textsf{LinkTag}}$ is hiding and binding, ownership and unspentness proof and membership proof are sound and witness indistinguishable, then Seraphis is non-slanderable.
 \end{theorem}
 Because of the binding property of $\textsf{LinkTag}$ (for e-note images in both $T$ and $T'$), non-slanderability already captures that an adversary should never be able to forge an accepted transaction of another honest user, a property known as \textbf{Unforgeability}. Hence there is no need to formally define and prove an unforgeability property.
 
@@ -533,11 +536,10 @@ Hence solving the discrete log (DL) problem for $K_{t1,i} = (1/y_i)K_i$ with non
 \end{proof}
 
 \begin{remark}
-{\normalfont
-Since only computational soundness is proven for this protocol, this cannot be called a proof of knowledge.}
+Since only computational soundness is proven for this protocol, this cannot be called a proof of knowledge.
 \end{remark}
 
-Fiat-Shamir heuristic transforms interactive protocols satisfying HVZK into non-interactive (fully) zero-knowledge (NIZK) protocols in the random oracle model. Applying Fiat-Shamir heuristic to the composition proving system should be straightforward. Note that the $c$, $\mu_a$ and $\mu_b$ are generated through domain separation of hash function $\mathcal{H}$.
+Applying Fiat-Shamir heuristic to the composition proving system should be straightforward. Note that the $c$, $\mu_a$ and $\mu_b$ are generated through domain separation of hash function $\mathcal{H}$.
 
 \section{Squashed e-note model}\label{squashed}
 The following definitions are only applicable in membership proofs.
@@ -560,7 +562,7 @@ The benefit of this specialization compared to the original membership proof mod
 \item The above new proving relation does not leak any private information of the input e-note.
 \end{enumerate}
 \begin{proof}
-The first property immediately follows from inspection of the above transformation. The third property immediately holds because the private keys of $C$ and $K^o$ are still perfectly hidden (as those are Pedersen commitments) when producing $Q$ and $Q'$. Lastly, for the second property: [I can't prove it].
+The first property immediately follows from inspection of the above transformation. The third property immediately holds because the private keys of $C$ and $K^o$ are still perfectly hidden (as those are Pedersen commitments) when producing $Q$ and $Q'$. Lastly, for the second property: [UNFINISHED].
 \end{proof}
 
 \section{Proofs of some theorems in Section \ref{sec}}\label{proofs}
@@ -598,26 +600,28 @@ and this breaks the DL relation assumption of $G, X, U \in \mathbb{G}$.
 \begin{proof}[Proof of Theorem \ref{thm-bal}]
 We prove by contraposition. Assume that $\mathcal{A}$ succeeds in the $\textsf{BAL}$ experiment with non-negligible probability. There are three cases as to \textit{why} $\mathcal{A}$ succeeded, each with sub-cases: $b_0 \wedge b_1 = 1$, $b_0 \wedge b_2 = 1$, or $b_0 \wedge b_3 = 1$.
 
-For the first case, assume that $b_0 \wedge b_1 = 1$. One sub-case is that $\mathcal{A}$ finds correct private scalars of $C$ and $K^o$ in some e-notes in ${\tt enote}_{\neg\mathcal{A}}$, but this breaks the binding property of $\textsf{PedersenC}$ and $\textsf{PedersenK}$. Another sub-case is that $\mathcal{A}$ doesn't have correct private scalars of $C$ and $K^o$, yet $\mathcal{A}$ can non-negligibly create accepted proofs, but this breaks the soundness of all proving systems. Hence for all sub-cases, at least one supposed property of a cryptographic construction is broken.
+For the first case, assume that $b_0 \wedge b_1 = 1$. One sub-case is that $\mathcal{A}$ finds correct private scalars of $C$ and $K^o$ in some e-notes in ${\tt enote}_{\neg\mathcal{A}}$, but this breaks the binding property of $\textsf{PedersenC}$ and $\textsf{PedersenK}$. Another sub-case is that $\mathcal{A}$ doesn't have correct private scalars of $C$ and $K^o$, yet $\mathcal{A}$ can non-negligibly create accepted proofs. For $C$, this breaks the [UNFINISHED]**. For $K^o$, this breaks the [UNFINISHED]**. Hence for all sub-cases, at least one supposed property of a cryptographic construction is broken.
 
-For the second case, assume that $b_0 \wedge b_2 = 1$. One sub-case is that there exists $i\in\{1,\ldots,n\}$ such that $(k_{b,i}^o, k_{a,i}) \ne (k_{b,i}^o, k_{a,i})$. The two must produce unequal linking tags because the $(k_b^o, k_a^o)$ that satisfy both the equations for $K^o$ and $\tilde{K}$ is unique. However, the inequality means that $(k_{b,i}^o, k_{a,i}^o)$ and $( k_{b,i}'^o, k_{a,i}'^o)$ break the binding property of $\textsf{PedersenK}$. Another sub-case is that $( k_{a,i}'^o, k_{b,i}'^o, t'_{k,i})$ does \textit{not} satisfy proving relations involving those values, yet $\mathcal{A}$ can non-negligibly create accepted proofs, but this breaks the soundness property of ownership and unspentness proof and membership proof. Hence for all sub-cases, at least one supposed property of a cryptographic construction is broken.
+For the second case, assume that $b_0 \wedge b_2 = 1$. One sub-case is that there exists $i\in\{1,\ldots,n\}$ such that $(k_{b,i}^o, k_{a,i}) \ne (k_{b,i}^o, k_{a,i})$. The two must produce unequal linking tags because the $(k_b^o, k_a^o)$ that satisfy both the equations for $K^o$ and $\tilde{K}$ is unique. However, the inequality means that $(k_{b,i}^o, k_{a,i}^o)$ and $( k_{b,i}'^o, k_{a,i}'^o)$ break the binding property of $\textsf{PedersenK}$. Another sub-case is that $( k_{a,i}'^o, k_{b,i}'^o, t'_{k,i})$ does \textit{not} satisfy proving relations involving those values, yet $\mathcal{A}$ can non-negligibly create accepted proofs, but this breaks the soundness property of ownership and unspentness proof, and therefore, of membership proof**. Hence for all sub-cases, at least one supposed property of a cryptographic construction is broken.
 
 For the third case, assume that $b_0 \wedge b_3= 1$. One sub-case is that the new e-notes are constructed honestly and amount balance $\sum_{i=1}^n{C_i'} = C_c + C_t - D$ (where $C_c$ is the ``change'' e-note) is satisfied, but $\sum_{i=1}^n{a_i} < a_t$. This implies that there exists $i\in\{1,\ldots,n\}$ such that $C'_i = v_{c,i} G + a_i H = v'_{c,i} G + a'_i H$ (where $v'_{c,i}\in\mathbb{F}$ is also found by $\mathcal{A}$) \textit{and} $a'_i > a_i$. Thus $( v_{c,i}, a_i)$ and $(v'_{c,i}, a'_i)$ breaks the binding property of $\textsf{PedersenC}$. Another sub-case is that $\mathcal{A}$ can non-negligibly create an accepted range proof for the amount $a$ committed in new e-note such that $C \ne x G + a H$ or $\neg (0 \le a \le a_{max})$, but this breaks the soundness property of range proof. Hence for all sub-cases, at least one supposed property of a cryptographic construction is broken.
 \end{proof}
 \begin{proof}[Proof of Theorem \ref{thm-prv}]
 Assume that $\mathcal{A}$ succeeds in the $\textsf{PRV}$ experiment with non-negligible probability. There are three cases, each with sub-cases: the sender is distinguished, the receiver is distinguished, or the sent amount is distinguished.
 
-For the first case, assume that $\mathcal{A}$ distinguished the sender. One sub-case is that $\mathcal{A}$ determined the $k_b^o = k_b^s$ that $K'^o$ and $\tilde{K}$ hide, but this breaks the hiding property of $\textsf{LinkTag}$. Another sub-case is that the proving systems leak information related to the sender, like $\pi$, the index of true spent e-note in a ring, or $k_b^o$ in e-note images, but this breaks the perfect special HVZK of ownership and unspentness proof and witness indistinguishability of membership proof. Hence for all sub-cases, at least one supposed property of a cryptographic construction is broken.
+For the first case, assume that $\mathcal{A}$ distinguished the sender. One sub-case is that $\mathcal{A}$ determined the $k_b^o = k_b^s$ that $K'^o$ and $\tilde{K}$ hide, but this breaks the hiding property of $\textsf{LinkTag}$. Another sub-case is that the proving systems leak parts of witness that are related to the sender, like $\pi$, the index of true spent e-note in a ring, or $k_b^o$ in e-note images, but this breaks the witness indistinguishability of ownership and unspentness proof and membership proof. Hence for all sub-cases, at least one supposed property of a cryptographic construction is broken.
 
 For the second case, assume that $\mathcal{A}$ distinguished the receiver. One sub-case is that $\mathcal{A}$ found $q_t$. Now $q_t$ can be found in two ways. One is via $C_t$ of new e-note in $\texttt{recv}_b$, but this breaks the random oracle property of  $\mathcal{H}$, DL assumption of $\mathbb{G}$, and requires determining $a_{\mathcal{A},b}$, which will be discussed in the third case. Another way is via determining the encryption key of $\overline{a_t}$, but this breaks the IK-CCA property of authenticated symmetric encryption scheme. From just $q_t$, $\mathcal{A}$ can get $K^s$ because $K^o - \mathcal{H}_2(q_t)X = K^s$ in new e-note. Now with $\mathcal{H}^{-1}(q_t) = r K^{v}$, $\mathcal{A}$ may find $K^v$ because of $r$, but this breaks $\mathcal{H}$ and the randomness of $r$. Still with $\mathcal{H}^{-1}(q_t)$ and now with $R = r K^{dh}$ in the memo of new e-note, $\mathcal{A}$ may also deduce $K^v$, but this breaks $\mathcal{H}$ and the DDH assumption of $\mathbb{G}$. Another sub-case is that $\mathcal{A}$ determined that the $K^o$ of new e-note hides $k_a^s, k_b^s$, but this breaks the hiding property of $\textsf{PedersenK}$. Hence for all sub-cases, at least one supposed property of a cryptographic construction is broken.
 
-For the third case, assume that $\mathcal{A}$ distinguished the sent amount. One sub-case is that $\mathcal{A}$ determined that the $C_t$ of new e-note hides $a_{\mathcal{A}, b}$, but this breaks the hiding property of $\textsf{PedersenC}$. Another sub-case is that $\mathcal{A}$ recognized in $T$ that $C'_i - t_{c, i}G = x_{b,i}G + a_{b,i}H$ for some $i \in \{1, \ldots, n\}$, but this breaks the randomness of $t_c$. Another subcase is that the proving systems leak information related to amounts, but this breaks the perfect special HVZK of range proof and witness indistinguishability of membership proof. Moreover, leaking $t_c$ from membership proof leads to the previous case. The last subcase is that $\mathcal{A}$ can non-negligibly decrypt $\overline{a_{\mathcal{A},b}}$ without correct key, but this breaks the IND-CCA2 property of authenticated symmetric encryption scheme. Hence for all sub-cases, at least one supposed property of a cryptographic construction is broken.
+For the third case, assume that $\mathcal{A}$ distinguished the sent amount. One sub-case is that $\mathcal{A}$ determined that the $C_t$ of new e-note hides $a_{\mathcal{A}, b}$, but this breaks the hiding property of $\textsf{PedersenC}$. Another sub-case is that $\mathcal{A}$ recognized in $T$ that $C'_i - t_{c, i}G = x_{b,i}G + a_{b,i}H$ for some $i \in \{1, \ldots, n\}$, but this breaks the randomness of $t_c$. Another subcase is that the proving systems leak parts of witness that are related to amounts, but this breaks the witness indistinguishability of range proof and membership proof. Moreover, leaking $t_c$ from membership proof leads to the previous case. The last subcase is that $\mathcal{A}$ can non-negligibly decrypt $\overline{a_{\mathcal{A},b}}$ without correct key, but this breaks the IND-CCA2 property of authenticated symmetric encryption scheme. Hence for all sub-cases, at least one supposed property of a cryptographic construction is broken.
 \end{proof}
 \begin{proof}[Proof of Theorem \ref{thm-nsland}]
 Assume that $\mathcal{A}$ succeeds in the $\textsf{NSLAND}$ experiment with non-negligible probability. The first step of $\mathcal{A}$ is to get the discrete logarithm $k_i$ of some $\tilde{K}_i \in \{\tilde{K}_{\mathcal{C}}\}$ (base $U$), and the second step of $\mathcal{A}$ is to find $(k_{a,i}'^o, k_{b,i}'^o, t'_{k,i})$ (for e-note image in $T'$) such that $k_{b,i}'^o/k_{a,i}'^o = k_i$, making $\tilde{K}_i \in \{\tilde{K}_{\mathcal{A}}\}$.
 
-For the first step, one case is to simply find $k_i$ by breaking the DL assumption. Another case is to get $(k_a^o, k_b^o, t_k)$ that $K_i'^o$ and $\tilde{K}_i$ hides and simply set $k_i = k_b^o / k_a^o$, but this breaks the hiding property of $\textsf{LinkTag}$. Another case is to get $(k_b^o, k_a^o)$ that the $K_{\pi_i}^o$ in $\mathbb{S}_i$ (i.e. the one-time address of the true spent e-note) hides, but this breaks the hiding property of $\textsf{PedersenK}$. The last case is that the proving systems may leak the same $(k_a^o, k_b^o, t_k)$ from the second case above, but this breaks the perfect special HVZK of ownership and unspentness proof and witness indistinguishability of membership proof. Hence for all cases, at least one supposed property of a cryptographic construction is broken.
+For the first step, one case is to simply find $k_i$ by breaking the DL assumption. Another case is to get $(k_a^o, k_b^o, t_k)$ that $K_i'^o$ and $\tilde{K}_i$ hides and simply set $k_i = k_b^o / k_a^o$, but this breaks the hiding property of $\textsf{LinkTag}$. Another case is to get $(k_b^o, k_a^o)$ that the $K_{\pi_i}^o$ in $\mathbb{S}_i$ (i.e. the one-time address of the true spent e-note) hides, but this breaks the hiding property of $\textsf{PedersenK}$. The last case is that the proving systems may leak the same $(k_a^o, k_b^o, t_k)$ from the second case above, but this breaks the witness indistinguishability of ownership and unspentness proof and membership proof. Hence for all cases, at least one supposed property of a cryptographic construction is broken.
 
-For the second step, one case is that in $T'$, $K_i'^o = t'_{k,i} G+ K^o$, with $K^o$ the one-time address of an e-note in ${\tt enote}_{\mathcal{A}}$, but this breaks the binding property of $\textsf{LinkTag}$. The other case is the negation of the previous case: $K_i'^o \ne t'_{k,i} G+ K^o$, yet $\mathcal{A}$ can non-negligibly create accepted proofs, but this breaks the soundness property of ownership and unspentness proof and membership proof. Hence for all cases, at least one supposed property of a cryptographic construction is broken.
+For the second step, one case is that in $T'$, $K_i'^o = t'_{k,i} G+ K^o$, with $K^o$ the one-time address of an e-note in ${\tt enote}_{\mathcal{A}}$, but this breaks the binding property of $\textsf{LinkTag}$. The other case is the negation of the previous case: $K_i'^o \ne t'_{k,i} G+ K^o$, yet $\mathcal{A}$ can non-negligibly create accepted proofs, but this breaks the soundness property of ownership and unspentness proof, and therefore, of membership proof**. Hence for all cases, at least one supposed property of a cryptographic construction is broken.
 \end{proof}
+
+\noindent **\textit{Regarding the soundness property of membership proof.} On its own, one can easily construct a membership proof for $(C, K^o)$ they \textit{don't} own in the ring \textit{without} breaking the soundness property: pick any $(C, K^o)$ from $\mathbb{S}$, record its index as $\pi$, get $t_c, t_k \xleftarrow{\$}\mathbb{F}$, and set $C' = t_c G + C$ and $K'^o = t_k G + K^o$. Surely, $(G, C', K'^o \in\mathbb{G}, \mathbb{S}\subset\mathbb{G}^2; \pi\in\mathbb{N}, t_c, t_k\in\mathbb{F})$ is in the proving relation for membership proof.
 \end{document}
