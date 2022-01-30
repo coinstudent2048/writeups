@@ -1,0 +1,72 @@
+\documentclass{article}
+\usepackage[top=1.0in,bottom=1.0in,left=1.0in,right=1.0in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,amsfonts}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+
+\newtheorem{definition}{Definition}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem*{remark}{Remark}
+
+\title{Another Composition Ownership and Unspentness Proof for Seraphis}
+\author{coinstudent2048}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+One component of Seraphis \cite{seraphis, seraphis2} is the ownership and unspentness proof. We present a composition proving system for Seraphis that is simply an instantiation of the Modified Chaum-Pedersen Proving System presented in Appendix A of \cite{lelantus-spark}. Consequently, the proving system is complete, special sound, and special honest-verifier zero knowledge (SHVZK).
+\end{abstract}
+
+\section{Public parameters}
+Let $\mathbb{G}$ be a prime order group where the Discrete Logarithm (DL) and Decisional Diffie-Hellman (DDH) problems are hard, and let $\mathbb{F}$ be its scalar field. Let $G, X, U$ be generators of $\mathbb{G}$ with unknown DL relationship to each other. Note that these generators may be produced using public randomness. Let $\mathcal{H}:\{0,1\}^*\rightarrow\mathbb{F}$ be a cryptographic hash function. We assume that $\mathcal{H}$ is a random oracle, hence we work in the random oracle model.
+
+The notation $\xleftarrow{\$}$ will be used to denote for a uniformly randomly chosen element, and $(1/x)$ for the modular inverse of $x\in\mathbb{F}$. Lastly, we use additive notation for group operations.
+
+
+\section{Composition Proving System}
+The composition proving system is a protocol for the relation:
+\begin{multline*}
+\Big\{\big(G, X, U\in\mathbb{G}, \{K_i\}_{i=1}^n, \{\tilde{K}_i\}_{i=1}^n \in\mathbb{G}^n; \{x_i\}_{i=1}^n, \{y_i\}_{i=1}^n, \{z_i\}_{i=1}^n \in\mathbb{F}^n\big): \\ \bigwedge_{i=1}^n{\big(y_i \ne 0 \wedge K_i = x_i G + y_i X + z_i U \wedge \tilde{K}_i = (z_i/y_i)U\big)} \Big\}
+\end{multline*}
+Observe that if $n = 1$, then the relation reverts back to the proving relation shown in Subsection 3.1 of \cite{seraphis2}, with differences only in notation. In this composition proving system, the Prover only needs to produce one ownership and unspentness proof transcript for all $i$ instead of one proof transcript for each $i$.
+
+The protocol proceeds as follows:
+\begin{enumerate}
+\item The prover generates $q\xleftarrow{\$}\mathbb{F}$ and $r_i, s_i \xleftarrow{\$}\mathbb{F}\ ,\ \forall i\in\{1,\ldots,n\}$. The prover computes
+\begin{align*}
+A_1 &= qG + \sum_{i=1}^n{r_i X} + \sum_{i=1}^n{s_i U} \\
+A_{2,i} &= r_i \tilde{K}_i - s_i U\ ,\ \forall i\in\{1,\ldots,n\}
+\end{align*}
+and sends these values to the verifier.
+\item The verifier sends a challenge $c\xleftarrow{\$}\mathbb{F}$ to the prover.
+\item The prover computes the responses:
+\begin{align*}
+t_1 &= q + \sum_{i=1}^n c^i x_i \\
+t_{2,i} &= r_i + c^i y_i\ ,\ \forall i\in\{1,\ldots,n\} \\
+t_3 &= \sum_{i=1}^n (s_i + c^i z_i)
+\end{align*}
+and sends these values to the verifier.
+\item The verifier checks the following equalities. If any of them fail, then the prover has failed to satisfy the composition proof system.
+\begin{align*}
+A_1 + \sum_{i=1}^{n}{c^i K_i} &= t_1 G + \sum_{i=1}^n{t_{2,i} X} + t_3 U \\
+\sum_{i=1}^{n} A_{2,i} &= \sum_{i=1}^{n} t_{2,i}\tilde{K}_i - t_3 U \\
+\end{align*}
+\end{enumerate}
+Using $\mathcal{H}$, it should be straightforward to apply Fiat-Shamir heuristic \cite{fiat-shamir} to the above protocol to make it non-interactive.
+
+The above protocol is basically the Modified Chaum-Pedersen Proving System presented in Appendix A of \cite{lelantus-spark}, expect that the $U = x_i T_i + y_i G$ in the proving relation there becomes $0 = x_i T_i - y_i G$ here. Hence, the proof that the above protocol is complete, special sound, and SHVZK is essentially the same as in the original.
+
+Lastly, the aid in cross-checking, the notation changes (indicated by $\rightarrow$) from the original in \cite{lelantus-spark} to here is shown below.
+\begin{align*}
+S_i &\rightarrow K_i&\ T_i &\rightarrow \tilde{K}_i \\
+x_i &\rightarrow y_i&\ F &\rightarrow X \\
+y_i &\rightarrow z_i&\ G &\rightarrow U \\
+z_i &\rightarrow x_i&\ H &\rightarrow G
+\end{align*}
+\bibliographystyle{plain}
+\bibliography{comp-o&u}
+\end{document}

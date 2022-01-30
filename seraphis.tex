@@ -90,7 +90,7 @@ For specific instances of Seraphis, there might be changes in some parts of the 
 \end{itemize}
 
 \subsection{Ownership and unspentness proofs}\label{own-unsp}
-For each of Alice's owned e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
+[Describe purpose of this proof] For each of Alice's owned e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
 \begin{enumerate}
     \item If the masked address $K_i'^o$ is already in the e-note image ${\tt enimg}_i$ in $T$, then go to next step. Else generate $K_i'^o$ from $(C_i, K_i^o, m_i)$ as per definition, and insert it to ${\tt enimg}_i$ in $T$.
     \item If the linking tag $\tilde{K}_i$ is already in ${\tt enimg}_i$ in $T$, then go to next step. Else generate $\tilde{K}_i$ from $(C_i, K_i^o, m_i)$ as per definition, and insert it to ${\tt enimg}_i$ in $T$.
@@ -98,22 +98,22 @@ For each of Alice's owned e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do t
 $$\{(G, X, U, K_i'^o, \tilde{K}_i\in\mathbb{G}; t_{k,i}, k_{a,i}^o, k_{b,i}^o\in\mathbb{F}): k_{a,i}^o \ne 0 \wedge K_i'^o = t_{k,i} G + k_{a,i}^o X + k_{b,i}^o U \wedge \tilde{K}_i = (k_{b,i}^o/k_{a,i}^o)U \}$$
     \item Append $\Pi_{\text{o\&u}, i}$ to $({\tt enimg}_i, \ldots)$ in $T$.
 \end{enumerate}
-Aside from verifying the proof transcript, the Verifier must confirm that the linking tags do not yet appear in the ledger.
+Aside from verifying the proof transcript, the verifier must confirm that the linking tags do not yet appear in the ledger.
 
-The required security properties for application to Seraphis are described in Subsection \ref{prov-prop}. We also introduce a \textit{composition proving system} in which instead of one $\Pi_{\text{o\&u}, i}$ per $i$ (as presented above), Alice only needs to produce one proof transcript for all $i$'s. We present this in Appendix \ref{comp-prov}, and provide proof that it satisfies the required security requirements.
+The required security properties for application to Seraphis are described in Subsection \ref{prov-prop}. We also introduce a \textit{composition proving system} in which instead of one $\Pi_{\text{o\&u}, i}$ per $i$ (as presented above), Alice only needs to produce one proof transcript for all $i$. We present this in Appendix \ref{comp-prov}, and provide proof that it satisfies the required security requirements.
 
 \subsection{Amount balance}\label{amt-bal}
-For each of Alice's owned e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
+[Describe purpose of this proof] For each of Alice's owned e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
 \begin{enumerate}
     \item If the masked amount commitment $C_i'$ is already in ${\tt enimg}_i$ in $T$, then exit this subsection. Else generate $C_i'$ from $(C_i, K_i^o, m_i)$ as per definition. Then compute the difference:
     $$D = d_a G + d_b H = C_{ali}+C_{bob} - \sum_{i=1}^n{C_i'}$$
-    Note that $d_a$ is uniformly random because of $t_c$ and random oracle $\mathcal{H}$, while $d_b$ is a publicly known extra amount (e.g. transaction fee).
+    Note that $d_a$ is uniformly random because of $t_c$ inside $C_i'$ and random oracle $\mathcal{H}$ inside $C_{ali}$ and $C_{bob}$, while $d_b$ is a publicly known extra amount (e.g. transaction fee).
     \item Insert $C_i'$ to ${\tt enimg}_i$ in $T$, and store $(d_a, d_b)$ to $T$.
 \end{enumerate}
-The generation of $v_{c,n}$ is as such so that the Verifier can verify the amount balance $\sum_{i=1}^n{C_i'} + D = C_{ali}+C_{bob}$.
+The verifier must verify the amount balance $\sum_{i=1}^n{C_i'} + D = C_{ali}+C_{bob}$.
 
 \subsection{Membership proofs}\label{mem}
-For each of Alice's owned e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
+[Describe purpose of this proof] For each of Alice's owned e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do the following:
 \begin{enumerate}
     \item If the masked amount commitment $C_i'$ is already in ${\tt enimg}_i$ in $T$, then go to next step. Else generate $C_i'$ from $(C_i, K_i^o, m_i)$ exactly like in Step 1 of Subsection \ref{amt-bal}, and insert it to ${\tt enimg}_i$ in $T$.
     \item If the masked address $K_i'^o$ is already in ${\tt enimg}_i$ in $T$, then go to next step. Else generate $K_i'^o$ from $(C_i, K_i^o, m_i)$ as per definition, and insert it to ${\tt enimg}_i$ in $T$.
@@ -123,14 +123,14 @@ For each of Alice's owned e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$, Alice must do t
 $$\{(G, C_i', K_i'^o \in\mathbb{G}, \mathbb{S}_i\subset\mathbb{G}^2; \pi_i\in\mathbb{N}, t_{c,i}, t_{k,i}\in\mathbb{F}): 1\le\pi_i\le s \wedge C_i' - C_{\pi_i} = t_{c,i} G \wedge K_i'^o - K_{\pi_i}^o = t_{k,i} G \}$$
     \item Append $(\mathbb{S}_i, \Pi_{\text{mem}, i})$ to $({\tt enimg}_i, \ldots)$ in $T$.
 \end{enumerate}
-Aside from verifying the proof transcript, the Verifier must confirm that all the collected e-notes in rings appear in the ledger.
+Aside from verifying the proof transcript, the verifier must confirm that all the collected e-notes in rings appear in the ledger.
 
 The required security properties for application to Seraphis are described in Subsection \ref{prov-prop}. Specific proving systems satisfying the requirement include CSAG (CLSAG \cite{clsag} without linking) and One-out-of-Many proving system adapted from Groth and Bootle \textit{et al.} \cite{groth, bootle}.
 
 We also introduce an alternative to the above proving relation that allows for relatively simpler and more efficient proof structures. We call it the \textit{squashed e-note model}. We present this in Appendix \ref{squashed} and provide proof that it satisfies the required security requirements.
 
 \subsection{Range proofs}\label{range}
-For the new e-notes ${\tt enote}_{ali}$ and ${\tt enote}_{bob}$, Alice must do the following:
+[Describe purpose of this proof] For the new e-notes ${\tt enote}_{ali}$ and ${\tt enote}_{bob}$, Alice must do the following:
 \begin{enumerate}
     \item Prepare the respective proof transcript $\Pi_{\text{ran}, ali}$ and $\Pi_{\text{ran}, bob}$ for a non-interactive proving system for the following relation:
 $$\{(G, H, C \in\mathbb{G}, a_{max}\in\mathbb{F}; x, a\in\mathbb{F}): C = x G + a H \wedge 0\le a \le a_{max}\}$$
@@ -145,21 +145,21 @@ Once the construction of $T$ is completed, Alice sends it to the network. Its co
 $$T=({\tt enote}_{ali}, {\tt enote}_{bob}, \Pi_{\text{ran}, ali}, \Pi_{\text{ran}, bob}, d_a, d_b, \{({\tt enimg}_i, \Pi_{\text{o\&u}, i}, \mathbb{S}_i, \Pi_{\text{mem}, i})\}_{i=1}^n).$$
 We denote the full construction of $T$ as the function ${\tt tx}(\cdot)$. This function would be used for describing Seraphis security properties (Subsection \ref{sec-thm}).
 
-Suppose that the Verifier accepts $T$, hence $T$ is now stored in the ledger. When Bob scans the ledger for new transactions, he must do the following for every $T$ he encounters:
+Suppose that the verifier accepts $T$, hence $T$ is now stored in the ledger. When Bob scans the ledger for new transactions, he must do the following for every $T$ he encounters:
 \begin{enumerate}
     \item Get a new e-note $(C, K^o, m)$ in $T$. Note that $m$ contains $(R, \overline{a})$ (see the beginning of this whole section).
     \item Compute the nominal sender-receiver shared secret: $q_{nom} = \mathcal{H}_1(k_{bob}^v R)$.
     \item Compute the nominal spend public key: $K_{nom}^s = K^o - \mathcal{H}_2(q_{nom})X$. If $K_{nom}^s = K_{bob}^s$, then the e-note is \textit{connected} to Bob's receiver address, and proceed to the next step (this is the ``connection'' hinted at the beginning of this whole section).  Otherwise (if not equal), the e-note is not connected, and hence go to Step 1.
     \item Decrypt the amount: $a = {\tt dec}[q_{nom}](\overline a)$.
-    \item Compute the nominal amount commitment: $C_{nom} = \mathcal{H}_3(q_{nom})G + a H$. If $C_{nom} \ne C$, then the e-note is malformed and cannot be spent.
-    \item Compute the nominal linking tag: $\tilde{K}_{nom} = (k_{b, bob}^s/(k_{a, bob}^s + \mathcal{H}_2(q_{nom})))U$. If he finds a copy of $\tilde{K}_{nom}$ in the ledger, then the e-note has already been spent.
+    \item Compute the nominal amount commitment: $C_{nom} = \mathcal{H}_3(q_{nom})G + a H$. If $C_{nom} \ne C$, then the e-note is malformed and cannot be spent. The balance property described in Subsection \ref{sec-thm} must prevent Bob from spending it successfully.
+    \item Compute the nominal linking tag: $\tilde{K}_{nom} = (k_{b, bob}^s/(k_{a, bob}^s + \mathcal{H}_2(q_{nom})))U$. If he finds a copy of $\tilde{K}_{nom}$ in the ledger, then the e-note has already been spent. The balance property described in Subsection \ref{sec-thm} and the verifier checking that new linking tags do not yet appear in the ledger (see Subsection \ref{own-unsp}) must prevent Bob from spending it successfully.
 \end{enumerate}
 If an e-note $(C, K^o, m)$ is connected to Bob's receiver address, then he knows the corresponding scalars of that e-note: $(k_a^o, k_b^o, a, x) = (k_{a, bob}^s + \mathcal{H}_2(q_{nom}), k_{b, bob}^s, a, \mathcal{H}_3(q_{nom}))$. Hence, ``connection'' implies e-note ownership. The transaction is complete for Bob.
 
 For Alice to receive the change e-note, she must do the same above steps. After that, the transcation is complete for Alice. This finishes a Seraphis trancation.
 
 \section{Instantiations and Modifications}\label{inst}
-There are a number of details to consider when implementing Seraphis in a real cryptocurrency. Aside from instances of proving systems mentioned already in the previous section, this section is comprised of `recommendations' for instantiations and modifications of other parts of Seraphis, which are inspired by historical privacy-focused cryptocurrency implementations.
+There are a number of details to consider when implementing Seraphis in a real cryptocurrency. Aside from instances of proving systems mentioned already in the previous section, this section is comprised of recommendations for instantiations and modifications of other parts of Seraphis, which are inspired by historical privacy-focused cryptocurrency implementations.
 
 \subsection{Addressing schemes}\label{addr-scheme}
 \subsection{Multisignature operations}
@@ -175,7 +175,7 @@ For a start, we assume that the distributed ledger is immutable. Therefore, the 
 Subsections \ref{prov-prop} to \ref{Comm} outline the required security properties of the cryptographic components for Seraphis, and then Subsection \ref{sec-thm} is the main security analysis of Seraphis. % and Subsection \ref{sec-disc} discusses how some instantiations and modifications described in Section \ref{inst} affect the security analysis.
 
 \subsection{Proving systems security properties}\label{prov-prop}
-We define a proving system as a tuple $(\textsf{Setup}, \mathcal{P}, \mathcal{V})$. $\textsf{Setup}$ is the setup algorithm: $pp\leftarrow\textsf{Setup}(1^{\lambda})$, and $\mathcal{P}$ and $\mathcal{V}$ are $\textsf{PPT}$ algorithms called \textbf{Prover} and \textbf{Verifier}, respectively. We denote the \textit{transcript} (all data being sent and received in the protocol) produced by $\mathcal{P}$ and $\mathcal{V}$ when dealing with inputs $x$ and $y$ as $tr\leftarrow\langle\mathcal{P}(x), \mathcal{V}(y)\rangle$. Once the transcript is produced, we denote the final transcript verification done by an algorithm $\mathcal{X}$ as $\mathcal{X}(tr)=1$ for accepted transcript and $\mathcal{X}(tr)=0$ for rejected. 
+We define a proving system as a tuple $(\textsf{Setup}, \mathcal{P}, \mathcal{V})$. $\textsf{Setup}$ is the setup algorithm: $pp\leftarrow\textsf{Setup}(1^{\lambda})$, and $\mathcal{P}$ and $\mathcal{V}$ are $\textsf{PPT}$ algorithms called \textbf{Prover} and \textbf{Verifier}, respectively. We denote the \textit{transcript} (all data being sent and received in the protocol) produced by $\mathcal{P}$ and $\mathcal{V}$ when dealing with inputs $x$ and $y$ as $tr\leftarrow\langle\mathcal{P}(x), \mathcal{V}(y)\rangle$. Once the transcript is produced, we denote the final transcript verification done by a $\textsf{PPT}$ algorithm $\mathcal{X}$ as $\mathcal{X}(tr)=1$ for accepted transcript and $\mathcal{X}(tr)=0$ for rejected. 
 
 Let $\mathcal{R}$ be an NP (polynomial-time verifiable) relation of the form $\{(x,w):P(x, w)\}$ where $x$ is the \textit{statement}, $w$ is the \textit{witness}, and $P$ is a predicate of $x$ and $w$. Then ``$(\textsf{Setup}, \mathcal{P}, \mathcal{V})$ is a proving system for the relation $\mathcal{R}$'' informally means that when $\mathcal{P}$ gives an $x$ to $\mathcal{V}$, $\mathcal{P}$ must convince $\mathcal{V}$ that it knows a $w$ such that $(x,w)\in\mathcal{R}$ by generating $tr\leftarrow\langle\mathcal{P}(pp, x, w), \mathcal{V}(pp, x)\rangle$ that $\mathcal{V}$ accepts.
 
@@ -188,7 +188,7 @@ $(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is perfectly complete for $\
 \begin{array}{c|c}
     \begin{gathered}
         (x,w)\in\mathcal{R}\\
-        \wedge\ \mathcal{V}(tr) = 0
+        \wedge\ \mathcal{A}(tr) = 0
     \end{gathered}
     &
     \begin{gathered}
@@ -208,12 +208,12 @@ $(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is computationally sound for
 \begin{array}{c|c}
     \begin{gathered}
         (x,w)\not\in\mathcal{R}\\
-        \wedge\ \mathcal{V}(tr) = 1
+        \wedge\ \mathcal{A}(tr) = 1
     \end{gathered}
     &
     \begin{gathered}
         pp\leftarrow\emph{\textsf{Setup}}(1^{\lambda}); (x, w)\leftarrow\mathcal{A}(pp); \\
-        tr\leftarrow\langle\mathcal{A}(pp,x,w), \mathcal{V}(pp,x)\rangle
+        tr\leftarrow\langle\mathcal{P}(pp,x,w), \mathcal{V}(pp,x)\rangle
     \end{gathered}
 \end{array}
 \right]
@@ -221,7 +221,7 @@ $(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is computationally sound for
 \end{align*}
 \end{definition}
 
-There is another notion of soundness called \textit{Special Soundness}. For a proving system to be special sound, there must exist a \textit{witness extractor} that has an ability to ``rewind time'' and make the Prover answer several different challenges, and it must be able to extract a witness given the several accepted transcripts with the Prover. Because of this, proving systems satisfying special soundness are called \textit{Proofs of Knowledge}. Special soundness is a stronger notion of soundness, hence this already implies computational soundness.
+There is another notion of soundness called \textit{Special Soundness}. For a proving system to be special sound, there must exist a \textit{witness extractor} that has an ability to ``rewind time'' and make the prover answer several different challenges, and it must be able to extract a witness given the several accepted transcripts with the prover. Because of this, proving systems satisfying special soundness are called \textit{Proofs of Knowledge}. Special soundness is a stronger notion of soundness, hence this already implies computational soundness.
 
 \begin{definition}[Witness Indistinguishability]
 	$(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is witness indistinguishable for $\mathcal{R}$ if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
@@ -358,7 +358,7 @@ $\emph{\textsf{LinkTag}}$ is perfectly hiding and computationally binding under 
 \subsection{Seraphis security properties}\label{sec-thm}
 The required security properties for Seraphis are based on Omniring's security model \cite{omniring}, with modifications to fit Seraphis. The Omniring paper presents a rigorous treatment of RingCT constructions, providing precision for security analysis against several realistic attacks. However, we will not be fully formal in this presentation: we may treat algorithms such as $\mathcal{A}$ like \textit{agents}. For instance, we may simply write ``$\mathcal{A}$ outputs $x_1$ and $x_2$'' instead of ``we run a part of $\mathcal{A}$ twice to get outputs $x_1$ and $x_2$''.
 
-It is important to note that the properties in Subsection \ref{prov-prop} are the \textit{minimal} requirements, thus the properties presented in this subsection are the \textit{weakest}. Because of Seraphis's modularity, stronger properties for proving systems must yield stronger properties for Seraphis. The `logic' of proofs for the theorems in this subsection, found in Appendix \ref{proofs}, can serve a guide for proving stronger properties.
+It is important to note that the properties in Subsection \ref{prov-prop} are the \textit{minimal} requirements, thus the properties presented in this subsection are the \textit{weakest}. Because of Seraphis's modularity, stronger properties for proving systems must yield stronger properties for Seraphis. The ``logic" of proofs for the theorems in this subsection, found in Appendix \ref{proofs}, can serve a guide for proving stronger properties.
 
 Lastly, note that the mentioned proving systems in the theorems are in their ``original'' interactive versions. As Fiat-Shamir heuristic produces full zero-knowledge which is stronger than HVZK (in the random oracle model), the theorems should also apply to the non-interactive protocols transformed through the heuristic.
 
@@ -492,21 +492,21 @@ The composition proving system is a protocol for the relation:
 \begin{multline*}
 \Big\{\big(G, X, U\in\mathbb{G}, \{K_i\}_{i=1}^n, \{K_{t1,i}\}_{i=1}^n, \{\tilde{K}_i\}_{i=1}^n \in\mathbb{G}^n; \{x_i\}_{i=1}^n, \{y_i\}_{i=1}^n, \{z_i\}_{i=1}^n \in\mathbb{F}^n\big): \\ \bigwedge_{i=1}^n{\big(y_i \ne 0 \wedge K_i = x_i G + y_i X + z_i U \wedge K_{t1,i} = (1/y_i)K_i \wedge \tilde{K}_i = (z_i/y_i)U\big)} \Big\}
 \end{multline*}
-Now the Prover only needs to produce one proof transcript for all $i$'s instead of one proof transcript for each $i$. This protocol is based on the concise approach from \cite{clsag} to reduce proof sizes when constructing multiple proofs in parallel. Notice the extra $\{K_{t1,i}\}_{i=1}^n$ in the relation. This should not affect the proving system's applicability for ownership and unspentness proof because all $y_i$'s are still hidden in $K_{t1,i}$ (by the DL assumption) and the required relationships for $\{K_i\}_{i=1}^n$ and $\{\tilde{K}_i\}_{i=1}^n$ are still proven.
+Now the prover only needs to produce one proof transcript for all $i$ instead of one proof transcript for each $i$. This protocol is based on the concise approach from \cite{clsag} to reduce proof sizes when constructing multiple proofs in parallel. Notice the extra $\{K_{t1,i}\}_{i=1}^n$ in the relation. This should not affect the proving system's applicability for ownership and unspentness proof because all $y_i$ are still hidden in $K_{t1,i}$ (by the DL assumption) and the required relationships for $\{K_i\}_{i=1}^n$ and $\{\tilde{K}_i\}_{i=1}^n$ are still proven.
 
 The protocol proceeds as follows:
 \begin{enumerate}
-\item The Prover generates $\alpha_a, \alpha_b, \alpha_i \xleftarrow{\$}\mathbb{F}\ ,\ \forall i\in\{1,\ldots,n\}$. The Prover computes $(A_a, A_b) = (\alpha_a G, \alpha_b U)$ and $A_{i}=\alpha_i K_i\ ,\ \forall i\in\{1,\ldots,n\}$, and sends $(A_a, A_b, \{A_i\}_{i=1}^n)$ to the verifier.
-\item Both the Prover and Verifier compute $K_{t2,i} = K_{t1,i} - X - \tilde{K}_i\ ,\ \forall i\in\{1,\ldots,n\}$.
-\item The Verifier sends a challenge $c\xleftarrow{\$}\mathbb{F}$ and random scalars $\mu_a,\mu_b\xleftarrow{\$}\mathbb{F}$ to the Prover.
-\item The Prover computes the responses:
+\item The prover generates $\alpha_a, \alpha_b, \alpha_i \xleftarrow{\$}\mathbb{F}\ ,\ \forall i\in\{1,\ldots,n\}$. The prover computes $(A_a, A_b) = (\alpha_a G, \alpha_b U)$ and $A_{i}=\alpha_i K_i\ ,\ \forall i\in\{1,\ldots,n\}$, and sends $(A_a, A_b, \{A_i\}_{i=1}^n)$ to the verifier.
+\item Both the prover and the verifier compute $K_{t2,i} = K_{t1,i} - X - \tilde{K}_i\ ,\ \forall i\in\{1,\ldots,n\}$.
+\item The verifier sends a challenge $c\xleftarrow{\$}\mathbb{F}$ and random scalars $\mu_a,\mu_b\xleftarrow{\$}\mathbb{F}$ to the prover.
+\item The prover computes the responses:
 \begin{align*}
 r_{a} &= \alpha_a - c \sum_{i=1}^{n}{\mu_a^{i-1} (x_i/y_i)} \\
 r_{b} &= \alpha_b - c \sum_{i=1}^{n}{\mu_b^{i-1}(z_i/y_i)} \\
 r_{i} &= \alpha_i - c (1/y_i)\ ,\ \forall i\in\{1,\ldots,n\}\\
 \end{align*}
-and sends those values to the Verifier.
-\item The Verifier checks the following equalities. If any of them fail, then the Prover has failed to satisfy the composition proof system.
+and sends those values to the verifier.
+\item The verifier checks the following equalities. If any of them fail, then the prover has failed to satisfy the composition proof system.
 \begin{align*}
 A_{a} &= r_a G + c \sum_{i=1}^{n}{\mu_a^{i-1} K_{t2,i}} \\
 A_{b} &= r_b U + c \sum_{i=1}^{n}{\mu_b^{i-1} \tilde{K}_i} \\
@@ -523,7 +523,7 @@ K_{t2,i} &= K_{t1,i} - X - \tilde{K}_i \\ &= (1/y_i)(x_i G + y_i X + z_i U) - X 
 \end{align*}
 Then the property follows from inspection.
 
-For perfect special HVZK, we construct a simulator producing accepted transcripts with probability distribution identical to the probability distribution of legitimate accepted transcripts by Prover and Verifier. The simulator generates $c, \mu_a, \mu_b, r_a, r_b, r_i \xleftarrow{\$}\mathbb{F}\ ,\ \forall i\in\{1,\ldots,n\}$. Then the simulator computes $A_{a}, A_{b}, \{A_{i}\}_{i=1}^n$ exactly according to Step 5 of the protocol description. Because of this last step, the Verifier will accept the simulated transcript. Now assume that $G$, $X$, and $U$ are mutually independent. Observe that the simulated transcript is uniformly random because $c, \mu_a, \mu_b, r_a, r_b, \{r_i\}_{i=1}^n$ are uniformly randomly selected. On the other hand, observe that a legitimate accepted transcript between Prover and Verifier is also uniformly random because the Prover's $\alpha_a, \alpha_b, \{\alpha_i\}_{i=1}^n$ and the Verifier's $c, \mu_a, \mu_b$ are all uniformly randomly selected. Hence the two probability distributions are identical.
+For perfect special HVZK, we construct a simulator producing accepted transcripts with probability distribution identical to the probability distribution of legitimate accepted transcripts by the prover and the verifier. The simulator generates $c, \mu_a, \mu_b, r_a, r_b, r_i \xleftarrow{\$}\mathbb{F}\ ,\ \forall i\in\{1,\ldots,n\}$. Then the simulator computes $A_{a}, A_{b}, \{A_{i}\}_{i=1}^n$ exactly according to Step 5 of the protocol description. Because of this last step, the verifier will accept the simulated transcript. Now assume that $G$, $X$, and $U$ are mutually independent. Observe that the simulated transcript is uniformly random because $c, \mu_a, \mu_b, r_a, r_b, \{r_i\}_{i=1}^n$ are uniformly randomly selected. On the other hand, observe that a legitimate accepted transcript between prover and verifier is also uniformly random because the prover's $\alpha_a, \alpha_b, \{\alpha_i\}_{i=1}^n$ and the verifier's $c, \mu_a, \mu_b$ are all uniformly randomly selected. Hence the two probability distributions are identical.
 
 For computational soundness under the DL assumption, the proof is by contraposition. Suppose that a $\textsf{PPT}$ adversarial prover $\mathcal{A}$ \textit{not} knowing a witness, can produce an accepted transcript $$(A_a, A_b, \{A_i\}_{i=1}^n,c, \mu_a, \mu_b, r_a, r_b, \{r_i\}_{i=1}^n)$$ with an honest verifier with non-negligible probability. From the third equation in Step 5, $\forall i\in\{1,\ldots,n\}$:
 \begin{align*}
@@ -550,7 +550,7 @@ The \textbf{\em squashed e-note} for e-note $(C, K^o, m)$ is a pair $(Q, m)$ suc
 A \textbf{\em squashed e-note image} for e-note image $(C', K'^o, \tilde{K})$ is a pair $(Q', \tilde{K})$ such that $Q' = \mathcal{H}_4(C, K^o) K'^o + C'$, and $\tilde{K}$ is the same linking tag.
 \end{definition}
 
-Going back to Step 4 of Subsection \ref{mem}, each e-note in the collection (of size $s$) are converted to squashed e-notes, and extract only the $Q$'s. Then arrange the $s$ e-notes in random positions. Alice now has an array (of length $s$): $\mathbb{Q}_i = \{Q_j\}_{j=1}^s$, which is called the \textbf{squashed ring}. On the other hand, the e-note image for the true spent e-note is converted to squashed e-note image.
+Going back to Step 4 of Subsection \ref{mem}, each e-note in the collection (of size $s$) are converted to squashed e-notes, and extract only the $Q$s. Then arrange the $s$ e-notes in random positions. Alice now has an array (of length $s$): $\mathbb{Q}_i = \{Q_j\}_{j=1}^s$, which is called the \textbf{squashed ring}. On the other hand, the e-note image for the true spent e-note is converted to squashed e-note image.
 
 The squashed e-note model is the following proving relation for $\Pi_{\text{mem}, i}$:
 $$\{(G, Q'_i \in\mathbb{G}, \mathbb{Q}_i\subset\mathbb{G}; C_i, K_i^o \in \mathbb{G}, \pi_i\in\mathbb{N}, t_{c,i}, t_{k,i}\in\mathbb{F}): 1\le\pi_i\le s \wedge Q'_i - Q_{\pi_i} = ( \mathcal{H}_4(C_i, K_i^o) t_{k,i} + t_{c,i}) G \}$$
