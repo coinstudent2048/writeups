@@ -18,13 +18,13 @@
 \maketitle
 
 \begin{abstract}
-One component of Seraphis \cite{seraphis, seraphis2} is the ownership and unspentness proof. We present a composition proving system for Seraphis that is simply an instantiation of the Modified Chaum-Pedersen Proving System presented in Appendix A of \cite{lelantus-spark}. Consequently, the proving system is complete, special sound, and special honest-verifier zero knowledge (SHVZK).
+One component of Seraphis \cite{seraphis, seraphis2} is the ownership and unspentness proof. A composition proving system for Seraphis is presented that is simply an instantiation of the Modified Chaum-Pedersen Proving System presented in Appendix A of \cite{lelantus-spark}. Consequently, the proving system is complete, special sound, and special honest-verifier zero knowledge (SHVZK).
 \end{abstract}
 
 \section{Public parameters}
 Let $\mathbb{G}$ be a prime order group where the Discrete Logarithm (DL) and Decisional Diffie-Hellman (DDH) problems are hard, and let $\mathbb{F}$ be its scalar field. Let $G, X, U$ be generators of $\mathbb{G}$ with unknown DL relationship to each other. Note that these generators may be produced using public randomness. Let $\mathcal{H}:\{0,1\}^*\rightarrow\mathbb{F}$ be a cryptographic hash function. We assume that $\mathcal{H}$ is a random oracle, hence we work in the random oracle model.
 
-The notation $\xleftarrow{\$}$ will be used to denote for a uniformly randomly chosen element, and $(1/x)$ for the modular inverse of $x\in\mathbb{F}$. Lastly, we use additive notation for group operations.
+The notation $\xleftarrow{\$}$ will be used to denote for a uniformly randomly chosen element, and $(1/x)$ for the modular inverse of $x\in\mathbb{F}$. Lastly, additive notation is used for group operations.
 
 
 \section{Composition Proving System}
@@ -60,7 +60,7 @@ Using $\mathcal{H}$, it should be straightforward to apply Fiat-Shamir heuristic
 
 The above protocol is basically the Modified Chaum-Pedersen Proving System presented in Appendix A of \cite{lelantus-spark}, expect that the $U = x_i T_i + y_i G$ in the proving relation there becomes $0 = x_i T_i - y_i G$ here. Hence, the proof that the above protocol is complete, special sound, and SHVZK is essentially the same as in the original.
 
-Lastly, the aid in cross-checking, the notation changes (indicated by $\rightarrow$) from the original in \cite{lelantus-spark} to here is shown below.
+Lastly, to aid in cross-checking, the notation changes (indicated by $\rightarrow$) from the original in \cite{lelantus-spark} to here is shown below.
 \begin{align*}
 S_i &\rightarrow K_i&\ T_i &\rightarrow \tilde{K}_i \\
 x_i &\rightarrow y_i&\ F &\rightarrow X \\
