@@ -58,7 +58,7 @@ A_1 + \sum_{i=1}^{n}{c^i K_i} &= t_1 G + \sum_{i=1}^n{t_{2,i} X} + t_3 U \\
 \end{enumerate}
 Using $\mathcal{H}$, it should be straightforward to apply Fiat-Shamir heuristic \cite{fiat-shamir} to the above protocol to make it non-interactive.
 
-The above protocol is basically the Modified Chaum-Pedersen Proving System presented in Appendix A of \cite{lelantus-spark}, expect that the $U = x_i T_i + y_i G$ in the proving relation there becomes $0 = x_i T_i - y_i G$ here. Hence, the proof that the above protocol is complete, special sound, and SHVZK is essentially the same as in the original.
+The above protocol is basically the Modified Chaum-Pedersen Proving System presented in Appendix A of \cite{lelantus-spark}, except that the $U = x_i T_i + y_i G$ (this is in their notation) in the proving relation there becomes $0 = x_i T_i - y_i G$ here. Hence, the proof that the above protocol is complete, special sound, and SHVZK is essentially the same as in the original.
 
 Lastly, to aid in cross-checking, the notation changes (indicated by $\rightarrow$) from the original in \cite{lelantus-spark} to here is shown below.
 \begin{align*}
