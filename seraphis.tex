@@ -22,15 +22,15 @@
 \maketitle
 
 \begin{abstract}
-This document contains a concise description of Seraphis \cite{seraphis}, a novel privacy-preserving transaction protocol abstraction, and its security model.
+This document contains a concise description of koe's Seraphis \cite{seraphis}, a novel privacy-preserving transaction protocol abstraction, and its security model. Note that this does not cover all of \cite{seraphis}, but a rather simple variant of it for easier security analysis. Because of this, extensions/modifications presented in \cite{seraphis}, with some mentioned here, would not be analyzed here for now.
 \end{abstract}
 
-\section{Introduction}
-[UNFINISHED]
+%\section{Introduction}
+%[UNFINISHED]
 
 \section{Preliminaries}
 \subsection{Public parameters}
-Let $\lambda$ be the security parameter. Let $\mathbb{G}$ be a prime order group based on $\lambda$ where the Discrete Logarithm (DL) and Decisional Diffie-Hellman (DDH) problems are hard, and let $\mathbb{F}$ be its scalar field. Let $G, H, X, U$ be generators of $\mathbb{G}$ with unknown DL relationship to each other. Note that these generators may be produced using public randomness. Let $a_{max}\in\mathbb{F}$ (to be used in range proofs) and $s\in\mathbb{N}$ (to be used in membership proofs). Let $\mathcal{H}:\{0,1\}^*\rightarrow\mathbb{F}$ be a cryptographic hash function. We assume that $\mathcal{H}$ is a random oracle, hence we work in the random oracle model. We add a subscript to $\mathcal{H}$, such as $\mathcal{H}_1$, in lieu of domain-separating the hash function explicitly; any domain-separation method may be used in practice. All these public parameters are collected as $pp$, and we now define the setup algorithm: $pp\leftarrow\textsf{Setup}(1^{\lambda})$. $\textsf{Setup}$ is implicitly executed by all players involved in the beginning, hence it can be omitted in protocol descriptions.
+Let $\lambda$ be the security parameter. Let $\mathbb{G}$ be a prime order group based on $\lambda$ where the Discrete Logarithm (DL) and Decisional Diffie-Hellman (DDH) problems are hard, and let $\mathbb{F}$ be its scalar field. Let $G, H, X, U$ be generators of $\mathbb{G}$ with unknown DL relationship to each other; these may be produced using public randomness (see Definition \ref{dl-rel} for the formalization). Let $a_{max}\in\mathbb{F}$ (to be used in range proofs) and $s\in\mathbb{N}$ (to be used in membership proofs). Let $\mathcal{H}:\{0,1\}^*\rightarrow\mathbb{F}$ be a cryptographic hash function. We assume that $\mathcal{H}$ is a random oracle, hence we work in the random oracle model. We add a subscript to $\mathcal{H}$, such as $\mathcal{H}_1$, in lieu of domain-separating the hash function explicitly; any domain-separation method may be used in practice. All these public parameters are collected as $pp$, and we now define the setup algorithm: $pp\leftarrow\textsf{Setup}(1^{\lambda})$. $\textsf{Setup}$ is implicitly executed by all players involved in the beginning, hence it can be omitted in protocol descriptions.
 
 The notation $\xleftarrow{\$}$ will be used to denote for a uniformly randomly chosen element, and $(1/x)$ for the modular inverse of $x\in\mathbb{F}$. Lastly, we use additive notation for group operations.
 
@@ -38,7 +38,7 @@ The notation $\xleftarrow{\$}$ will be used to denote for a uniformly randomly c
 \begin{definition}\label{e-note}
 An \textbf{\em e-note} for scalars $k_a^o, k_b^o, a \in\mathbb{F}$ is a tuple $(C, K^o, m)$ such that $C = x G + a H$ for $x\xleftarrow{\$}\mathbb{F}$, $K^o=k_a^o X + k_b^o U$, and $m$ is arbitrary data.
 \end{definition}
-$C$ is called the \textbf{amount commitment} for the amount $a$ with blinding factor $x$, $K^o$ is called the \textbf{one-time address} for (one-time) private key $k_a^o$ and $k_b^o$ (the $o$ superscript indicates ``one-time''), and $m$ is the \textbf{memo field}. We say that someone \textit{owns} an e-note if they know the corresponding scalars $k_a^o, k_b^o, a, x \in\mathbb{F}$.
+$C$ is called the \textbf{amount commitment} for the amount $a$ with blinding factor $x$, $K^o$ is called the \textbf{one-time address} for (one-time) private key $k_a^o$ and $k_b^o$ (the $o$ superscript indicates ``one-time"), and $m$ is the \textbf{memo field}. We say that someone \textit{owns} an e-note if they know the corresponding scalars $k_a^o, k_b^o, a, x \in\mathbb{F}$. Basically, e-notes are \textit{exactly} what the (hidden) wallet owners currently own and can currently spend.
 
 \begin{definition}\label{e-note-img}
 An \textbf{\em e-note image} for an e-note $(C, K^o, m)$ is a tuple $(C', K'^o, \tilde{K})$ such that
@@ -49,12 +49,12 @@ K'^o &= t_k G + K^o \\ &= t_k G + k_a^o X + k_b^o U \ ,\ \text{and} \\
 \end{align*}
 for $t_c, t_k \xleftarrow{\$}\mathbb{F}$ and independent to each other.
 \end{definition}
-$C'$ is called the \textbf{masked amount commitment}, $K'^o$ is called the \textbf{masked address}, and $\tilde{K}$ is called the \textbf{linking tag}.
+$C'$ is called the \textbf{masked amount commitment}, $K'^o$ is called the \textbf{masked address}, and $\tilde{K}$ is called the \textbf{linking tag}. Basically, e-note images are ``commitments" to e-notes for wallet owners to communicate that those e-notes are just spent in a transaction.
 
 \begin{definition}\label{recv-addr}
 A \textbf{\em receiver address} is a tuple $(K^{dh}, K^v, K^s)$  such that $K^{dh}\in\mathbb{G}$, $K^v = k^v K^{dh}$, and $K^s = k_a^s X + k_b^s U$.
 \end{definition}
-$K^{dh}$ is called the \textbf{Diffie-Hellman base public key}. The reason for its name will be clear in the next subsection. The $v$ superscript indicates ``view'', while the $s$ superscript indicates ``spend''. The reason for these names is irrelevent here, but see ``Addressing Schemes`` in \cite{seraphis}, Subsection 4.6. We say that someone \textit{owns} a receiver address if they know the corresponding scalars $k^v, k_a^s, k_b^s \in\mathbb{F}$.
+$K^{dh}$ is called the \textbf{Diffie-Hellman base public key}. The reason for its name will be clear in the next subsection. The $v$ superscript indicates ``view", while the $s$ superscript indicates ``spend". The reason for these names is irrelevant here, but see ``Addressing Schemes`` in \cite{seraphis}, Subsection 4.6. We say that someone \textit{owns} a receiver address if they know the corresponding scalars $k^v, k_a^s, k_b^s \in\mathbb{F}$.
 
 \subsection{Authenticated symmetric encryption scheme}
 We require the use of an authenticated symmetric encryption scheme. The Diffie-Hellman base public key enables shared secrets between the sender and the receiver, which can be used to produce the key for encryption and the authentication tag. We denote the encryption and decryption of data $x$ with the input $k$ for Key Derivation Function (KDF) as ${\tt enc}[k](x)$ and ${\tt dec}[k](x)$, respectively. We put overlines (e.g. $\overline{x}$) to indicate encrypted data.
@@ -62,7 +62,7 @@ We require the use of an authenticated symmetric encryption scheme. The Diffie-H
 The required security properties for application to Seraphis are described in Subsection \ref{sec-symm}.
 
 \section{A Simple Seraphis transaction}\label{ser-tx}
-Suppose that Alice would send $a_t\in\mathbb{F}$ amount of funds to Bob. Alice owns a set of e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$ with a total amount of $\big(\sum_{i=1}^{n}{a_i}\big)\ge a_t$, all \textit{connected} to a receiver address $(K_{ali}^{dh}, K_{ali}^v, K_{ali}^s)$. This ``connection'' will be elaborated later on. On the other hand, Bob owns a receiver address $(K_{bob}^{dh}, K_{bob}^v, K_{bob}^s)$. For Bob to receive the funds, he will now send his receiver address to Alice. Alice will actually send funds to two addresses: to Bob's and to herself (for the ``change'' $a_{c} = \sum_{i=1}^{n}{a_i} - a_t$ \textit{even if} $a_{c}=0$). Hence, Alice must create 2 new e-notes. She starts the transaction by doing the following:
+Suppose that Alice would send $a_t\in\mathbb{F}$ amount of funds to Bob. Alice owns a set of e-notes $\{(C_i,K_i^o,m_i)\}_{i=1}^n$ with a total amount of $\big(\sum_{i=1}^{n}{a_i}\big)\ge a_t$, all \textit{connected} to a receiver address $(K_{ali}^{dh}, K_{ali}^v, K_{ali}^s)$. This ``connection" will be elaborated later on. On the other hand, Bob owns a receiver address $(K_{bob}^{dh}, K_{bob}^v, K_{bob}^s)$. For Bob to receive the funds, he will now send his receiver address to Alice. Alice will actually send funds to two addresses: to Bob's and to herself (for the ``change" $a_{c} = \sum_{i=1}^{n}{a_i} - a_t$ \textit{even if} $a_{c}=0$). Hence, Alice must create 2 new e-notes. She starts the transaction by doing the following:
 \begin{enumerate}
     \item Generate $r_{ali}, r_{bob}\xleftarrow{\$}\mathbb{F}$ and independent to each other.
     \item Compute $R_{ali} = r_{ali}K_{ali}^{dh}$ and $R_{bob} = r_{bob}K_{bob}^{dh}$, then store $R_{ali}$ and $R_{bob}$ to new (empty) memos $m_{ali}$ and $m_{bob}$, respectively. The name for $K^{dh}$ should now be clear.
@@ -77,7 +77,7 @@ For specific instances of Seraphis, there might be changes in some parts of the 
 \begin{itemize}
 \item For some addressing schemes, the input to $\mathcal{H}_2$, the input to $\mathcal{H}_3$, and the key for both ${\tt enc}$ and ${\tt dec}$ may be constructed differently and different to each other. Nevertheless, these inputs and key must be random sender-receiver shared secrets.
 \item A Seraphis transaction can easily have multiple receivers aside from Bob, which implies that Alice will create more than 2 new e-notes. This technically breaks the privacy property described in Subsection \ref{sec-thm}. However, the same property guarantees that the number of receivers would be the \textit{only} break.
-\item It may be possible that a Seraphis transaction can be collaboratively constructed by multiple players. This is the subject of the so-called ``Modular Transaction Building'' in \cite{seraphis}, Subsection 4.8. For now, formal description and security analysis of it is not documented here.
+\item It may be possible that a Seraphis transaction can be collaboratively constructed by multiple players. This is the subject of the so-called ``Modular Transaction Building" in \cite{seraphis}, Subsection 4.8. For now, formal description and security analysis of it is not documented here.
 \end{itemize}
 
 \subsection{Ownership and unspentness proofs}\label{own-unsp}
@@ -91,7 +91,7 @@ $$\{(G, X, U, K_i'^o, \tilde{K}_i\in\mathbb{G}; t_{k,i}, k_{a,i}^o, k_{b,i}^o\in
 \end{enumerate}
 Aside from verifying the proof transcript, the verifier must confirm that the linking tags do not yet appear in the ledger.
 
-The required security properties for application to Seraphis are described in Subsection \ref{prov-prop}. We also introduce a \textit{composition proving system} in which instead of one $\Pi_{\text{o\&u}, i}$ per $i$ (as presented above), Alice only needs to produce one proof transcript for all $i$. We present this in Appendix \ref{comp-prov}, and provide proof that it satisfies the required security requirements.
+The required security properties for application to Seraphis are described in Subsection \ref{prov-prop}. In \cite{seraphis}, Appendix B, a \textit{composition proving system} is introduced, in which instead of one $\Pi_{\text{o\&u}, i}$ per $i$ (as presented above), Alice only needs to produce one proof transcript for all $i$.
 
 \subsection{Amount balance}\label{amt-bal}
 Amount balance guarantees to verifiers that the sum of input amounts always equals the sum of output amounts in
@@ -119,7 +119,7 @@ Aside from verifying the proof transcript, the verifier must confirm that all th
 
 The required security properties for application to Seraphis are described in Subsection \ref{prov-prop}. Specific proving systems satisfying the requirement include CSAG (CLSAG \cite{clsag} without linking) and One-out-of-Many proving system adapted from Groth and Bootle \textit{et al.} \cite{groth, bootle}.
 
-We also introduce an alternative to the above proving relation that allows for relatively simpler and more efficient proof structures. We call it the \textit{squashed e-note model}. We present this in Appendix \ref{squashed} and provide proof that it satisfies the required security requirements.
+In \cite{seraphis}, Appendix A, the \textit{squashed e-note model} is introduced. This is an alternative to the above proving relation that allows for relatively simpler and more efficient proof structures.
 
 \subsection{Range proofs}\label{range}
 Range proof guarantees to everyone that the committed amount $a$ lies in a range.  For the new e-notes ${\tt enote}_{ali}$ and ${\tt enote}_{bob}$, Alice must do the following:
@@ -141,12 +141,12 @@ Suppose that the verifier accepts $T$, hence $T$ is now stored in the ledger. Wh
 \begin{enumerate}
     \item Get a new e-note $(C, K^o, m)$ in $T$. Note that $m$ contains $(R, \overline{a})$ (see the beginning of this whole section).
     \item Compute the nominal sender-receiver shared secret: $q_{nom} = \mathcal{H}_1(k_{bob}^v R)$.
-    \item Compute the nominal spend public key: $K_{nom}^s = K^o - \mathcal{H}_2(q_{nom})X$. If $K_{nom}^s = K_{bob}^s$, then the e-note is \textit{connected} to Bob's receiver address, and proceed to the next step (this is the ``connection'' hinted at the beginning of this whole section).  Otherwise (if not equal), the e-note is not connected, and hence go to Step 1.
+    \item Compute the nominal spend public key: $K_{nom}^s = K^o - \mathcal{H}_2(q_{nom})X$. If $K_{nom}^s = K_{bob}^s$, then the e-note is \textit{connected} to Bob's receiver address, and proceed to the next step (this is the ``connection" hinted at the beginning of this whole section).  Otherwise (if not equal), the e-note is not connected, and hence go to Step 1.
     \item Decrypt the amount: $a = {\tt dec}[q_{nom}](\overline a)$.
     \item Compute the nominal amount commitment: $C_{nom} = \mathcal{H}_3(q_{nom})G + a H$. If $C_{nom} \ne C$, then the e-note is malformed and cannot be spent. The balance property described in Subsection \ref{sec-thm} must prevent Bob from spending it successfully.
     \item Compute the nominal linking tag: $\tilde{K}_{nom} = (k_{b, bob}^s/(k_{a, bob}^s + \mathcal{H}_2(q_{nom})))U$. If he finds a copy of $\tilde{K}_{nom}$ in the ledger, then the e-note has already been spent. The balance property described in Subsection \ref{sec-thm} and the verifier checking that new linking tags do not yet appear in the ledger (see Subsection \ref{own-unsp}) must prevent Bob from spending it successfully.
 \end{enumerate}
-If an e-note $(C, K^o, m)$ is connected to Bob's receiver address, then he knows the corresponding scalars of that e-note: $(k_a^o, k_b^o, a, x) = (k_{a, bob}^s + \mathcal{H}_2(q_{nom}), k_{b, bob}^s, a, \mathcal{H}_3(q_{nom}))$. Hence, ``connection'' implies e-note ownership. The transaction is complete for Bob.
+If an e-note $(C, K^o, m)$ is connected to Bob's receiver address, then he knows the corresponding scalars of that e-note: $(k_a^o, k_b^o, a, x) = (k_{a, bob}^s + \mathcal{H}_2(q_{nom}), k_{b, bob}^s, a, \mathcal{H}_3(q_{nom}))$. Hence, ``connection" implies e-note ownership. The transaction is complete for Bob.
 
 For Alice to receive the change e-note, she must do the same above steps. After that, the transcation is complete for Alice. This finishes a Seraphis trancation.
 
@@ -156,9 +156,9 @@ For a start, we assume that the distributed ledger is immutable. Therefore, the 
 Subsections \ref{prov-prop} to \ref{Comm} outline the required security properties of the cryptographic components for Seraphis, and then Subsection \ref{sec-thm} is the main security analysis of Seraphis.
 
 \subsection{Proving systems security properties}\label{prov-prop}
-We define a proving system as a tuple $(\textsf{Setup}, \mathcal{P}, \mathcal{V})$. $\textsf{Setup}$ is the setup algorithm: $pp\leftarrow\textsf{Setup}(1^{\lambda})$, and $\mathcal{P}$ and $\mathcal{V}$ are $\textsf{PPT}$ algorithms called \textbf{Prover} and \textbf{Verifier}, respectively. We denote the \textit{transcript} (all data being sent and received in the protocol) produced by $\mathcal{P}$ and $\mathcal{V}$ when dealing with inputs $x$ and $y$ as $tr\leftarrow\langle\mathcal{P}(x), \mathcal{V}(y)\rangle$. Once the transcript is produced, we denote the final transcript verification done by a $\textsf{PPT}$ algorithm $\mathcal{X}$ as $\mathcal{X}(tr)=1$ for accepted transcript and $\mathcal{X}(tr)=0$ for rejected. 
+We define a proving system as a tuple $(\textsf{Setup}, \mathcal{P}, \mathcal{V})$. $\textsf{Setup}$ is the setup algorithm: $pp\leftarrow\textsf{Setup}(1^{\lambda})$, and $\mathcal{P}$ and $\mathcal{V}$ are $\textsf{PPT}$ algorithms called \textbf{Prover} and \textbf{Verifier}, respectively. We denote the \textit{transcript} (all data being sent and received in the protocol) produced by $\mathcal{P}$ and $\mathcal{V}$ when dealing with inputs $x$ and $y$ as $tr\leftarrow\langle\mathcal{P}(x), \mathcal{V}(y)\rangle$. Once the transcript is produced, we denote the final transcript verification as $tr=1$ if accepted and $tr=0$ if rejected. 
 
-Let $\mathcal{R}$ be an NP (polynomial-time verifiable) relation of the form $\{(x,w):P(x, w)\}$ where $x$ is the \textit{statement}, $w$ is the \textit{witness}, and $P$ is a predicate of $x$ and $w$. Then ``$(\textsf{Setup}, \mathcal{P}, \mathcal{V})$ is a proving system for the relation $\mathcal{R}$'' informally means that when $\mathcal{P}$ gives an $x$ to $\mathcal{V}$, $\mathcal{P}$ must convince $\mathcal{V}$ that it knows a $w$ such that $(x,w)\in\mathcal{R}$ by generating $tr\leftarrow\langle\mathcal{P}(pp, x, w), \mathcal{V}(pp, x)\rangle$ that $\mathcal{V}$ accepts.
+Let $\mathcal{R}$ be an NP (polynomial-time verifiable) relation of the form $\{(x,w):P(x, w)\}$ where $x$ is the \textit{statement}, $w$ is the \textit{witness}, and $P$ is a predicate of $x$ and $w$. Then ``$(\textsf{Setup}, \mathcal{P}, \mathcal{V})$ is a proving system for the relation $\mathcal{R}$" informally means that when $\mathcal{P}$ gives an $x$ to $\mathcal{V}$, $\mathcal{P}$ must convince $\mathcal{V}$ that it knows a $w$ such that $(x,w)\in\mathcal{R}$ by generating $tr\leftarrow\langle\mathcal{P}(pp, x, w), \mathcal{V}(pp, x)\rangle$ that $\mathcal{V}$ accepts.
 
 Here are the \textit{minimal} needed security properties of proving systems for Seraphis:
 
@@ -169,7 +169,7 @@ $(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is perfectly complete for $\
 \begin{array}{c|c}
     \begin{gathered}
         (x,w)\in\mathcal{R}\\
-        \wedge\ \mathcal{A}(tr) = 0
+        \wedge\ tr=0
     \end{gathered}
     &
     \begin{gathered}
@@ -189,7 +189,7 @@ $(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is computationally sound for
 \begin{array}{c|c}
     \begin{gathered}
         (x,w)\not\in\mathcal{R}\\
-        \wedge\ \mathcal{A}(tr) = 1
+        \wedge\ tr=1
     \end{gathered}
     &
     \begin{gathered}
@@ -202,7 +202,7 @@ $(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is computationally sound for
 \end{align*}
 \end{definition}
 
-There is another notion of soundness called \textit{Special Soundness}. For a proving system to be special sound, there must exist a \textit{witness extractor} that has an ability to ``rewind time'' and make the prover answer several different challenges, and it must be able to extract a witness given the several accepted transcripts with the prover. Special soundness is a stronger notion of soundness, hence this already implies computational soundness.
+There is another notion of soundness called \textit{Special Soundness}. For a proving system to be special sound, there must exist a \textit{witness extractor} that has an ability to ``rewind time" and make the prover answer several different challenges, and it must be able to extract a witness given the several accepted transcripts with the prover. Special soundness is a stronger notion of soundness, hence this already implies computational soundness.
 
 \begin{definition}[Witness Indistinguishability]
 	$(\emph{\textsf{Setup}}, \mathcal{P}, \mathcal{V})$ is witness indistinguishable for $\mathcal{R}$ if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
@@ -227,10 +227,10 @@ There is another notion of soundness called \textit{Special Soundness}. For a pr
 
 The well-known property stronger than witness indistinguishability is called \textit{Special Honest-Verifier Zero Knowledge (SHVZK)} \cite{groth}. For a proving system to be perfect SHVZK, there must exist a \textit{simulator} producing accepted transcripts with probability distribution identical to the probability distribution of legitimate accepted transcripts by the prover and honest verifier. \textit{Fiat-Shamir heuristic} \cite{fiat-shamir} is applied to make interactive protocols non-interactive. Moreover, it transforms interactive protocols satisfying SHVZK into non-interactive (fully) zero-knowledge (NIZK) protocols in the random oracle model.
 
-All proving systems for application to Seraphis must \textit{at least} have perfect completeness,  computational soundness, and witness indistinguishability. However, it is better for proving systems to satisfy the stronger properties, special soundness and SHVZK.
+All proving systems for application to Seraphis must \textit{at least} have perfect completeness,  computational soundness, and witness indistinguishability. However, it is better for proving systems to satisfy the stronger properties special soundness and SHVZK.
 
 \subsection{Authenticated symmetric encryption scheme}\label{sec-symm}
-We require that the authenticated symmetric encryption scheme must at least have the following properties: indistinguishable against adaptive chosen-ciphertext attack (IND-CCA2) and key-private under chosen-ciphertext attacks (IK-CCA). These properties are defined in the Appendix A.4 of \cite{omniring}.
+We require that the authenticated symmetric encryption scheme must at least have the following properties: indistinguishable against adaptive chosen-ciphertext attack (IND-CCA2) and key-private under chosen-ciphertext attacks (IK-CCA). These properties are defined in \cite{omniring}, Appendix A.4.
 
 \subsection{Commitment schemes}\label{Comm}
 
@@ -295,22 +295,22 @@ Pedersen commitment is perfectly hiding and computationally binding under the DL
 \begin{align*}
 \textsf{LinkTag}(k_a^o, k_b^o; t_k) = (t_k G + k_a^o X + k_b^o U, (k_b^o/k_a^o)U)
 \end{align*}
-$\textsf{LinkTag}$ corresponds to structure of the combination of masked address $K'^o$ and linking tag $\tilde{K}$.
+$\textsf{LinkTag}$ corresponds to the structure of the combination of masked address $K'^o$ and linking tag $\tilde{K}$.
 
 \begin{theorem}\label{thm-linktag}
 $\emph{\textsf{LinkTag}}$ is perfectly hiding and computationally binding under the DL assumption.
 \end{theorem}
-\noindent We prove this in Appendix \ref{proofs}.
+\noindent We prove this in the Appendix \ref{proofs}.
 
 \subsection{Seraphis security properties}\label{sec-thm}
-The required security properties for Seraphis are based on Omniring's security model \cite{omniring}, with modifications to fit Seraphis. The Omniring paper presents a rigorous treatment of RingCT constructions, providing precision for security analysis against several realistic attacks. However, we will not be fully formal in this presentation: we may treat algorithms such as $\mathcal{A}$ like \textit{agents}. For instance, we may simply write ``$\mathcal{A}$ outputs $x_1$ and $x_2$'' instead of ``we run a part of $\mathcal{A}$ twice to get outputs $x_1$ and $x_2$''.
+The required security properties for Seraphis are loosely based on Omniring's security model \cite{omniring}, with modifications to fit Seraphis. The Omniring paper presents a rigorous treatment of RingCT constructions, providing precision for security analysis against several realistic attacks. However, we will not be fully formal in this presentation: we may treat algorithms such as $\mathcal{A}$ like \textit{agents}. For instance, we may simply write ``$\mathcal{A}$ outputs $x_1$ and $x_2$" instead of ``we run a subroutine in $\mathcal{A}$ twice to get outputs $x_1$ and $x_2$".
 
-It is important to note that the properties in Subsection \ref{prov-prop} are the \textit{minimal} requirements, thus the properties presented in this subsection may be weaker than in \cite{omniring}. Proofs for these properties are found in Appendix \ref{proofs}. Because of Seraphis's modularity, stronger properties for proving systems must yield stronger properties for Seraphis.
+It is important to note that the properties in Subsection \ref{prov-prop} are the \textit{minimal} requirements, thus the properties presented in this subsection may be weaker than in \cite{omniring}. Proofs for these properties are found in the Appendix \ref{proofs}. Because of Seraphis's modularity, stronger properties for proving systems must yield stronger properties for Seraphis.
 
 The first security property is \textbf{Completeness} (called \textit{Correctness} in Omniring), which means that if an e-note appears on the ledger, then its owner can honestly generate an accepted transaction spending it. Seraphis satisfying completeness immediately follows from the completeness properties of the cryptographic components and by inspection of the protocol description.
 
 Next we consider the \textbf{Balance} property, which means that a spender adversary should never be able to spend more amounts than it truly owns, hence preventing double-spending. Balance property involves an experiment $\textsf{BAL}(\mathcal{A}, 1^{\lambda})$  on a $\textsf{PPT}$ adversary $\mathcal{A}$. The adversary succeeds in the experiment (i.e. $\textsf{BAL}(\mathcal{A}, 1^{\lambda})=1$) if it managed to generate an accepted transaction such that
-1) some of ``spent e-notes'' are just made up and not in the ledger, 2) all spent e-notes are in the ledger, but some are supposedly owned by others, 3) some of spent e-note one-time private keys are \textit{not equal} to what is originally given to him, leading to a double-spend of same e-notes under different linking tags, or 4) the amount of the new e-note for the receiver is \textit{larger} than the supposed total amount of e-notes it owns.
+1) some of ``spent e-notes" are just made up and not in the ledger, 2) all spent e-notes are in the ledger, but some are supposedly owned by others, 3) some of spent e-note one-time private keys are \textit{not equal} to what is originally given to him, leading to a double-spend of same e-notes under different linking tags, or 4) the amount of the new e-note for the receiver is \textit{larger} than the supposed total amount of e-notes it owns.
 
 \begin{figure}[htbp]
 \centering
@@ -319,11 +319,11 @@ Next we consider the \textbf{Balance} property, which means that a spender adver
 \begin{itemize}
 \item $pp\leftarrow\textsf{Setup}(1^{\lambda})$.
 \item $\mathcal{A}$ is provided random $k^v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, $\{(k_{a,i}^o, k_{b,i}^o, a_i, x_i)\}_{i=1}^n$ that makes ${\tt addr}_{\mathcal{A}}$ connect to ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ in the ledger, and \textit{all} other e-notes ${\tt enote}_{\neg\mathcal{A}}$ in the ledger \textit{not} connected to ${\tt addr}_{\mathcal{A}}$.
-\item $\mathcal{A}$ chooses any receiver address ${\tt addr}_{\mathcal{B}}$.
+\item $\mathcal{A}$ chooses any receiver address ${\tt addr}_{\mathcal{B}}$ (which can be ${\tt addr}_{\mathcal{A}}$).
 \item $\{(k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i)\}_{i=1}^n \leftarrow\mathcal{A}(pp, {\tt enote}_{\mathcal{A}}, {\tt enote}_{\neg\mathcal{A}}, \{(k_{a,i}^o, k_{b,i}^o, a_i, x_i)\}_{i=1}^n)$.
-\item $T\leftarrow{\tt tx}(pp, {\tt addr}_{\mathcal{A}}, {\tt addr}_{\mathcal{B}}, {\tt enote}_{\mathcal{A}}, {\tt enote}_{\neg\mathcal{A}}, \{(k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i)\}_{i=1}^n)$. $\mathcal{A}$ spends $n$ e-notes to send an amount $a_t$ to ${\tt addr}_{\mathcal{B}}$.
+\item $T\leftarrow{\tt tx}(pp, {\tt addr}_{\mathcal{A}}, {\tt addr}_{\mathcal{B}}, {\tt enote}_{\mathcal{A}}, {\tt enote}_{\neg\mathcal{A}}, \{(k_{a,i}'^o, k_{b,i}'^o, a'_i, x'_i)\}_{i=1}^n)$. $\mathcal{A}$ spends all the $n$ e-notes to send the amount $a_t = \sum_{i=1}^n{a'_i}$ to ${\tt addr}_{\mathcal{B}}$.
 \item $b_0:=1$ if Verifier accepts $T$, else $:=0$.
-\item $b_1:=1$ if some ``spent e-notes'' in $T$ are not in ledger, else $:=0$.
+\item $b_1:=1$ if some ``spent e-notes" in $T$ are not in ledger, else $:=0$.
 \item $b_2:=1$ if some spent e-notes in $T$ are from ${\tt enote}_{\neg\mathcal{A}}$, else $:=0$.
 \item $b_3:=1$ if $\exists i\in\{1,\ldots,n\}: k_{b,i}'^o / k_{a,i}'^o \ne k_{b,i}^o / k_{a,i}^o$, else $:=0$.
 \item $b_4:=1$ if $\sum_{i=1}^n{a_i} < a_t$, else $:=0$.
@@ -348,7 +348,7 @@ where $\emph{\textsf{BAL}}$ is described in Figure \ref{exp-bal}.
 \begin{theorem}[Balance]\label{thm-bal}
 If $\emph{\textsf{PedersenC}}$, $\emph{\textsf{PedersenK}}$, and $\emph{\textsf{LinkTag}}$ are all binding, and all proving systems are (computational) sound, then Seraphis is balanced.  
 \end{theorem}
-Next we consider the \textbf{Privacy} property, which means that an adversary should never be able to detect the spender, receiver, and amounts in any transaction, hence providing sender and receiver anonymity, and confidential transfer of amounts. Privacy property involves an experiment $\textsf{PRV}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. In the experiment, it is as if $\mathcal{A}$ itself ``sent'' amounts to the two potential senders, hence $\mathcal{A}$ is provided the sender addresses, the e-notes themselves, and the private scalars of the amount commitment $C$ in those e-notes. Given a whole transaction $T$, the adversary succeeds in the experiment if it can guess the sender, the receiver, or the amount of the new e-note for the receiver, hence breaking the privacy of $T$.
+Next we consider the \textbf{Privacy} property, which means that an adversary should never be able to detect the spender, receiver, and amounts in any transaction, hence providing sender and receiver anonymity, and confidential transfer of amounts. Privacy property involves an experiment $\textsf{PRV}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. In the experiment, it is as if $\mathcal{A}$ itself ``sent" amounts to the two potential senders, hence $\mathcal{A}$ is provided the sender addresses, the e-notes themselves, and the private scalars of the amount commitment $C$ in those e-notes. Given a whole transaction $T$, the adversary succeeds in the experiment if it can guess the sender, the receiver, or the amount of the new e-note for the receiver, hence breaking the privacy of $T$.
 
 \begin{figure}[htbp]
 \centering
@@ -382,7 +382,7 @@ Seraphis is private if for all $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, th
 where $\emph{\textsf{PRV}}$ is described in Figure \ref{exp-prv}.
 \end{definition}
 \begin{theorem}[Privacy]\label{thm-prv}
-If $\emph{\textsf{PedersenC}}$, $\emph{\textsf{PedersenK}}$, and $\emph{\textsf{LinkTag}}$ are all hiding, ownership and unspentness proof, range proof, and membership proof are witness indistinguishable, and authenticated symmetric encryption scheme is IND-CCA2 and IK-CCA, then Seraphis is private.  
+If $\emph{\textsf{PedersenC}}$, $\emph{\textsf{PedersenK}}$, and $\emph{\textsf{LinkTag}}$ are all hiding, all proving systems are witness indistinguishable, and authenticated symmetric encryption scheme is IND-CCA2 and IK-CCA, then Seraphis is private.  
 \end{theorem}
 
 Lastly, we consider the \textbf{Non-slanderability} property, which means that an adversary should never be able to forge a linking tag of an honest user's e-notes when those are spent. Non-slanderability property involves an experiment $\textsf{NSLAND}(\mathcal{A}, 1^{\lambda})$ on a $\textsf{PPT}$ adversary $\mathcal{A}$. This property prevents the following attack known as \textit{denial-of-spending attack} \cite{denial-of-spend}: the adversary is in a remote node that can receive transactions, and also acts as a verifier of a victim transaction $T$. This means that $\mathcal{A}$ can see the linking tags in $T$. $\mathcal{A}$ then temporarily blocks $T$ from entering the ledger, creates a new transaction $T'$ that matches some linking tags in $T$, and enters $T'$ first in the ledger before finally entering $T$. This way $T$ is marked as a double-spend, and some e-notes of the victim sender are now unspendable. Now the adversary succeeds in the experiment if it successfully accomplished a denial-of-spending attack.
@@ -394,7 +394,7 @@ Lastly, we consider the \textbf{Non-slanderability} property, which means that a
 \begin{itemize}
 \item $pp\leftarrow\textsf{Setup}(1^{\lambda})$.
 \item $\mathcal{A}$ is provided random $k^v, k_a^s, k_b^s\in\mathbb{F}$ to construct the address ${\tt addr}_{\mathcal{A}} = (K_{\mathcal{A}}^{dh}, K_{\mathcal{A}}^v, K_{\mathcal{A}}^s)$, and ${\tt enote}_{\mathcal{A}}=\{(C_i,K_i^o,m_i)\}_{i=1}^n$ in the ledger connected to ${\tt addr}_{\mathcal{A}}$.
-\item $\mathcal{A}$ chooses any receiver address ${\tt addr}_{\mathcal{B}}$.
+\item $\mathcal{A}$ chooses any receiver address ${\tt addr}_{\mathcal{B}}$ (which can be ${\tt addr}_{\mathcal{A}}$).
 \item Let ${\tt addr}_{\mathcal{C}}$ be the random victim address, ${\tt addr}_{\mathcal{D}}$ be another random address, and ${\tt enote}_{\mathcal{C}}$ be all the e-notes in the ledger connected to ${\tt addr}_{\mathcal{C}}$.
 \item $T\leftarrow{\tt tx}(pp, {\tt addr}_{\mathcal{C}}, {\tt addr}_{\mathcal{D}}, {\tt enote}_{\mathcal{C}})$. The owner of ${\tt addr}_{\mathcal{C}}$ honestly spends all e-notes in ${\tt enote}_{\mathcal{C}}$ to send some amounts to ${\tt addr}_{\mathcal{D}}$. Let $\{\tilde{K}_{\mathcal{C}}\}$ be all the linking tags in $T$.
 \item $\mathcal{A}$ is provided $T$ and verifies it honestly. If $\mathcal{A}$ rejects $T$, then return 0.
@@ -429,84 +429,10 @@ If $\emph{\textsf{PedersenK}}$ is hiding, $\emph{\textsf{LinkTag}}$ is hiding an
 
 \appendix
 
-\section{Composition proving system}\label{comp-prov}
-The composition proving system is a protocol for the relation:
-\begin{multline*}
-\Big\{\big(G, X, U\in\mathbb{G}, \{K_i\}_{i=1}^n, \{\tilde{K}_i\}_{i=1}^n \in\mathbb{G}^n; \{x_i\}_{i=1}^n, \{y_i\}_{i=1}^n, \{z_i\}_{i=1}^n \in\mathbb{F}^n\big): \\ \bigwedge_{i=1}^n{\big(y_i \ne 0 \wedge K_i = x_i G + y_i X + z_i U \wedge \tilde{K}_i = (z_i/y_i)U\big)} \Big\}
-\end{multline*}
-Now the prover only needs to produce one proof transcript for all $i$ instead of one proof transcript for each $i$. This protocol is based on the concise approach from \cite{clsag} to reduce proof sizes when constructing multiple proofs in parallel.
-
-The protocol proceeds as follows:
-\begin{enumerate}
-\item The prover generates $\alpha_a, \alpha_b, \alpha_i \xleftarrow{\$}\mathbb{F}\ ,\ \forall i\in\{1,\ldots,n\}$. The prover computes $(A_a, A_b) = (\alpha_a G, \alpha_b U)$ and $A_{i}=\alpha_i K_i\ ,\ \forall i\in\{1,\ldots,n\}$, and sends $(A_a, A_b, \{A_i\}_{i=1}^n)$ to the verifier.
-\item Both the prover and the verifier compute $K_{t2,i} = K_{t1,i} - X - \tilde{K}_i\ ,\ \forall i\in\{1,\ldots,n\}$.
-\item The verifier sends a challenge $c\xleftarrow{\$}\mathbb{F}$ and random scalars $\mu_a,\mu_b\xleftarrow{\$}\mathbb{F}$ to the prover.
-\item The prover computes the responses:
-\begin{align*}
-r_{a} &= \alpha_a - c \sum_{i=1}^{n}{\mu_a^{i-1} (x_i/y_i)} \\
-r_{b} &= \alpha_b - c \sum_{i=1}^{n}{\mu_b^{i-1}(z_i/y_i)} \\
-r_{i} &= \alpha_i - c (1/y_i)\ ,\ \forall i\in\{1,\ldots,n\}\\
-\end{align*}
-and sends those values to the verifier.
-\item The verifier checks the following equalities. If any of them fail, then the prover has failed to satisfy the composition proof system.
-\begin{align*}
-A_{a} &= r_a G + c \sum_{i=1}^{n}{\mu_a^{i-1} K_{t2,i}} \\
-A_{b} &= r_b U + c \sum_{i=1}^{n}{\mu_b^{i-1} \tilde{K}_i} \\
-A_{i} &= r_i K_i + c K_{t1,i}\ ,\ \forall i\in\{1,\ldots,n\}\\
-\end{align*}
-\end{enumerate}
-We now prove that the protocol is perfectly complete, computationally sound, and witness indistinguishable, all if $G$, $X$, and $U$ are mutually independent.
-
-\begin{proof}
-For perfect completeness, note that $\forall i\in\{1,\ldots,n\}$, knowledge of $(x_i/y_i$, $z_i/y_i$, $1/y_i)$ is also enough to satisfy the proving relation, and
-\begin{align*}
-K_{t2,i} &= K_{t1,i} - X - \tilde{K}_i \\ &= (1/y_i)(x_i G + y_i X + z_i U) - X - (z_i/y_i)U \\
-&= (x_i/y_i)G + X + (z_i/y_i) U - X - (z_i/y_i)U \\ &= (x_i/y_i)G.
-\end{align*}
-Then the property follows from inspection.
-
-For computational soundness under the DL assumption, the proof is by contraposition. Suppose that a $\textsf{PPT}$ adversarial prover $\mathcal{A}$ \textit{not} knowing a witness, can produce an accepted transcript $$(A_a, A_b, \{A_i\}_{i=1}^n,c, \mu_a, \mu_b, r_a, r_b, \{r_i\}_{i=1}^n)$$ with an honest verifier with non-negligible probability. From the third equation in Step 5, $\forall i\in\{1,\ldots,n\}$:
-\begin{align*}
-A_{i} &= r_i K_i + c K_{t1,i} \\
-\implies\alpha_i K_i &= r_i K_i + c (1/y_i)K_i \\
-\implies\alpha_i &= r_i + c(1/y_i) \\
-\implies(1/y_i) &= (\alpha_i - r_i)(1/c)
-\end{align*}
-Hence solving the discrete log (DL) problem for $K_{t1,i} = (1/y_i)K_i$ with non-negligible probability. Note that $\alpha_i$ and $(1/y_i)$ must always exist because $\mathbb{G}$ is of prime order which implies that any non-zero point is a generator.
-
-For witness indistinguishability, [UNFINISHED]
-\end{proof}
-
-Applying Fiat-Shamir heuristic to the composition proving system should be straightforward. Note that the $c$, $\mu_a$ and $\mu_b$ are generated through domain separation of hash function $\mathcal{H}$.
-
-\section{Squashed e-note model}\label{squashed}
-The following definitions are only applicable in membership proofs. [UNFINISHED]
-%\begin{definition}\label{sq-e-note}
-%The \textbf{\em squashed e-note} for e-note $(C, K^o, m)$ is a pair $(Q, m)$ such that $Q = \mathcal{H}_4(C, K^o) K^o + C$, and $m$ is the same memo field.
-%\end{definition}
-%\begin{definition}\label{sq-e-note-img}
-%A \textbf{\em squashed e-note image} for e-note image $(C', K'^o, \tilde{K})$ is a pair $(Q', \tilde{K})$ such that $Q' = \mathcal{H}_4(C, K^o) K'^o + C'$, and $\tilde{K}$ is the same linking tag.
-%\end{definition}
-%
-%Going back to Step 4 of Subsection \ref{mem}, each e-note in the collection (of size $s$) are converted to squashed e-notes, and extract only the $Q$s. Then arrange the $s$ e-notes in random positions. Alice now has an array (of length $s$): $\mathbb{Q}_i = \{Q_j\}_{j=1}^s$, which is called the \textbf{squashed ring}. On the other hand, the e-note image for the true spent e-note is converted to squashed e-note image.
-%
-%The squashed e-note model is the following proving relation for $\Pi_{\text{mem}, i}$:
-%$$\{(G, Q'_i \in\mathbb{G}, \mathbb{Q}_i\subset\mathbb{G}; C_i, K_i^o \in \mathbb{G}, \pi_i\in\mathbb{N}, t_{c,i}, t_{k,i}\in\mathbb{F}): 1\le\pi_i\le s \wedge Q'_i - Q_{\pi_i} = ( \mathcal{H}_4(C_i, K_i^o) t_{k,i} + t_{c,i}) G \}$$
-%
-%The benefit of this specialization compared to the original membership proof model is you only need to prove knowledge of one discrete logarithm rather than two. Now for analysis of this specialization, we prove the following three properties which are described informally:
-%\begin{enumerate}
-%\item It is impossible to find an input e-note such that the output of the transformation is \textit{not} in the above new proving relation. 
-%\item It is difficult for a $\textsf{PPT}$ adversary $\mathcal{A}$ to find an element of the above new proving relation if $\mathcal{A}$ does \textit{not} know the input e-note.
-%\item The above new proving relation does not leak any private information of the input e-note.
-%\end{enumerate}
-%\begin{proof}
-%The first property immediately follows from inspection of the above transformation. The third property immediately holds because the private keys of $C$ and $K^o$ are still perfectly hidden (as those are Pedersen commitments) when producing $Q$ and $Q'$. Lastly, for the second property: [UNFINISHED].
-%\end{proof}
-
-\section{Proofs of some theorems in Section \ref{sec}}\label{proofs}
+\section{Proofs of theorems in Section \ref{sec}}\label{proofs}
 We first present another hardness assumption which will be helpful for the next proof. This assumption is used in Bulletproofs \cite{bp} and Bulletproofs+ \cite{bp-plus}:
 
-\begin{definition}[Discrete Logarithm Relation Assumption]
+\begin{definition}[Discrete Logarithm Relation Assumption]\label{dl-rel}
 DL Relation assumption holds relative to $\emph{\textsf{Setup}}$ if for all $n \ge 2$ and  $\emph{\textsf{PPT}}$ adversary $\mathcal{A}$, there exists a negligible function $\emph{\textsf{negl}}(\lambda)$ such that
 \begin{align*}
 \emph{\textsf{Pr}}\left[
@@ -538,22 +464,23 @@ and this breaks the DL relation assumption of $G, X, U \in \mathbb{G}$.
 \begin{proof}[Proof of Theorem \ref{thm-bal}]
 We prove by contraposition. Assume that $\mathcal{A}$ succeeds in the $\textsf{BAL}$ experiment with non-negligible probability. There are four cases as to \textit{why} $\mathcal{A}$ succeeded, each with sub-cases: $b_0 \wedge b_1 = 1$, $b_0 \wedge b_2 = 1$, $b_0 \wedge b_3 = 1$, or $b_0 \wedge b_4 = 1$.
 
-For the first case, assume that $b_0 \wedge b_1 = 1$.
+For the first case, assume that $b_0 \wedge b_1 = 1$. [UNFINISHED]
 
 For the second case, assume that $b_0 \wedge b_2 = 1$. One sub-case is that $\mathcal{A}$ finds correct private scalars of $C$ and $K^o$ in some e-notes in ${\tt enote}_{\neg\mathcal{A}}$, but this breaks the binding property of $\textsf{PedersenC}$ and $\textsf{PedersenK}$. Another sub-case is that $\mathcal{A}$ doesn't have correct private scalars of $C$, yet $\mathcal{A}$ can non-negligibly create accepted proofs. [UNFINISHED]
 
 For the third case, assume that $b_0 \wedge b_3 = 1$. One sub-case is that for some $i\in\{1,\ldots,n\}$,  $\mathcal{A}$ finds $(k_{b,i}'^o, k_{a,i}'^o)$ which is not equal to $(k_{b,i}^o, k_{a,i}^o)$, [UNFINISHED]. Another sub-case is that $( k_{a,i}'^o, k_{b,i}'^o, t'_{k,i})$ does \textit{not} satisfy proving relations involving those values, yet $\mathcal{A}$ can non-negligibly create accepted proofs, but this breaks the soundness property of ownership and unspentness proof.
 
-For the fourth case, assume that $b_0 \wedge b_4= 1$. One sub-case is that the new e-notes are constructed honestly and amount balance $\sum_{i=1}^n{C_i'} = C_c + C_t - D$ (where $C_c$ is the ``change'' e-note) is satisfied, but $\sum_{i=1}^n{a_i} < a_t$. This implies that there exists $i\in\{1,\ldots,n\}$ such that $C'_i = v_{c,i} G + a_i H = v'_{c,i} G + a'_i H$ (where $v'_{c,i}\in\mathbb{F}$ is also found by $\mathcal{A}$) \textit{and} $a'_i > a_i$. Thus $( v_{c,i}, a_i)$ and $(v'_{c,i}, a'_i)$ breaks the binding property of $\textsf{PedersenC}$. Another sub-case is that $\mathcal{A}$ can non-negligibly create an accepted range proof for the amount $a$ committed in new e-note such that $C \ne x G + a H$ or $\neg (0 \le a \le a_{max})$, but this breaks the soundness property of range proof.
+For the fourth case, assume that $b_0 \wedge b_4= 1$. One sub-case is that the new e-notes are constructed honestly and amount balance $\sum_{i=1}^n{C_i'} = C_c + C_t - D$ (where $C_c$ is the ``change" e-note) is satisfied, but $\sum_{i=1}^n{a_i} < a_t$. This implies that there exists $i\in\{1,\ldots,n\}$ such that $C'_i = v_{c,i} G + a_i H = v'_{c,i} G + a'_i H$ (where $v'_{c,i}\in\mathbb{F}$ is also found by $\mathcal{A}$) \textit{and} $a'_i > a_i$. Thus $( v_{c,i}, a_i)$ and $(v'_{c,i}, a'_i)$ breaks the binding property of $\textsf{PedersenC}$. Another sub-case is that $\mathcal{A}$ can non-negligibly create an accepted range proof for the amount $a$ committed in new e-note such that $C \ne x G + a H$ or $\neg (0 \le a \le a_{max})$, but this breaks the soundness property of range proof.
 \end{proof}
 \begin{proof}[Proof of Theorem \ref{thm-prv}]
-Assume that $\mathcal{A}$ succeeds in the $\textsf{PRV}$ experiment with non-negligible probability. There are three cases, each with sub-cases: the sender is distinguished, the receiver is distinguished, or the sent amount is distinguished.
-
-For the first case, assume that $\mathcal{A}$ distinguished the sender. One sub-case is that $\mathcal{A}$ determined the $k_b^o = k_b^s$ that $K'^o$ and $\tilde{K}$ hide, but this breaks the hiding property of $\textsf{LinkTag}$. Another sub-case is that the proving systems leak parts of witness that are related to the sender, like $\pi$, the index of true spent e-note in a ring, or $k_b^o$ in e-note images, but this breaks the witness indistinguishability of ownership and unspentness proof and membership proof.
-
-For the second case, assume that $\mathcal{A}$ distinguished the receiver. One sub-case is that $\mathcal{A}$ found $q_t$. Now $q_t$ can be found in two ways. One is via $C_t$ of new e-note in $\texttt{recv}_b$, but this breaks the random oracle property of  $\mathcal{H}$, DL assumption of $\mathbb{G}$, and requires determining $a_{\mathcal{A},b}$, which will be discussed in the third case. Another way is via determining the encryption key of $\overline{a_t}$, but this breaks the IK-CCA property of authenticated symmetric encryption scheme. From just $q_t$, $\mathcal{A}$ can get $K^s$ because $K^o - \mathcal{H}_2(q_t)X = K^s$ in new e-note. Now with $\mathcal{H}^{-1}(q_t) = r K^{v}$, $\mathcal{A}$ may find $K^v$ because of $r$, but this breaks $\mathcal{H}$ and the randomness of $r$. Still with $\mathcal{H}^{-1}(q_t)$ and now with $R = r K^{dh}$ in the memo of new e-note, $\mathcal{A}$ may also deduce $K^v$, but this breaks $\mathcal{H}$ and the DDH assumption of $\mathbb{G}$. Another sub-case is that $\mathcal{A}$ determined that the $K^o$ of new e-note hides $k_a^s, k_b^s$, but this breaks the hiding property of $\textsf{PedersenK}$.
-
-For the third case, assume that $\mathcal{A}$ distinguished the sent amount. One sub-case is that $\mathcal{A}$ determined that the $C_t$ of new e-note hides $a_{\mathcal{A}, b}$, but this breaks the hiding property of $\textsf{PedersenC}$. Another sub-case is that $\mathcal{A}$ recognized in $T$ that $C'_i - t_{c, i}G = x_{b,i}G + a_{b,i}H$ for some $i \in \{1, \ldots, n\}$, but this breaks the randomness of $t_c$. Another subcase is that the proving systems leak parts of witness that are related to amounts, but this breaks the witness indistinguishability of range proof and membership proof. Moreover, leaking $t_c$ from membership proof leads to the previous case. The last subcase is that $\mathcal{A}$ can non-negligibly decrypt $\overline{a_{\mathcal{A},b}}$ without correct key, but this breaks the IND-CCA2 property of authenticated symmetric encryption scheme.
+We prove by hybrid arguments \cite{hybrid}. [UNFINISHED]
+%Assume that $\mathcal{A}$ succeeds in the $\textsf{PRV}$ experiment with non-negligible probability. There are three cases, each with sub-cases: the sender is distinguished, the receiver is distinguished, or the sent amount is distinguished.
+%
+%For the first case, assume that $\mathcal{A}$ distinguished the sender. One sub-case is that $\mathcal{A}$ determined the $k_b^o = k_b^s$ that $K'^o$ and $\tilde{K}$ hide, but this breaks the hiding property of $\textsf{LinkTag}$. Another sub-case is that the proving systems leak parts of witness that are related to the sender, like $\pi$, the index of true spent e-note in a ring, or $k_b^o$ in e-note images, but this breaks the witness indistinguishability of ownership and unspentness proof and membership proof.
+%
+%For the second case, assume that $\mathcal{A}$ distinguished the receiver. One sub-case is that $\mathcal{A}$ found $q_t$. Now $q_t$ can be found in two ways. One is via $C_t$ of new e-note in $\texttt{recv}_b$, but this breaks the random oracle property of  $\mathcal{H}$, DL assumption of $\mathbb{G}$, and requires determining $a_{\mathcal{A},b}$, which will be discussed in the third case. Another way is via determining the encryption key of $\overline{a_t}$, but this breaks the IK-CCA property of authenticated symmetric encryption scheme. From just $q_t$, $\mathcal{A}$ can get $K^s$ because $K^o - \mathcal{H}_2(q_t)X = K^s$ in new e-note. Now with $\mathcal{H}^{-1}(q_t) = r K^{v}$, $\mathcal{A}$ may find $K^v$ because of $r$, but this breaks $\mathcal{H}$ and the randomness of $r$. Still with $\mathcal{H}^{-1}(q_t)$ and now with $R = r K^{dh}$ in the memo of new e-note, $\mathcal{A}$ may also deduce $K^v$, but this breaks $\mathcal{H}$ and the DDH assumption of $\mathbb{G}$. Another sub-case is that $\mathcal{A}$ determined that the $K^o$ of new e-note hides $k_a^s, k_b^s$, but this breaks the hiding property of $\textsf{PedersenK}$.
+%
+%For the third case, assume that $\mathcal{A}$ distinguished the sent amount. One sub-case is that $\mathcal{A}$ determined that the $C_t$ of new e-note hides $a_{\mathcal{A}, b}$, but this breaks the hiding property of $\textsf{PedersenC}$. Another sub-case is that $\mathcal{A}$ recognized in $T$ that $C'_i - t_{c, i}G = x_{b,i}G + a_{b,i}H$ for some $i \in \{1, \ldots, n\}$, but this breaks the randomness of $t_c$. Another subcase is that the proving systems leak parts of witness that are related to amounts, but this breaks the witness indistinguishability of range proof and membership proof. Moreover, leaking $t_c$ from membership proof leads to the previous case. The last subcase is that $\mathcal{A}$ can non-negligibly decrypt $\overline{a_{\mathcal{A},b}}$ without correct key, but this breaks the IND-CCA2 property of authenticated symmetric encryption scheme.
 \end{proof}
 \begin{proof}[Proof of Theorem \ref{thm-nsland}]
 Assume that $\mathcal{A}$ succeeds in the $\textsf{NSLAND}$ experiment with non-negligible probability. The first step of $\mathcal{A}$ is to get the discrete logarithm $k_i$ of some $\tilde{K}_i \in \{\tilde{K}_{\mathcal{C}}\}$ (base $U$), and the second step of $\mathcal{A}$ is to find $(k_{a,i}'^o, k_{b,i}'^o, t'_{k,i})$ (for e-note image in $T'$) such that $k_{b,i}'^o/k_{a,i}'^o = k_i$, making $\tilde{K}_i \in \{\tilde{K}_{\mathcal{A}}\}$.
